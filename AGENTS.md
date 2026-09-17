@@ -17,8 +17,11 @@
 
 Flujo obligatorio:
 1. Proponer solución (código, estructura, cambios)
-2. Esperar aprobación del usuario
-3. Solo entonces implementar
+2. **Mostrar el código completo** que se va a crear/modificar
+3. Esperar aprobación explícita del usuario
+4. Solo entonces implementar
+
+**IMPORTANTE:** No solo mostrar el plan textual, sino **el código real** (syntax highlighting, archivos completos) antes de crearlos.
 
 ## Skills del Proyecto
 
@@ -109,6 +112,31 @@ server/
 ├── CHANGELOG.md
 └── AGENTS.md
 ```
+
+### Pirámide de Tests
+
+Cada HU debe tener **ambos tipos de test**:
+
+```
+        ╱╲
+       ╱  ╲        E2E (pocos, lentos)
+      ╱    ╲       → Cypress, Playwright (futuro)
+     ╱──────╲
+    ╱        ╲     Integración (moderados)
+   ╱          ╲    → Supertest, HTTP requests
+  ╱────────────╲
+ ╱              ╲  Unitarios (muchos, rápidos)
+╱                ╲ → Vitest, funciones aisladas
+```
+
+| Tipo | Qué prueba | Ubicación | Herramienta |
+|------|------------|-----------|-------------|
+| **Unit** | Función/método aislado | Al lado del archivo | Vitest |
+| **Integración** | Endpoint HTTP completo | `tests/integration/` | Supertest |
+
+**Regla:** Cada HU (HU01-HU21) debe tener:
+1. Test unitario del controller/service (`src/controllers/xxx.test.js`)
+2. Test de integración del endpoint (`tests/integration/hu-XX-xxx.test.js`)
 
 ### Convención de Tests
 
@@ -230,6 +258,29 @@ const getCollections = [];        // función declarada como variable sin funci�
 |--------------|-----------|---------|
 | Unit (controllers, services, middleware) | Colocado al lado del archivo | `src/controllers/collections.test.js` |
 | Integration (endpoints) | `tests/integration/` | `tests/integration/hu-06-admin-collections.test.js` |
+
+### Pirámide de Tests
+
+```
+        ╱╲
+       ╱  ╲        E2E (pocos, lentos)
+      ╱    ╲       → Cypress, Playwright (futuro)
+     ╱──────╲
+    ╱        ╲     Integración (moderados)
+   ╱          ╲    → Supertest, HTTP requests
+  ╱────────────╲
+ ╱              ╲  Unitarios (muchos, rápidos)
+╱                ╲ → Vitest, funciones aisladas
+```
+
+| Tipo | Qué prueba | Ubicación | Herramienta |
+|------|------------|-----------|-------------|
+| **Unit** | Función/método aislado | Al lado del archivo | Vitest |
+| **Integración** | Endpoint HTTP completo | `tests/integration/` | Supertest |
+
+**Regla:** Cada HU (HU01-HU21) debe tener:
+1. Test unitario del controller/service (`src/controllers/xxx.test.js`)
+2. Test de integración del endpoint (`tests/integration/hu-XX-xxx.test.js`)
 
 ## Setup Local (Primera Vez)
 
