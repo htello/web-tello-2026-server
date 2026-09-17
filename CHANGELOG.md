@@ -8,38 +8,28 @@ y este proyecto adherido al [Versionado Semántico](https://semver.org/lang/es/)
 ## [Unreleased]
 
 ### Added
-- Setup inicial del proyecto backend
-- Configuración de Node.js + Express (JavaScript puro)
-- Integración con Prisma ORM para PostgreSQL
-- Configuración de Jest con 100% cobertura obligatoria
-- Docker Compose para PostgreSQL local
-- Skills del proyecto: `tdd-enforcer`, `prisma-mock`, `express-handler`, `hu-scaffold`
-- Documento de diseño de API (`docs/API-DESIGN.md`)
-- Guion de Historias de Usuario (HU01-HU21)
-- AGENTS.md con instrucciones para agentes
-- Configuración de CI/CD con GitHub Actions
-- Seguridad OWASP Top 10:2025 implementada
-
-### Changed
-- N/A
-
-### Deprecated
-- N/A
-
-### Removed
-- N/A
+- HU20: Login Admin (POST /api/v1/auth/login → JWT)
+- Controller de autenticación con bcrypt + jsonwebtoken (`src/controllers/auth.js`)
+- Rutas de autenticación (`src/routes/auth.js`)
+- Middleware de validación con Joi - loginSchema (`src/middleware/validate.js`)
+- Constantes de configuración JWT y bcrypt (`src/lib/constants.js`)
+- Cliente Prisma singleton (`src/lib/prisma.js`)
+- Servicio de logging con Winston (`src/services/logger.js`)
+- Rate limiting en login (10 req/min) via express-rate-limit
+- Tests unitarios para auth controller (4 tests)
+- Tests de integración para login (7 tests)
+- Documentación JSDoc en todos los archivos fuente
 
 ### Fixed
-- N/A
+- Corregido: documentación mencionaba Jest, ahora refleja Vitest (testing framework real)
 
 ### Security
-- JWT authentication para rutas admin
-- Rate limiting en endpoint de contacto (5 req/min)
-- Rate limiting en login (10 req/min)
-- helmet.js para headers de seguridad
+- JWT authentication para rutas admin (HU20)
+- Rate limiting en login (10 req/min) - previene fuerza bruta (OWASP A07)
 - bcrypt con 12 rounds para hashing de contraseñas
+- Validación de input con Joi en endpoint login
+- helmet.js para headers de seguridad
 - CORS configurable por variable de entorno
-- Validación de input con Joi/Zod en todas las rutas POST/PUT
 
 ## [0.1.0] - 2026-09-16
 
