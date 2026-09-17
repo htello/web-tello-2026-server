@@ -1,0 +1,89 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  password  String
+  name      String?
+  role      Role     @default(USER)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum Role {
+  ADMIN
+  USER
+}
+
+model Collection {
+  id          Int       @id @default(autoincrement())
+  title       String
+  description String?
+  coverImage  String?
+  position    Int       @default(0)
+  isPublished Boolean   @default(false)
+  paintings   Painting[]
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model Painting {
+  id           Int       @id @default(autoincrement())
+  title        String
+  imageUrl     String
+  dimensions   String?
+  technique    String?
+  year         Int?
+  isFeatured   Boolean   @default(false)
+  isPublished  Boolean   @default(true)
+  position     Int       @default(0)
+  collectionId Int
+  collection   Collection @relation(fields: [collectionId], references: [id], onDelete: Cascade)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+}
+
+model Exhibition {
+  id          Int      @id @default(autoincrement())
+  title       String
+  date        DateTime
+  location    String?
+  description String?
+  position    Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model DesignProject {
+  id          Int      @id @default(autoincrement())
+  title       String
+  description String?
+  imageUrl    String
+  category    String
+  subcategory String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Illustration {
+  id          Int      @id @default(autoincrement())
+  title       String
+  description String?
+  imageUrl    String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Biography {
+  id        Int      @id @default(autoincrement())
+  content   String
+  imageUrl  String?
+  updatedAt DateTime @updatedAt
+}
