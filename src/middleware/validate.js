@@ -1,5 +1,15 @@
 import Joi from 'joi';
 
+/**
+ * Middleware de validación de input
+ * Usa Joi para validar el body de las peticiones
+ *
+ * @param {Joi.Schema} schema - Schema de Joi para validación
+ * @returns {Function} Middleware de Express
+ *
+ * @example
+ * router.post('/login', validate(loginSchema), controller);
+ */
 const validate = (schema) => (req, res, next) => {
   const { error, value } = schema.validate(req.body, {
     abortEarly: false,
@@ -18,6 +28,13 @@ const validate = (schema) => (req, res, next) => {
   next();
 };
 
+/**
+ * Schema de validación para login
+ * @type {Joi.ObjectSchema}
+ *
+ * @property {string} email - Email válido (requerido)
+ * @property {string} password - Mínimo 8 caracteres (requerido)
+ */
 const loginSchema = Joi.object({
   email: Joi.string()
     .email()

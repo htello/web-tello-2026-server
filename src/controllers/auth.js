@@ -6,6 +6,25 @@ import { JWT_SECRET, JWT_EXPIRATION } from '../lib/constants.js';
 
 const prisma = new PrismaClient();
 
+/**
+ * HU20 - Login Admin
+ * Endpoint POST /api/v1/auth/login
+ *
+ * Autentica al administrador con email y password.
+ * Retorna JWT token y datos del usuario.
+ *
+ * @param {Object} req.body.email - Email del usuario
+ * @param {Object} req.body.password - Contraseña (mínimo 8 caracteres)
+ * @returns {Object} 200 - { data: { token, user } }
+ * @returns {Object} 401 - { error, code: 'UNAUTHORIZED' }
+ * @returns {Object} 500 - { error, code: 'INTERNAL_ERROR' }
+ *
+ * @security Bearer token requerido para rutas admin
+ * @example Request
+ * { "email": "admin@test.com", "password": "admin123" }
+ * @example Response 200
+ * { "data": { "token": "eyJ...", "user": { "id": 1, "email": "admin@test.com", "role": "ADMIN" } } }
+ */
 const login = async (req, res) => {
   try {
     const { email, password } = req.body;
