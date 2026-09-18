@@ -54,4 +54,36 @@ const loginSchema = Joi.object({
     }),
 });
 
-export { validate, loginSchema };
+/**
+ * Schema de validación para registro de administradores
+ * @type {Joi.ObjectSchema}
+ *
+ * @property {string} email - Email válido (requerido)
+ * @property {string} password - Mínimo 8 caracteres (requerido)
+ * @property {string} name - Nombre del usuario (opcional)
+ */
+const registerSchema = Joi.object({
+  email: Joi.string()
+    .email()
+    .required()
+    .messages({
+      'string.email': 'El email debe ser válido',
+      'any.required': 'El email es obligatorio',
+      'string.empty': 'El email no puede estar vacío',
+    }),
+  password: Joi.string()
+    .min(8)
+    .required()
+    .messages({
+      'string.min': 'La contraseña debe tener al menos 8 caracteres',
+      'any.required': 'La contraseña es obligatoria',
+      'string.empty': 'La contraseña no puede estar vacía',
+    }),
+  name: Joi.string()
+    .optional()
+    .messages({
+      'string.base': 'El nombre debe ser una cadena de texto',
+    }),
+});
+
+export { validate, loginSchema, registerSchema };

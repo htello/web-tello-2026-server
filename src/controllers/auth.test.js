@@ -4,7 +4,7 @@ import jwt from 'jsonwebtoken';
 import { mockPrisma } from '../../tests/helpers/prisma-mock.js';
 import { JWT_SECRET } from '../lib/constants.js';
 
-const { login } = await import('../controllers/auth.js');
+const { login, register } = await import('../controllers/auth.js');
 
 describe('HU20 - Auth Controller', () => {
   let req, res;
@@ -102,6 +102,73 @@ describe('HU20 - Auth Controller', () => {
         req.body = { email: 'admin@test.com', password: 'admin123' };
 
         await login(req, res);
+
+        expect(res.status).toHaveBeenCalledWith(500);
+        expect(res.json).toHaveBeenCalledWith({
+          error: 'Error interno del servidor',
+          code: 'INTERNAL_ERROR',
+        });
+      });
+    });
+  });
+
+  describe('register', () => {
+    describe('given valid data and unique email', () => {
+      it('should return 201 with user data and role ADMIN', async () => {
+        const hashedPassword = await bcrypt.hash('clave123', 12);
+        const createdUser = {
+          id: 2,
+          email: 'nuevo-admin@test.com',
+          password: hashedPassword,
+          name: 'Nuevo Admin',
+          role: 'ADMIN',
+        };
+
+        mockPrisma.user.findUnique.mockResolvedValue(null);
+        mockPrisma.user.create.mockResolvedValue(createdUser);
+        req.body = { email: 'nuevo-admin@test.com', password: 'clave123', name: 'Nuevo Admin' };
+
+        await register(req, res);
+
+        expect(res.status).toHaveBeenCalledWith(201);
+        expect(res.json).toHaveBeenCalledWith(
+          expect.objectContaining({
+            data: expect.objectContaining({
+              id: 2,
+              email: 'nuevo-admin@test.com',
+              name: 'Nuevo Admin',
+              role: 'ADMIN',
+            }),
+          })
+        );
+
+        const { data } = res.json.mock.calls[0][0];
+        expect(data).not.toHaveProperty('password');
+      });
+    });
+
+    describe('given duplicate email', () => {
+      it('should return 400 with validation error', async () => {
+        const existingUser = { id: 1, email: 'existing@test.com' };
+        mockPrisma.user.findUnique.mockResolvedValue(existingUser);
+        req.body = { email: 'existing@test.com', password: 'clave123' };
+
+        await register(req, res);
+
+        expect(res.status).toHaveBeenCalledWith(400);
+        expect(res.json).toHaveBeenCalledWith({
+          error: 'El email ya está registrado',
+          code: 'VALIDATION_ERROR',
+        });
+      });
+    });
+
+    describe('given database error', () => {
+      it('should return 500 with internal server error', async () => {
+        mockPrisma.user.findUnique.mockRejectedValue(new Error('DB Error'));
+        req.body = { email: 'nuevo-admin@test.com', password: 'clave123' };
+
+        await register(req, res);
 
         expect(res.status).toHaveBeenCalledWith(500);
         expect(res.json).toHaveBeenCalledWith({
