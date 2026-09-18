@@ -427,6 +427,61 @@ git push origin --delete hu/22-register-admin
 - Siempre hacer merge con `--no-ff` para mantener historial claro
 - Eliminar rama local y remota después del merge exitoso
 
+## CHANGELOG
+
+El archivo `CHANGELOG.md` debe mantenerse actualizado en cada HU implementada.
+
+### Reglas
+
+1. **Formato**: Seguir [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/)
+2. **Versionado**: Seguir [Semantic Versioning](https://semver.org/lang/es/)
+3. **Secciones**: Usar `Added`, `Changed`, `Fixed`, `Security`, `Deprecated`, `Removed`
+4. **Ubicación**: Todo lo no publicado va en `[Unreleased]`
+5. **Commits**: Actualizar CHANGELOG antes de hacer commit de una HU
+6. **Idioma**: Comentarios y docs en español
+
+### Secciones del CHANGELOG
+
+| Sección | Cuándo usar |
+|---------|-------------|
+| `Added` | Nueva funcionalidad (nuevo endpoint, nueva HU) |
+| `Changed` | Cambios en funcionalidad existente |
+| `Fixed` | Corrección de bugs |
+| `Security` | Mejoras de seguridad (OWASP) |
+| `Deprecated` | Funcionalidad que será eliminada |
+| `Removed` | Funcionalidad eliminada |
+
+### Ejemplo
+
+```markdown
+## [Unreleased]
+
+### Added
+- HU16: Upload de Archivos (POST /api/v1/admin/upload)
+- Servicio Multer + Cloudinary (`src/services/upload.js`)
+
+### Security
+- Multer con validación de tipo MIME y tamaño máximo (5MB)
+- Tipos permitidos: image/jpeg, image/png, image/webp
+```
+
+### Versionado Semántico
+
+```
+MAJOR.MINOR.PATCH
+
+MAJOR: Cambios breaking (requieren migración DB, endpoints eliminados)
+MINOR: Nuevas funcionalidades (nuevas HUs, endpoints agregados)
+PATCH: Bugs fixes, mejoras de seguridad, docs
+```
+
+| Tipo de cambio | Incremento | Ejemplo |
+|----------------|------------|---------|
+| Nueva HU | MINOR | `0.2.0` → `0.3.0` |
+| Bug fix | PATCH | `0.2.0` → `0.2.1` |
+| Breaking change | MAJOR | `0.2.0` → `1.0.0` |
+| Seguridad crítica | PATCH | `0.2.0` → `0.2.1` |
+
 ## Seguridad (OWASP Top 10:2025)
 
 | OWASP | Categoría | Implementación Clave |
