@@ -17,8 +17,11 @@
 
 Flujo obligatorio:
 1. Proponer solución (código, estructura, cambios)
-2. Esperar aprobación del usuario
-3. Solo entonces implementar
+2. **Mostrar el código completo** que se va a crear/modificar
+3. Esperar aprobación explícita del usuario
+4. Solo entonces implementar
+
+**IMPORTANTE:** No solo mostrar el plan textual, sino **el código real** (syntax highlighting, archivos completos) antes de crearlos.
 
 ## Skills del Proyecto
 
@@ -109,6 +112,31 @@ server/
 ├── CHANGELOG.md
 └── AGENTS.md
 ```
+
+### Pirámide de Tests
+
+Cada HU debe tener **ambos tipos de test**:
+
+```
+        ╱╲
+       ╱  ╲        E2E (pocos, lentos)
+      ╱    ╲       → Cypress, Playwright (futuro)
+     ╱──────╲
+    ╱        ╲     Integración (moderados)
+   ╱          ╲    → Supertest, HTTP requests
+  ╱────────────╲
+ ╱              ╲  Unitarios (muchos, rápidos)
+╱                ╲ → Vitest, funciones aisladas
+```
+
+| Tipo | Qué prueba | Ubicación | Herramienta |
+|------|------------|-----------|-------------|
+| **Unit** | Función/método aislado | Al lado del archivo | Vitest |
+| **Integración** | Endpoint HTTP completo | `tests/integration/` | Supertest |
+
+**Regla:** Cada HU (HU01-HU21) debe tener:
+1. Test unitario del controller/service (`src/controllers/xxx.test.js`)
+2. Test de integración del endpoint (`tests/integration/hu-XX-xxx.test.js`)
 
 ### Convención de Tests
 
@@ -215,6 +243,54 @@ const Collections = [];           // PascalCase para arrays
 const getCollections = [];        // función declarada como variable sin función
 ```
 
+### 8. Documentación JSDoc
+
+Todo el código debe estar documentado con JSDoc:
+
+```javascript
+// ✅ SIEMPRE documentar funciones con JSDoc
+/**
+ * HU20 - Login Admin
+ * Endpoint POST /api/v1/auth/login
+ *
+ * Autentica al administrador con email y password.
+ * Retorna JWT token y datos del usuario.
+ *
+ * @param {Object} req.body.email - Email del usuario
+ * @param {Object} req.body.password - Contraseña (mínimo 8 caracteres)
+ * @returns {Object} 200 - { data: { token, user } }
+ * @returns {Object} 401 - { error, code: 'UNAUTHORIZED' }
+ * @returns {Object} 500 - { error, code: 'INTERNAL_ERROR' }
+ *
+ * @security Bearer token requerido para rutas admin
+ */
+const login = async (req, res) => {...};
+
+// ✅ SIEMPRE documentar archivos con @fileoverview
+/**
+ * @fileoverview Rutas de autenticación.
+ *
+ * Define los endpoints para login y registro de usuarios.
+ * Usa validación Joi para sanitizar input (OWASP A05).
+ *
+ * @module routes/auth
+ * @requires express
+ * @requires controllers/auth
+ */
+
+// ❌ NUNCA funciones sin documentación
+const login = async (req, res) => {...};
+```
+
+**Elementos obligatorios en JSDoc:**
+- `@fileoverview` en cada archivo
+- `@module` con nombre del módulo
+- `@requires` para dependencias principales
+- `@param` para cada parámetro
+- `@returns` para cada respuesta posible
+- `@security` cuando aplique autenticación/autorización
+- Referencia a la HU que implementa
+
 ## Convenciones de Testing
 
 - Nombre: `describe('HU01 - Galería de Colecciones', () => {...})`
@@ -230,6 +306,29 @@ const getCollections = [];        // función declarada como variable sin funci�
 |--------------|-----------|---------|
 | Unit (controllers, services, middleware) | Colocado al lado del archivo | `src/controllers/collections.test.js` |
 | Integration (endpoints) | `tests/integration/` | `tests/integration/hu-06-admin-collections.test.js` |
+
+### Pirámide de Tests
+
+```
+        ╱╲
+       ╱  ╲        E2E (pocos, lentos)
+      ╱    ╲       → Cypress, Playwright (futuro)
+     ╱──────╲
+    ╱        ╲     Integración (moderados)
+   ╱          ╲    → Supertest, HTTP requests
+  ╱────────────╲
+ ╱              ╲  Unitarios (muchos, rápidos)
+╱                ╲ → Vitest, funciones aisladas
+```
+
+| Tipo | Qué prueba | Ubicación | Herramienta |
+|------|------------|-----------|-------------|
+| **Unit** | Función/método aislado | Al lado del archivo | Vitest |
+| **Integración** | Endpoint HTTP completo | `tests/integration/` | Supertest |
+
+**Regla:** Cada HU (HU01-HU21) debe tener:
+1. Test unitario del controller/service (`src/controllers/xxx.test.js`)
+2. Test de integración del endpoint (`tests/integration/hu-XX-xxx.test.js`)
 
 ## Setup Local (Primera Vez)
 
@@ -291,6 +390,42 @@ chore(docker): add postgres 16
 refactor(auth): extract middleware
 docs: update AGENTS.md
 ```
+
+### Workflow de HU (Obligatorio)
+
+Flujo completo para cada Historia de Usuario:
+
+```bash
+# 1. Crear rama desde develop
+git checkout develop
+git pull
+git checkout -b hu/22-register-admin
+
+# 2. Implementar (TDD: RED → GREEN → REFACTOR)
+pnpm test                    # Verificar que pasa
+pnpm run lint                # Verificar estilo
+pnpm run test:coverage       # Verificar cobertura
+
+# 3. Commit con mensajes descriptivos
+git add .
+git commit -m "feat(hu-22): implement admin register endpoint"
+
+# 4. Push y merge a develop
+git push origin hu/22-register-admin
+git checkout develop
+git merge --no-ff hu/22-register-admin
+git push origin develop
+
+# 5. Eliminar rama mergeada
+git branch -d hu/22-register-admin
+git push origin --delete hu/22-register-admin
+```
+
+**Reglas:**
+- Cada HU debe tener su propia rama (`hu/XX-nombre-descriptivo`)
+- Nunca hacer commit directamente en `develop`
+- Siempre hacer merge con `--no-ff` para mantener historial claro
+- Eliminar rama local y remota después del merge exitoso
 
 ## Seguridad (OWASP Top 10:2025)
 
