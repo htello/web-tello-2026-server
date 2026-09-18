@@ -140,24 +140,13 @@ Recommendations:
 2. Run: pnpm exec prisma db seed
 ```
 
-## Commands
+## Rules
 
-```bash
-# Full validation
-pnpm exec prisma-validator
-
-# Validate schema only
-pnpm exec prisma-validator --schema
-
-# Validate migrations only
-pnpm exec prisma-validator --migrations
-
-# Validate seed only
-pnpm exec prisma-validator --seed
-
-# Fix issues
-pnpm exec prisma-validator --fix
-```
+1. **NEVER** use raw SQL (always Prisma Client)
+2. **NEVER** skip migration validation
+3. **ALWAYS** test seed after schema changes
+4. **ALWAYS** verify relations before deployment
+5. **ALWAYS** use `pnpm exec prisma` commands shown in workflow
 
 ## Common Issues
 

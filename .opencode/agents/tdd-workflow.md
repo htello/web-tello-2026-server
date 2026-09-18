@@ -16,7 +16,7 @@ Autonomous agent for implementing user stories following strict TDD.
 
 ### Phase 1: Preparation
 
-1. Read the HU details from `docs/0003-HU-PORTFOLIO.md`
+1. Read the HU details from `docs/0001-API-DESIGN.md`
 2. Check `AGENTS.md` for:
    - Mapeo HU → Test file path
    - Type of test (unit vs integration)
@@ -111,17 +111,28 @@ Before marking HU as complete, verify:
 2. Verify `docs/0001-API-DESIGN.md` has examples for this HU
 3. If not, add them.
 
-### Phase 8: Commit
+### Phase 8: Verify + Commit
 
-1. Stage all files:
+1. Run all checks before commit:
+   ```bash
+   pnpm test                    # Todos los tests pasan
+   pnpm run lint                # Sin errores ESLint
+   pnpm run test:coverage       # Cobertura verificada
+   ```
+
+2. Update `CHANGELOG.md` with the new HU
+
+3. Stage all files:
    ```bash
    git add .
    ```
 
-2. Commit with conventional format:
+4. Commit with conventional format:
    ```bash
    git commit -m "feat(hu-XX): implement [brief description]"
    ```
+
+5. **NO hacer push ni merge** sin confirmación explícita del usuario
 
 ## Output
 

@@ -37,8 +37,10 @@ Every piece of code MUST follow this cycle:
 1. **NEVER** write implementation code without a failing test first
 2. **NEVER** skip to the next HU without 100% coverage on the current one
 3. **ALWAYS** run `pnpm run test:coverage` before considering a HU complete
-4. **ALWAYS** commit after each GREEN phase (not after RED)
+4. **ALWAYS** run `pnpm test` + `pnpm run lint` before committing
 5. **ALWAYS** use `describe('HUXX - Nombre', () => {...})` naming
+6. **NEVER** push or merge without explicit user approval
+7. **ALWAYS** update `CHANGELOG.md` before committing
 
 ## Test File Naming
 

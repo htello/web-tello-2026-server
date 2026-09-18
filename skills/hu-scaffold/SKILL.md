@@ -9,7 +9,7 @@ Scaffold new HU implementations following strict TDD.
 
 ## Before Starting
 
-1. Read the HU details from `docs/0003-HU-PORTFOLIO.md`
+1. Read the HU details from `docs/0001-API-DESIGN.md`
 2. Identify what needs to be tested (unit vs integration)
 3. Check the mape HU → Test in AGENTS.md for the correct file path
 
@@ -146,12 +146,26 @@ Before marking a HU as complete, verify:
 - [ ] **A07 - Auth**: Rate limiting on login (10 req/min), password policy enforced
 - [ ] **A10 - Errors**: Try/catch in all handlers, generic error messages to client
 
-## Step 9: Commit
+## Step 9: Verify + Commit
+
+```bash
+# ANTES de commit, verificar:
+pnpm test                    # Todos los tests pasan
+pnpm run lint                # Sin errores ESLint
+pnpm run test:coverage       # Cobertura verificada
+```
+
+**Reglas:**
+- **NO hacer commit** sin que tests + lint pasen
+- **NO hacer push ni merge** sin confirmación explícita del usuario
+- Actualizar `CHANGELOG.md` antes del commit
 
 ```bash
 git add .
 git commit -m "feat(hu-XX): implement [brief description]"
 ```
+
+Después del commit, esperar aprobación del usuario para push/merge.
 
 ## HU Reference Table
 
