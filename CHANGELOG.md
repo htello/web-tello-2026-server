@@ -7,6 +7,20 @@ y este proyecto adherido al [Versionado Semántico](https://semver.org/lang/es/)
 
 ## [Unreleased]
 
+### Added
+- HU16: Upload de Archivos (POST /api/v1/admin/upload)
+- Servicio Multer + Cloudinary (`src/services/upload.js`)
+- Controller de upload (`src/controllers/upload.js`)
+- Ruta de upload (`src/routes/upload.js`)
+- Tests unitarios para upload controller y service
+- Tests de integración para upload endpoint
+
+### Security
+- Multer con validación de tipo MIME y tamaño máximo (5MB)
+- Tipos permitidos: image/jpeg, image/png, image/webp
+- Autenticación JWT requerida para upload
+- Solo administradores pueden subir archivos
+
 ## [0.2.0] - 2026-09-18
 
 ### Added
