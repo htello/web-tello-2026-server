@@ -355,7 +355,7 @@ Ver `docs/0002-IMPLEMENTATION-ORDER.md` para el diagrama completo de fases y dep
 
 **Resumen rápido:**
 0. **Fase 0**: Setup del Proyecto (infraestructura base)
-1. **Fase 1**: Auth + Infraestructura (HU20 → HU21 → HU19)
+1. **Fase 1**: Auth + Infraestructura (HU20 → HU22 → HU21 → HU19)
 2. **Fase 2**: Upload (HU16)
 3. **Fase 3**: Admin CRUD (HU06 → HU07 → HU10 → HU12)
 4. **Fase 4**: Galería Pública (HU01 → HU02 → HU03 → HU04 → HU05)
