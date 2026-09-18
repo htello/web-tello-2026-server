@@ -10,23 +10,41 @@
 
 ---
 
-## 1. Autenticación (HU20, HU21)
+## 1. Autenticación (HU20, HU21, HU22)
 
 | Método | Endpoint | Descripción | Auth |
 |--------|----------|-------------|------|
-| `POST` | `/api/v1/auth/register` | Registrar nuevo usuario | No |
 | `POST` | `/api/v1/auth/login` | Login, retorna JWT | No |
+| `POST` | `/api/v1/admin/users/register` | Registrar nuevo admin | Admin |
 
-**POST /api/v1/auth/register**
+**POST /api/v1/auth/login**
 ```json
 // Request
-{ "email": "nuevo@test.com", "password": "clave123", "name": "Nuevo Usuario" }
+{ "email": "admin@test.com", "password": "admin123" }
+
+// Response 200
+{ "data": { "token": "eyJ...", "user": { "id": 1, "email": "admin@test.com", "role": "ADMIN" } } }
+
+// Error 401
+{ "error": "Credenciales inválidas", "code": "UNAUTHORIZED" }
+```
+
+**POST /api/v1/admin/users/register** (HU22 - Requiere JWT Admin)
+```json
+// Request (requiere header Authorization: Bearer <token>)
+{ "email": "nuevo-admin@test.com", "password": "clave123", "name": "Nuevo Admin" }
 
 // Response 201
-{ "data": { "id": 2, "email": "nuevo@test.com", "name": "Nuevo Usuario", "role": "USER" } }
+{ "data": { "id": 2, "email": "nuevo-admin@test.com", "name": "Nuevo Admin", "role": "ADMIN" } }
 
-// Error 400
+// Error 400 (email duplicado)
 { "error": "El email ya está registrado", "code": "VALIDATION_ERROR" }
+
+// Error 401 (sin token)
+{ "error": "Token de autenticación requerido", "code": "UNAUTHORIZED" }
+
+// Error 403 (token inválido o no admin)
+{ "error": "Acceso denegado. Se requiere rol de administrador", "code": "FORBIDDEN" }
 ```
 
 **POST /api/v1/auth/login**
@@ -439,8 +457,8 @@
 
 | # | Método | Ruta | HU | Auth |
 |---|--------|------|----|------|
-| 1 | `POST` | `/api/v1/auth/register` | - | No |
-| 2 | `POST` | `/api/v1/auth/login` | HU20 | No |
+| 1 | `POST` | `/api/v1/auth/login` | HU20 | No |
+| 2 | `POST` | `/api/v1/admin/users/register` | HU22 | Admin |
 | 3 | `GET` | `/api/v1/admin/users` | - | Admin |
 | 4 | `GET` | `/api/v1/admin/users/:id` | - | Admin |
 | 5 | `PUT` | `/api/v1/admin/users/:id` | - | Admin |

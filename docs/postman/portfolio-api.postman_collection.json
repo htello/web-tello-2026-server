@@ -1,0 +1,1018 @@
+{
+  "info": {
+    "name": "Portfolio API - Antonio Tello",
+    "description": "Colección completa de endpoints para la API del portfolio artístico.\n\n**Variables de entorno requeridas:**\n- `baseUrl`: http://localhost:3000/api/v1\n- `authToken`: Se llena automáticamente tras login\n\n**Flujo:**\n1. Ejecutar POST /Auth/Login para obtener token\n2. Los requests Admin usan el token automáticamente",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000/api/v1"
+    },
+    {
+      "key": "authToken",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "Health",
+      "item": [
+        {
+          "name": "GET /health",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/health",
+              "host": ["{{baseUrl}}"],
+              "path": ["health"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "POST /auth/login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const response = pm.response.json();",
+                  "if (response.data && response.data.token) {",
+                  "  pm.environment.set('authToken', response.data.token);",
+                  "  console.log('Token guardado en authToken');",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@test.com\",\n  \"password\": \"admin123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "login"]
+            }
+          }
+        },
+        {
+          "name": "POST /admin/users/register",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"nuevo@test.com\",\n  \"password\": \"clave1234\",\n  \"name\": \"Nuevo Usuario\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/admin/users/register",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "users", "register"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Users (Admin)",
+      "item": [
+        {
+          "name": "GET /admin/users",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/users?page=1&limit=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "users"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "20" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "GET /admin/users/:id",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/users/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "users", "1"]
+            }
+          }
+        },
+        {
+          "name": "PUT /admin/users/:id",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"actualizado@test.com\",\n  \"name\": \"Nombre Actualizado\",\n  \"role\": \"ADMIN\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/admin/users/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "users", "1"]
+            }
+          }
+        },
+        {
+          "name": "DELETE /admin/users/:id",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/users/2",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "users", "2"]
+            }
+          }
+        },
+        {
+          "name": "PUT /admin/users/:id/password",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"password\": \"nuevaClave123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/admin/users/1/password",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "users", "1", "password"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Collections",
+      "item": [
+        {
+          "name": "Publicas",
+          "item": [
+            {
+              "name": "GET /collections",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/collections",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["collections"]
+                }
+              }
+            },
+            {
+              "name": "GET /collections/:id",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/collections/1",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["collections", "1"]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "Admin",
+          "item": [
+            {
+              "name": "POST /admin/collections",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{authToken}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"title\": \"Nueva Coleccion\",\n  \"description\": \"Descripcion de la coleccion\",\n  \"coverImage\": \"https://example.com/cover.jpg\",\n  \"position\": 1,\n  \"isPublished\": true\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/admin/collections",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["admin", "collections"]
+                }
+              }
+            },
+            {
+              "name": "PUT /admin/collections/:id",
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{authToken}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"title\": \"Coleccion Actualizada\",\n  \"description\": \"Nueva descripcion\",\n  \"coverImage\": \"https://example.com/new-cover.jpg\",\n  \"position\": 2,\n  \"isPublished\": true\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/admin/collections/1",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["admin", "collections", "1"]
+                }
+              }
+            },
+            {
+              "name": "DELETE /admin/collections/:id",
+              "request": {
+                "method": "DELETE",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{authToken}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/admin/collections/3",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["admin", "collections", "3"]
+                }
+              }
+            },
+            {
+              "name": "PUT /admin/collections/reorder",
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{authToken}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"orderedIds\": [3, 1, 2]\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/admin/collections/reorder",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["admin", "collections", "reorder"]
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Paintings",
+      "item": [
+        {
+          "name": "Publicas",
+          "item": [
+            {
+              "name": "GET /paintings/featured",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/paintings/featured",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["paintings", "featured"]
+                }
+              }
+            },
+            {
+              "name": "GET /paintings/:id",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/paintings/1",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["paintings", "1"]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "Admin",
+          "item": [
+            {
+              "name": "POST /admin/paintings",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{authToken}}"
+                  }
+                ],
+                "body": {
+                  "mode": "formdata",
+                  "formdata": [
+                    { "key": "title", "value": "Nueva Pintura", "type": "text" },
+                    { "key": "dimensions", "value": "80x60 cm", "type": "text" },
+                    { "key": "technique", "value": "Oleo sobre lienzo", "type": "text" },
+                    { "key": "year", "value": "2024", "type": "text" },
+                    { "key": "collectionId", "value": "1", "type": "text" },
+                    { "key": "isFeatured", "value": "false", "type": "text" },
+                    { "key": "isPublished", "value": "true", "type": "text" },
+                    { "key": "image", "type": "file", "src": "" }
+                  ]
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/admin/paintings",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["admin", "paintings"]
+                }
+              }
+            },
+            {
+              "name": "PUT /admin/paintings/:id",
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{authToken}}"
+                  }
+                ],
+                "body": {
+                  "mode": "formdata",
+                  "formdata": [
+                    { "key": "title", "value": "Pintura Actualizada", "type": "text" },
+                    { "key": "dimensions", "value": "100x80 cm", "type": "text" },
+                    { "key": "technique", "value": "Acrilico", "type": "text" },
+                    { "key": "year", "value": "2025", "type": "text" },
+                    { "key": "collectionId", "value": "1", "type": "text" },
+                    { "key": "isFeatured", "value": "true", "type": "text" },
+                    { "key": "isPublished", "value": "true", "type": "text" },
+                    { "key": "image", "type": "file", "src": "" }
+                  ]
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/admin/paintings/1",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["admin", "paintings", "1"]
+                }
+              }
+            },
+            {
+              "name": "DELETE /admin/paintings/:id",
+              "request": {
+                "method": "DELETE",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{authToken}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/admin/paintings/5",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["admin", "paintings", "5"]
+                }
+              }
+            },
+            {
+              "name": "PUT /admin/paintings/:id/feature",
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{authToken}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/admin/paintings/1/feature",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["admin", "paintings", "1", "feature"]
+                }
+              }
+            },
+            {
+              "name": "PUT /admin/paintings/:id/publish",
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{authToken}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/admin/paintings/1/publish",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["admin", "paintings", "1", "publish"]
+                }
+              }
+            },
+            {
+              "name": "PUT /admin/paintings/reorder",
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{authToken}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"orderedIds\": [3, 1, 2],\n  \"collectionId\": 1\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/admin/paintings/reorder",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["admin", "paintings", "reorder"]
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Exhibitions",
+      "item": [
+        {
+          "name": "Publicas",
+          "item": [
+            {
+              "name": "GET /exhibitions",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/exhibitions",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["exhibitions"]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "Admin",
+          "item": [
+            {
+              "name": "POST /admin/exhibitions",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{authToken}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"title\": \"Muestra Colectiva 2025\",\n  \"date\": \"2025-06-15\",\n  \"location\": \"Galeria Central, Madrid\",\n  \"description\": \"Exposicion colectiva de arte contemporaneo\",\n  \"position\": 1\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/admin/exhibitions",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["admin", "exhibitions"]
+                }
+              }
+            },
+            {
+              "name": "PUT /admin/exhibitions/:id",
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{authToken}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"title\": \"Muestra Actualizada 2025\",\n  \"date\": \"2025-07-20\",\n  \"location\": \"Galeria Norte, Barcelona\",\n  \"description\": \"Nueva descripcion de la exposicion\",\n  \"position\": 2\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/admin/exhibitions/1",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["admin", "exhibitions", "1"]
+                }
+              }
+            },
+            {
+              "name": "DELETE /admin/exhibitions/:id",
+              "request": {
+                "method": "DELETE",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{authToken}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/admin/exhibitions/5",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["admin", "exhibitions", "5"]
+                }
+              }
+            },
+            {
+              "name": "PUT /admin/exhibitions/reorder",
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{authToken}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"orderedIds\": [3, 1, 2, 4, 5]\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/admin/exhibitions/reorder",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["admin", "exhibitions", "reorder"]
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Design",
+      "item": [
+        {
+          "name": "Publicas",
+          "item": [
+            {
+              "name": "GET /design (todas)",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/design",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["design"]
+                }
+              }
+            },
+            {
+              "name": "GET /design?subcategory=imagen-corporativa",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/design?subcategory=imagen-corporativa",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["design"],
+                  "query": [
+                    { "key": "subcategory", "value": "imagen-corporativa" }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "GET /design?subcategory=packaging-expositores",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/design?subcategory=packaging-expositores",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["design"],
+                  "query": [
+                    { "key": "subcategory", "value": "packaging-expositores" }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "GET /design?subcategory=carteleria",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/design?subcategory=carteleria",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["design"],
+                  "query": [
+                    { "key": "subcategory", "value": "carteleria" }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "GET /design?subcategory=editorial",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/design?subcategory=editorial",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["design"],
+                  "query": [
+                    { "key": "subcategory", "value": "editorial" }
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "Admin",
+          "item": [
+            {
+              "name": "POST /admin/design",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{authToken}}"
+                  }
+                ],
+                "body": {
+                  "mode": "formdata",
+                  "formdata": [
+                    { "key": "title", "value": "Nuevo Proyecto Diseno", "type": "text" },
+                    { "key": "description", "value": "Descripcion del proyecto", "type": "text" },
+                    { "key": "category", "value": "diseno-grafico", "type": "text" },
+                    { "key": "subcategory", "value": "imagen-corporativa", "type": "text" },
+                    { "key": "image", "type": "file", "src": "" }
+                  ]
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/admin/design",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["admin", "design"]
+                }
+              }
+            },
+            {
+              "name": "PUT /admin/design/:id",
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{authToken}}"
+                  }
+                ],
+                "body": {
+                  "mode": "formdata",
+                  "formdata": [
+                    { "key": "title", "value": "Proyecto Actualizado", "type": "text" },
+                    { "key": "description", "value": "Nueva descripcion", "type": "text" },
+                    { "key": "category", "value": "diseno-grafico", "type": "text" },
+                    { "key": "subcategory", "value": "packaging-expositores", "type": "text" },
+                    { "key": "image", "type": "file", "src": "" }
+                  ]
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/admin/design/1",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["admin", "design", "1"]
+                }
+              }
+            },
+            {
+              "name": "DELETE /admin/design/:id",
+              "request": {
+                "method": "DELETE",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{authToken}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/admin/design/3",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["admin", "design", "3"]
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Illustrations",
+      "item": [
+        {
+          "name": "Publicas",
+          "item": [
+            {
+              "name": "GET /illustrations",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/illustrations",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["illustrations"]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "Admin",
+          "item": [
+            {
+              "name": "POST /admin/illustrations",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{authToken}}"
+                  }
+                ],
+                "body": {
+                  "mode": "formdata",
+                  "formdata": [
+                    { "key": "title", "value": "Nueva Ilustracion", "type": "text" },
+                    { "key": "description", "value": "Descripcion de la ilustracion", "type": "text" },
+                    { "key": "image", "type": "file", "src": "" }
+                  ]
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/admin/illustrations",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["admin", "illustrations"]
+                }
+              }
+            },
+            {
+              "name": "PUT /admin/illustrations/:id",
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{authToken}}"
+                  }
+                ],
+                "body": {
+                  "mode": "formdata",
+                  "formdata": [
+                    { "key": "title", "value": "Ilustracion Actualizada", "type": "text" },
+                    { "key": "description", "value": "Nueva descripcion", "type": "text" },
+                    { "key": "image", "type": "file", "src": "" }
+                  ]
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/admin/illustrations/1",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["admin", "illustrations", "1"]
+                }
+              }
+            },
+            {
+              "name": "DELETE /admin/illustrations/:id",
+              "request": {
+                "method": "DELETE",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{authToken}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/admin/illustrations/5",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["admin", "illustrations", "5"]
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Biography",
+      "item": [
+        {
+          "name": "Publica",
+          "item": [
+            {
+              "name": "GET /biography",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/biography",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["biography"]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "Admin",
+          "item": [
+            {
+              "name": "POST /admin/biography",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{authToken}}"
+                  }
+                ],
+                "body": {
+                  "mode": "formdata",
+                  "formdata": [
+                    { "key": "content", "value": "Biografia del artista Antonio Tello. Nacido en Espana, su obra abarca desde el arte tradicional hasta el diseno grafico contemporaneo.", "type": "text" },
+                    { "key": "image", "type": "file", "src": "" }
+                  ]
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/admin/biography",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["admin", "biography"]
+                }
+              }
+            },
+            {
+              "name": "PUT /admin/biography",
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{authToken}}"
+                  }
+                ],
+                "body": {
+                  "mode": "formdata",
+                  "formdata": [
+                    { "key": "content", "value": "Biografia actualizada del artista Antonio Tello. Con mas de 10 anos de experiencia en el mundo del arte y el diseno.", "type": "text" },
+                    { "key": "image", "type": "file", "src": "" }
+                  ]
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/admin/biography",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["admin", "biography"]
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Contact",
+      "item": [
+        {
+          "name": "POST /contact",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Juan Garcia\",\n  \"email\": \"juan@ejemplo.com\",\n  \"subject\": \"Consulta sobre obra\",\n  \"message\": \"Me interesa la pieza Atardecer. Esta disponible?\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/contact",
+              "host": ["{{baseUrl}}"],
+              "path": ["contact"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Upload (Admin)",
+      "item": [
+        {
+          "name": "POST /admin/upload",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                { "key": "file", "type": "file", "src": "" }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/admin/upload",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "upload"]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

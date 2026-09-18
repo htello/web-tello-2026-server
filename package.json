@@ -11,7 +11,8 @@
     "test:watch": "vitest watch",
     "test:coverage": "vitest run --coverage",
     "lint": "eslint src/",
-    "lint:fix": "eslint src/ --fix"
+    "lint:fix": "eslint src/ --fix",
+    "prisma:studio": "prisma studio"
   },
   "prisma": {
     "seed": "node prisma/seed.js"

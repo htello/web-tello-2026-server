@@ -483,11 +483,11 @@ components:
               type: string
 
 paths:
-  /auth/register:
+  /admin/users/register:
     post:
       tags: [Auth]
-      summary: Registrar nuevo usuario
-      security: []
+      summary: Registrar nuevo administrador
+      description: "Registra un nuevo usuario con rol ADMIN. Requiere JWT válido de un administrador autenticado."
       requestBody:
         required: true
         content:
@@ -496,7 +496,7 @@ paths:
               $ref: '#/components/schemas/RegisterRequest'
       responses:
         '201':
-          description: Usuario registrado
+          description: Administrador registrado
           content:
             application/json:
               schema:
@@ -505,7 +505,19 @@ paths:
                   data:
                     $ref: '#/components/schemas/User'
         '400':
-          description: Datos inválidos
+          description: Datos inválidos o email duplicado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: No autenticado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Sin permisos (no es admin)
           content:
             application/json:
               schema:

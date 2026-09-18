@@ -29,10 +29,11 @@ Trabajo previo a cualquier HU. No es una HU, es infraestructura base.
 Requerida para todo lo demás.
 
 ```
-HU20 → HU21 → HU19
+HU20 → HU22 → HU21 → HU19
 ```
 
 - **HU20**: Login Admin (POST /api/v1/auth/login → JWT)
+- **HU22**: Registro Admin (POST /api/v1/admin/users/register → JWT requerido, solo admins)
 - **HU21**: Protección Rutas (Middleware JWT en /api/v1/admin/*)
 - **HU19**: Health Check (GET /api/v1/health)
 
