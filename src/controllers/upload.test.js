@@ -3,6 +3,7 @@ import { uploadFile } from './upload.js';
 
 vi.mock('../services/upload.js', () => ({
   uploadToCloudinary: vi.fn(),
+  ALLOWED_SECTIONS: ['pintura', 'ilustracion', 'diseno', 'general'],
 }));
 
 vi.mock('../services/logger.js', () => ({
@@ -17,7 +18,7 @@ describe('HU16 - Upload Controller', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    req = { file: null };
+    req = { file: null, body: {} };
     res = {
       status: vi.fn().mockReturnThis(),
       json: vi.fn(),
@@ -25,7 +26,7 @@ describe('HU16 - Upload Controller', () => {
   });
 
   describe('given valid file', () => {
-    it('should return 200 with upload data', async () => {
+    it('should return 200 with upload data and default section', async () => {
       req.file = { buffer: Buffer.from('img'), mimetype: 'image/jpeg', originalname: 'test.jpg', size: 1024 };
       uploadToCloudinary.mockResolvedValue({
         url: 'https://res.cloudinary.com/test/test.jpg',
@@ -37,6 +38,7 @@ describe('HU16 - Upload Controller', () => {
 
       await uploadFile(req, res);
 
+      expect(uploadToCloudinary).toHaveBeenCalledWith(req.file, 'general');
       expect(res.json).toHaveBeenCalledWith({
         data: {
           url: 'https://res.cloudinary.com/test/test.jpg',
@@ -47,6 +49,23 @@ describe('HU16 - Upload Controller', () => {
         },
       });
       expect(logger.info).toHaveBeenCalled();
+    });
+
+    it('should return 200 with correct section', async () => {
+      req.file = { buffer: Buffer.from('img'), mimetype: 'image/jpeg', originalname: 'test.jpg', size: 1024 };
+      req.body.section = 'pintura';
+      uploadToCloudinary.mockResolvedValue({
+        url: 'https://res.cloudinary.com/test/pintura.jpg',
+        thumbnail: 'https://res.cloudinary.com/test/pintura_thumb.jpg',
+        width: 1200,
+        height: 800,
+        format: 'jpg',
+      });
+
+      await uploadFile(req, res);
+
+      expect(uploadToCloudinary).toHaveBeenCalledWith(req.file, 'pintura');
+      expect(res.json).toHaveBeenCalled();
     });
   });
 
@@ -59,6 +78,21 @@ describe('HU16 - Upload Controller', () => {
       expect(res.status).toHaveBeenCalledWith(400);
       expect(res.json).toHaveBeenCalledWith({
         error: 'No se proporcionó archivo',
+        code: 'VALIDATION_ERROR',
+      });
+    });
+  });
+
+  describe('given invalid section', () => {
+    it('should return 400', async () => {
+      req.file = { buffer: Buffer.from('img'), mimetype: 'image/jpeg', originalname: 'test.jpg', size: 1024 };
+      req.body.section = 'invalid-section';
+
+      await uploadFile(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(400);
+      expect(res.json).toHaveBeenCalledWith({
+        error: 'Sección no válida. Permitidas: pintura, ilustracion, diseno, general',
         code: 'VALIDATION_ERROR',
       });
     });
