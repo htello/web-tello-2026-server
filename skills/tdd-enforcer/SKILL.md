@@ -42,6 +42,19 @@ Every piece of code MUST follow this cycle:
 6. **NEVER** push or merge without explicit user approval
 7. **ALWAYS** update `CHANGELOG.md` before committing
 
+## ⛔ COMMIT AND PUSH RULE (CRITICAL)
+
+> **NEVER commit or push without EXPLICIT user confirmation.**
+
+This applies ALWAYS, no exceptions:
+- Do NOT run `git commit` until the user says "haz commit" or similar
+- Do NOT run `git push` until the user says "haz push" or similar
+- Do NOT run `git merge` until the user confirms
+- Do NOT create new branches without asking first
+
+**Words that are NOT confirmation:** "ok", "vale", "perfecto", "bien", "sigue"
+**Words that ARE confirmation:** "haz commit", "commit", "push", "sube", "guarda"
+
 ## Test File Naming
 
 ```

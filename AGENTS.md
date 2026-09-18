@@ -23,6 +23,25 @@ Flujo obligatorio:
 
 **IMPORTANTE:** No solo mostrar el plan textual, sino **el código real** (syntax highlighting, archivos completos) antes de crearlos.
 
+## ⛔ REGLA CRÍTICA: COMMIT Y PUSH
+
+> **NUNCA hacer commit ni push sin confirmación EXPLÍCITA del usuario.**
+
+Esto aplica SIEMPRE, sin excepciones:
+- ❌ No hacer `git commit` hasta que el usuario diga "haz commit" o similar
+- ❌ No hacer `git push` hasta que el usuario diga "haz push" o similar
+- ❌ No hacer `git merge` hasta que el usuario confirme
+- ❌ No hacer `git checkout` de ramas nuevas sin preguntar primero
+
+**Flujo correcto:**
+1. Hacer todos los cambios necesarios
+2. Ejecutar tests + lint + coverage
+3. **Esperar confirmación explícita del usuario** antes de cualquier operación git
+4. Solo entonces ejecutar git add/commit/push/merge
+
+**Palabras que NO son confirmación:** "ok", "vale", "perfecto", "bien", "sigue"
+**Palabras que SÍ son confirmación:** "haz commit", "commit", "push", "sube", "guarda"
+
 ## Skills del Proyecto
 
 Uso obligatorio de skills para mantener consistencia:
