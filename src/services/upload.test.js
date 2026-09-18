@@ -25,14 +25,13 @@ describe('HU16 - Upload Service', () => {
 
   describe('upload (multer config)', () => {
     it('should configure multer with memory storage', async () => {
-      const { upload } = await import('./upload.js');
+      await import('./upload.js');
       expect(multer.memoryStorage).toHaveBeenCalled();
     });
 
     it('should accept allowed MIME types', async () => {
       const { upload } = await import('./upload.js');
-      const multerInstance = upload;
-      expect(multerInstance).toBeDefined();
+      expect(upload).toBeDefined();
     });
   });
 

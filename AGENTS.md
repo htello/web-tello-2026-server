@@ -426,6 +426,8 @@ git push origin --delete hu/22-register-admin
 - Nunca hacer commit directamente en `develop`
 - Siempre hacer merge con `--no-ff` para mantener historial claro
 - Eliminar rama local y remota después del merge exitoso
+- **ANTES de hacer commit**: Todos los tests deben pasar (`pnpm test`) + ESLint (`pnpm run lint`) + Coverage (`pnpm run test:coverage`)
+- **NO hacer push ni merge** sin confirmación explícita del usuario
 
 ## CHANGELOG
 
