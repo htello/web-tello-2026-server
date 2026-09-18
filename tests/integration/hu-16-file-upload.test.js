@@ -11,6 +11,7 @@ vi.mock('../../src/services/upload.js', () => ({
     single: () => mockUploadFile,
   },
   uploadToCloudinary: vi.fn(),
+  ALLOWED_SECTIONS: ['pintura', 'ilustracion', 'diseno', 'general'],
 }));
 
 const app = (await import('../../src/app.js')).default;

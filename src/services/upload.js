@@ -25,6 +25,27 @@ const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
 const MAX_SIZE = 5 * 1024 * 1024;
 
 /**
+ * Secciones permitidas para subcarpetas en Cloudinary
+ * @type {string[]}
+ */
+const ALLOWED_SECTIONS = ['pintura', 'ilustracion', 'diseno', 'general'];
+
+/**
+ * Limpia el nombre del archivo para usarlo como public_id en Cloudinary
+ * Elimina caracteres especiales y espacios
+ *
+ * @param {string} filename - Nombre original del archivo
+ * @returns {string} Nombre limpio sin extensión
+ */
+const sanitizeFilename = (filename) => {
+  return filename
+    .replace(/\.[^/.]+$/, '')           // Eliminar extensión
+    .replace(/[^a-zA-Z0-9_-]/g, '-')    // Reemplazar caracteres especiales con guiones
+    .replace(/-+/g, '-')                 // Reemplazar guiones múltiples con uno solo
+    .replace(/^-|-$/g, '');              // Eliminar guiones al inicio y final
+};
+
+/**
  * Configuración de Multer con almacenamiento en memoria
  * y validación de tipo MIME y tamaño
  * @type {multer.Multer}
@@ -45,17 +66,27 @@ const upload = multer({
  * HU16 - Upload a Cloudinary
  * Sube un archivo buffer a Cloudinary y retorna URLs optimizadas
  *
- * @param {Object} file - Archivo de Multer con buffer y mimetype
+ * @param {Object} file - Archivo de Multer con buffer, mimetype y originalname
  * @param {Buffer} file.buffer - Contenido del archivo
  * @param {string} file.mimetype - Tipo MIME del archivo
+ * @param {string} file.originalname - Nombre original del archivo
+ * @param {string} section - Sección para subcarpeta (pintura, ilustracion, diseno, general)
  * @returns {Promise<Object>} URLs y metadata de la imagen subida
  */
-const uploadToCloudinary = async (file) => {
+const uploadToCloudinary = async (file, section = 'general') => {
+  const folder = ALLOWED_SECTIONS.includes(section)
+    ? `portfolio-antonio-tello/${section}`
+    : 'portfolio-antonio-tello/general';
+
+  const filename = sanitizeFilename(file.originalname);
+  const publicId = `${filename}-${Date.now()}`;
+
   const b64 = file.buffer.toString('base64');
   const dataURI = `data:${file.mimetype};base64,${b64}`;
 
   const result = await cloudinary.uploader.upload(dataURI, {
-    folder: 'portfolio',
+    folder,
+    public_id: publicId,
     transformation: [{ width: 1200, crop: 'limit' }],
   });
 
@@ -68,4 +99,4 @@ const uploadToCloudinary = async (file) => {
   };
 };
 
-export { upload, uploadToCloudinary, ALLOWED_TYPES, MAX_SIZE };
+export { upload, uploadToCloudinary, ALLOWED_TYPES, MAX_SIZE, ALLOWED_SECTIONS };
