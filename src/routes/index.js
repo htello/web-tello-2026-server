@@ -10,14 +10,20 @@
 
 import { Router } from 'express';
 import authRoutes from './auth.js';
+import adminRoutes from './admin.js';
 
 const router = Router();
 
 /**
  * Rutas de autenticación
  * - POST /auth/login → HU20: Login Admin
- * - POST /auth/register → (futuro)
  */
 router.use('/auth', authRoutes);
+
+/**
+ * Rutas de administración
+ * - POST /admin/users/register → HU22: Registro Admin (requiere auth)
+ */
+router.use('/admin', adminRoutes);
 
 export default router;
