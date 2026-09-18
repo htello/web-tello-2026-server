@@ -1,12 +1,13 @@
 /**
  * @fileoverview Rutas de administración.
  *
- * Define los endpoints para gestión de usuarios admin.
+ * Define los endpoints para gestión de usuarios admin y upload de archivos.
  * Todos los endpoints requieren autenticación JWT.
  *
  * @module routes/admin
  * @requires express
  * @requires controllers/auth
+ * @requires routes/upload
  * @requires middleware/auth
  * @requires middleware/validate
  */
@@ -15,6 +16,7 @@ import { Router } from 'express';
 import { register } from '../controllers/auth.js';
 import { validate, registerSchema } from '../middleware/validate.js';
 import { authenticate, requireAdmin } from '../middleware/auth.js';
+import uploadRoutes from './upload.js';
 
 const router = Router();
 
@@ -41,5 +43,11 @@ router.post(
   validate(registerSchema),
   register
 );
+
+/**
+ * Rutas de upload
+ * - POST /upload → HU16: Upload de Archivos (requiere auth)
+ */
+router.use('/upload', uploadRoutes);
 
 export default router;
