@@ -262,15 +262,48 @@ const designSchema = Joi.object({
     }),
   imageUrl: Joi.string()
     .uri()
-    .required()
+    .optional()
+    .allow('', null)
     .messages({
-      'any.required': 'La imagen es obligatoria',
       'string.uri': 'La imagen debe ser una URL válida',
     }),
   description: Joi.string()
     .optional()
     .allow('', null),
 });
+
+/**
+ * Schema de validación para actualizar proyecto de diseño (campos opcionales)
+ * @type {Joi.ObjectSchema}
+ */
+const designUpdateSchema = Joi.object({
+  title: Joi.string()
+    .optional()
+    .messages({
+      'string.empty': 'El título no puede estar vacío',
+    }),
+  category: Joi.string()
+    .optional()
+    .messages({
+      'string.empty': 'La categoría no puede estar vacía',
+    }),
+  subcategory: Joi.string()
+    .valid('imagen-corporativa', 'packaging-expositores', 'carteleria', 'editorial')
+    .optional()
+    .messages({
+      'any.only': 'La subcategoría debe ser: imagen-corporativa, packaging-expositores, carteleria o editorial',
+    }),
+  imageUrl: Joi.string()
+    .uri()
+    .optional()
+    .allow('', null)
+    .messages({
+      'string.uri': 'La imagen debe ser una URL válida',
+    }),
+  description: Joi.string()
+    .optional()
+    .allow('', null),
+}).min(1);
 
 /**
  * Schema de validación para ilustraciones
@@ -285,15 +318,37 @@ const illustrationSchema = Joi.object({
     }),
   imageUrl: Joi.string()
     .uri()
-    .required()
+    .optional()
+    .allow('', null)
     .messages({
-      'any.required': 'La imagen es obligatoria',
       'string.uri': 'La imagen debe ser una URL válida',
     }),
   description: Joi.string()
     .optional()
     .allow('', null),
 });
+
+/**
+ * Schema de validación para actualizar ilustración (campos opcionales)
+ * @type {Joi.ObjectSchema}
+ */
+const illustrationUpdateSchema = Joi.object({
+  title: Joi.string()
+    .optional()
+    .messages({
+      'string.empty': 'El título no puede estar vacío',
+    }),
+  imageUrl: Joi.string()
+    .uri()
+    .optional()
+    .allow('', null)
+    .messages({
+      'string.uri': 'La imagen debe ser una URL válida',
+    }),
+  description: Joi.string()
+    .optional()
+    .allow('', null),
+}).min(1);
 
 /**
  * Schema de validación para biografía
@@ -373,7 +428,9 @@ export {
   exhibitionSchema,
   exhibitionUpdateSchema,
   designSchema,
+  designUpdateSchema,
   illustrationSchema,
+  illustrationUpdateSchema,
   biographySchema,
   contactSchema,
   reorderSchema,
