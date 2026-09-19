@@ -140,14 +140,6 @@ Recommendations:
 2. Run: pnpm exec prisma db seed
 ```
 
-## Rules
-
-1. **NEVER** use raw SQL (always Prisma Client)
-2. **NEVER** skip migration validation
-3. **ALWAYS** test seed after schema changes
-4. **ALWAYS** verify relations before deployment
-5. **ALWAYS** use `pnpm exec prisma` commands shown in workflow
-
 ## Common Issues
 
 | Issue | Solution |
@@ -157,10 +149,3 @@ Recommendations:
 | Migration conflict | `prisma migrate reset --force` |
 | Seed fails | Check data types match schema |
 | N+1 queries | Use `include` or `select` |
-
-## Rules
-
-1. **NEVER** use raw SQL (always Prisma Client)
-2. **NEVER** skip migration validation
-3. **ALWAYS** test seed after schema changes
-4. **ALWAYS** verify relations before deployment

@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import request from 'supertest';
-import app from '../src/app.js';
+const app = (await import('../../src/app.js')).default;
 
 describe('GET /api/v1/health', () => {
   it('should return health status', async () => {

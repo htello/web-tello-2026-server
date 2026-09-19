@@ -46,6 +46,22 @@ const sanitizeFilename = (filename) => {
 };
 
 /**
+ * Filtro de archivos para Multer
+ * Valida que el tipo MIME esté en la lista de permitidos
+ *
+ * @param {Object} req - Request de Express
+ * @param {Object} file - Archivo de Multer con mimetype
+ * @param {Function} cb - Callback de Multer (error, accepted)
+ */
+const fileFilter = (req, file, cb) => {
+  if (ALLOWED_TYPES.includes(file.mimetype)) {
+    cb(null, true);
+  } else {
+    cb(new Error('Tipo de archivo no permitido. Solo se permiten: image/jpeg, image/png, image/webp'), false);
+  }
+};
+
+/**
  * Configuración de Multer con almacenamiento en memoria
  * y validación de tipo MIME y tamaño
  * @type {multer.Multer}
@@ -53,13 +69,7 @@ const sanitizeFilename = (filename) => {
 const upload = multer({
   storage: multer.memoryStorage(),
   limits: { fileSize: MAX_SIZE },
-  fileFilter: (req, file, cb) => {
-    if (ALLOWED_TYPES.includes(file.mimetype)) {
-      cb(null, true);
-    } else {
-      cb(new Error('Tipo de archivo no permitido. Solo se permiten: image/jpeg, image/png, image/webp'), false);
-    }
-  },
+  fileFilter,
 });
 
 /**
@@ -99,4 +109,4 @@ const uploadToCloudinary = async (file, section = 'general') => {
   };
 };
 
-export { upload, uploadToCloudinary, ALLOWED_TYPES, MAX_SIZE, ALLOWED_SECTIONS };
+export { upload, uploadToCloudinary, fileFilter, ALLOWED_TYPES, MAX_SIZE, ALLOWED_SECTIONS };

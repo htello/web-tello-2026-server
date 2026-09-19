@@ -9,7 +9,13 @@ export default defineConfig({
       reporter: ['text', 'json', 'html'],
       reportsDirectory: './coverage',
       include: ['src/**/*.js'],
-      exclude: ['src/**/*.test.js'],
+      exclude: ['src/**/*.test.js', 'src/app.js'],
+      thresholds: {
+        branches: 95,
+        functions: 100,
+        lines: 100,
+        statements: 100,
+      },
     },
   },
 });

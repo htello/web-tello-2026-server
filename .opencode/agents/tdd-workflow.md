@@ -1,6 +1,6 @@
 ---
 name: tdd-workflow
-description: Autonomous TDD workflow for implementing user stories (HU01-HU21). Use this agent when starting a new HU. It will create tests first, implement code, verify coverage, and commit. Triggers on: "implementar HU", "empezar HU", "HU01", "HU02", etc.
+description: Autonomous TDD workflow for implementing user stories (HU01-HU22). Use this agent when starting a new HU. It will create tests first, implement code, verify coverage, and commit. Triggers on: "implementar HU", "empezar HU", "HU01", "HU02", etc.
 ---
 
 # TDD Workflow Agent
@@ -30,8 +30,8 @@ Autonomous agent for implementing user stories following strict TDD.
 
 1. Create test file at the correct path:
    ```
-   tests/unit/hu-XX-feature.test.js        # For unit tests
-   tests/integration/hu-XX-feature.test.js  # For integration tests
+   tests/unit/hu-XX-feature-name.test.js        # For unit tests
+   tests/integration/hu-XX-feature-name.test.js  # For integration tests
    ```
 
 2. Write test skeleton with:

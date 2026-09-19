@@ -29,6 +29,26 @@ const createPrismaMock = () => ({
     update: vi.fn(),
     delete: vi.fn(),
   },
+  designProject: {
+    findUnique: vi.fn(),
+    findMany: vi.fn(),
+    create: vi.fn(),
+    update: vi.fn(),
+    delete: vi.fn(),
+  },
+  illustration: {
+    findUnique: vi.fn(),
+    findMany: vi.fn(),
+    create: vi.fn(),
+    update: vi.fn(),
+    delete: vi.fn(),
+  },
+  biography: {
+    findFirst: vi.fn(),
+    create: vi.fn(),
+    update: vi.fn(),
+  },
+  $transaction: vi.fn((fns) => Promise.all(fns)),
 });
 
 const mockPrisma = createPrismaMock();

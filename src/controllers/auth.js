@@ -1,10 +1,8 @@
-import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
+import prisma from '../lib/prisma.js';
 import logger from '../services/logger.js';
 import { JWT_SECRET, JWT_EXPIRATION, BCRYPT_ROUNDS } from '../lib/constants.js';
-
-const prisma = new PrismaClient();
 
 /**
  * HU20 - Login Admin

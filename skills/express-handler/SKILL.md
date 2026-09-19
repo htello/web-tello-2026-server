@@ -13,14 +13,15 @@ Standard patterns for Express routes in this project.
 src/
 ├── routes/
 │   ├── index.js           # Main router
-│   ├── paintings.js       # /api/paintings
-│   ├── collections.js     # /api/collections
-│   ├── exhibitions.js     # /api/exhibitions
-│   ├── design.js          # /api/design
-│   ├── illustration.js    # /api/illustration
-│   ├── biography.js       # /api/biography
-│   ├── contact.js         # /api/contact
-│   └── auth.js            # /api/auth
+│   ├── paintings.js       # /api/v1/paintings
+│   ├── collections.js     # /api/v1/collections
+│   ├── exhibitions.js     # /api/v1/exhibitions
+│   ├── design.js          # /api/v1/design
+│   ├── illustration.js    # /api/v1/illustrations
+│   ├── biography.js       # /api/v1/biography
+│   ├── contact.js         # /api/v1/contact
+│   ├── auth.js            # /api/v1/auth
+│   └── admin.js           # /api/v1/admin/*
 ├── controllers/           # Business logic
 ├── middleware/            # Auth, validation, rate-limit
 └── services/             # Email, upload
@@ -241,8 +242,8 @@ const loginLimiter = rateLimit({
   message: { error: 'Too many login attempts', code: 'RATE_LIMIT' },
 });
 
-app.use('/api/contact', contactLimiter);
-app.use('/api/auth/login', loginLimiter);
+app.use('/api/v1/contact', contactLimiter);
+app.use('/api/v1/auth/login', loginLimiter);
 ```
 
 ### Secure Error Handling (A10)

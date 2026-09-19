@@ -130,4 +130,30 @@ describe('HU16 - Upload Service', () => {
       expect(ALLOWED_SECTIONS).toContain('general');
     });
   });
+
+  describe('fileFilter', () => {
+    it('should accept allowed MIME types', async () => {
+      const { fileFilter } = await import('./upload.js');
+      const cb = vi.fn();
+
+      fileFilter({}, { mimetype: 'image/jpeg' }, cb);
+      expect(cb).toHaveBeenCalledWith(null, true);
+
+      cb.mockClear();
+      fileFilter({}, { mimetype: 'image/png' }, cb);
+      expect(cb).toHaveBeenCalledWith(null, true);
+
+      cb.mockClear();
+      fileFilter({}, { mimetype: 'image/webp' }, cb);
+      expect(cb).toHaveBeenCalledWith(null, true);
+    });
+
+    it('should reject disallowed MIME types', async () => {
+      const { fileFilter } = await import('./upload.js');
+      const cb = vi.fn();
+
+      fileFilter({}, { mimetype: 'application/pdf' }, cb);
+      expect(cb).toHaveBeenCalledWith(expect.any(Error), false);
+    });
+  });
 });

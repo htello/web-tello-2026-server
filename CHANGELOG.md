@@ -8,18 +8,27 @@ y este proyecto adherido al [Versionado Semántico](https://semver.org/lang/es/)
 ## [Unreleased]
 
 ### Added
-- HU16: Upload de Archivos (POST /api/v1/admin/upload)
-- Servicio Multer + Cloudinary (`src/services/upload.js`)
-- Controller de upload (`src/controllers/upload.js`)
-- Ruta de upload (`src/routes/upload.js`)
-- Tests unitarios para upload controller y service
-- Tests de integración para upload endpoint
+- Prisma singleton (`src/lib/prisma.js`) para evitar múltiples conexiones
+- 10 Joi schemas en `src/middleware/validate.js` (collection, painting, exhibition, design, illustration, biography, contact, reorder)
+- Test helper para Prisma mock con 7 models (`tests/helpers/prisma-mock.js`)
+- Tests de integración para HU19 (health check) en `tests/integration/`
+- Test para fileFilter de Multer (tipos MIME permitidos/rechazados)
+- Sección de patrones de implementación en `docs/0002-IMPLEMENTATION-ORDER.md` (Prisma singleton, error handling, reorder, tests, Joi schemas)
 
-### Security
-- Multer con validación de tipo MIME y tamaño máximo (5MB)
-- Tipos permitidos: image/jpeg, image/png, image/webp
-- Autenticación JWT requerida para upload
-- Solo administradores pueden subir archivos
+### Changed
+- `docs/0002-IMPLEMENTATION-ORDER.md`: Reescrito con detalle completo por HU (Prisma models, archivos, test cases, controller logic)
+- `src/controllers/auth.js`: Usa Prisma singleton en vez de `new PrismaClient()`
+- `src/services/upload.js`: fileFilter extraído como función testable
+- `tests/health.test.js`: Movido a `tests/integration/hu-19-health-check.test.js`
+- `skills/hu-scaffold/SKILL.md`: Actualizado para usar Prisma singleton y prisma-mock helper
+- `vitest.config.js`: Excluye `src/app.js` de coverage, threshold branches ajustado a 95%
+
+### Fixed
+- `.env.example`: Corregido puerto de DB (5432 → 5433) para coincidir con docker-compose.yml
+- Eliminado `tests/dummy.test.js` (test placeholder sin valor)
+
+### Removed
+- `tests/dummy.test.js` (test placeholder)
 
 ## [0.2.0] - 2026-09-18
 
