@@ -253,12 +253,12 @@ const designSchema = Joi.object({
       'string.empty': 'La categoría no puede estar vacía',
     }),
   subcategory: Joi.string()
-    .valid('imagen-corporativa', 'packaging-expositores', 'carteleria', 'editorial')
+    .valid('IMAGEN_CORPORATIVA', 'PACKAGING_EXPOSITORES', 'CARTERERIA', 'EDITORIAL')
     .required()
     .messages({
       'any.required': 'La subcategoría es obligatoria',
       'string.empty': 'La subcategoría no puede estar vacía',
-      'any.only': 'La subcategoría debe ser: imagen-corporativa, packaging-expositores, carteleria o editorial',
+      'any.only': 'La subcategoría debe ser: IMAGEN_CORPORATIVA, PACKAGING_EXPOSITORES, CARTERERIA o EDITORIAL',
     }),
   imageUrl: Joi.string()
     .uri()
@@ -288,10 +288,10 @@ const designUpdateSchema = Joi.object({
       'string.empty': 'La categoría no puede estar vacía',
     }),
   subcategory: Joi.string()
-    .valid('imagen-corporativa', 'packaging-expositores', 'carteleria', 'editorial')
+    .valid('IMAGEN_CORPORATIVA', 'PACKAGING_EXPOSITORES', 'CARTERERIA', 'EDITORIAL')
     .optional()
     .messages({
-      'any.only': 'La subcategoría debe ser: imagen-corporativa, packaging-expositores, carteleria o editorial',
+      'any.only': 'La subcategoría debe ser: IMAGEN_CORPORATIVA, PACKAGING_EXPOSITORES, CARTERERIA o EDITORIAL',
     }),
   imageUrl: Joi.string()
     .uri()
