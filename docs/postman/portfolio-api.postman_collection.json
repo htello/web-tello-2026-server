@@ -990,7 +990,7 @@
       "name": "Upload (Admin)",
       "item": [
         {
-          "name": "POST /admin/upload",
+          "name": "POST /admin/upload - Pintura",
           "request": {
             "method": "POST",
             "header": [
@@ -1002,7 +1002,56 @@
             "body": {
               "mode": "formdata",
               "formdata": [
-                { "key": "file", "type": "file", "src": "" }
+                { "key": "file", "type": "file", "src": "" },
+                { "key": "section", "value": "pintura", "type": "text" }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/admin/upload",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "upload"]
+            }
+          }
+        },
+        {
+          "name": "POST /admin/upload - Ilustración",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                { "key": "file", "type": "file", "src": "" },
+                { "key": "section", "value": "ilustracion", "type": "text" }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/admin/upload",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "upload"]
+            }
+          }
+        },
+        {
+          "name": "POST /admin/upload - Diseño",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                { "key": "file", "type": "file", "src": "" },
+                { "key": "section", "value": "diseno", "type": "text" }
               ]
             },
             "url": {
