@@ -13,14 +13,14 @@ ESTADO ACTUAL:
 - Documentación completa: AGENTS.md (reglas, convenciones, skills, OWASP)
 - Orden de implementación: docs/0002-IMPLEMENTATION-ORDER.md (8 fases, 0-7)
 - API Design: docs/openapi.yaml (fuente de verdad)
-- Fase actual: Fase 2 completada (HU16 - Upload de Archivos)
-- Branch: develop (latest: 2f7d623)
+- Fase actual: Fase 3 completada (HU06, HU07, HU10, HU12)
+- Branch: develop (latest: 505d243)
 
 ESTADO DE HUs:
 ✅ Fase 0: Setup del Proyecto
 ✅ Fase 1: Auth + Infraestructura (HU20, HU22, HU21, HU19)
 ✅ Fase 2: Upload de Archivos (HU16 - Multer + Cloudinary)
-⏳ Fase 3: Admin CRUD (HU06 → HU07 → HU10 → HU12) - Pendiente
+✅ Fase 3: Admin CRUD (HU06, HU07, HU10, HU12)
 ⏳ Fase 4: Galería Pública (HU01 → HU02 → HU03 → HU04 → HU05) - Pendiente
 ⏳ Fase 5: Diseño e Ilustración (HU08 → HU09) - Pendiente
 ⏳ Fase 6: Resto Backend (HU11 → HU13 → HU14 → HU15) - Pendiente

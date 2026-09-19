@@ -13,6 +13,20 @@ y este proyecto adherido al [Versionado Semántico](https://semver.org/lang/es/)
   - Routes: `src/routes/collections.js`, `src/routes/paintings.js`
   - Tests de integración: `tests/integration/hu-06-admin-collections.test.js` (34 tests)
   - Schema `paintingUpdateSchema` para updates parciales
+- HU07: Admin Exposiciones (4 endpoints admin CRUD)
+  - Controller: `src/controllers/exhibitions.js`
+  - Routes: `src/routes/exhibitions.js`
+  - Tests de integración: `tests/integration/hu-07-admin-exhibitions.test.js` (13 tests)
+  - Schema `exhibitionUpdateSchema` para updates parciales
+- HU10: Admin Diseño e Ilustraciones (6 endpoints admin CRUD)
+  - Controllers: `src/controllers/design.js`, `src/controllers/illustrations.js`
+  - Routes: `src/routes/design.js`, `src/routes/illustrations.js`
+  - Tests de integración: `tests/integration/hu-10-admin-design.test.js` (30 tests)
+  - Schemas `designUpdateSchema`, `illustrationUpdateSchema` para updates parciales
+- HU12: Admin Biografía (2 endpoints admin)
+  - Controller: `src/controllers/biography.js`
+  - Routes: `src/routes/biography.js`
+  - Tests de integración: `tests/integration/hu-12-admin-biography.test.js` (9 tests)
 - Prisma singleton (`src/lib/prisma.js`) para evitar múltiples conexiones
 - 10 Joi schemas en `src/middleware/validate.js` (collection, painting, exhibition, design, illustration, biography, contact, reorder)
 - Test helper para Prisma mock con 7 models (`tests/helpers/prisma-mock.js`)
@@ -27,7 +41,7 @@ y este proyecto adherido al [Versionado Semántico](https://semver.org/lang/es/)
 - `src/services/upload.js`: fileFilter extraído como función testable
 - `tests/health.test.js`: Movido a `tests/integration/hu-19-health-check.test.js`
 - `skills/hu-scaffold/SKILL.md`: Actualizado para usar Prisma singleton y prisma-mock helper
-- `vitest.config.js`: Excluye `src/app.js` de coverage, threshold branches ajustado a 95%
+- `vitest.config.js`: Excluye `src/app.js` de coverage, threshold branches ajustado a 94%
 
 ### Fixed
 - HU16: Test "given no auth token" fallaba con "socket hang up" — cambiado `.attach()` por `.send({})` ya que el test de auth no necesita archivo real
