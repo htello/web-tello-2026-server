@@ -22,6 +22,7 @@ import paintingsRoutes from './paintings.js';
 import exhibitionsRoutes from './exhibitions.js';
 import designRoutes from './design.js';
 import illustrationsRoutes from './illustrations.js';
+import biographyRoutes from './biography.js';
 
 const router = Router();
 
@@ -99,5 +100,12 @@ router.use('/design', designRoutes);
  * - DELETE /illustrations/:id → HU10: Eliminar ilustración
  */
 router.use('/illustrations', illustrationsRoutes);
+
+/**
+ * Rutas de biografía
+ * - GET /biography → HU12: Obtener biografía
+ * - PUT /biography → HU12: Crear/actualizar biografía
+ */
+router.use('/biography', biographyRoutes);
 
 export default router;
