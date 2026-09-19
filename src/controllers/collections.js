@@ -76,7 +76,7 @@ const update = async (req, res) => {
 
     res.status(200).json({ data: collection });
   } catch (error) {
-    if (error.message.includes('Record to update not found')) {
+    if (error.code === 'P2025') {
       return res.status(404).json({
         error: 'Colección no encontrada',
         code: 'NOT_FOUND',
@@ -121,7 +121,7 @@ const remove = async (req, res) => {
       data: { message: 'Colección eliminada correctamente' },
     });
   } catch (error) {
-    if (error.message.includes('Record to delete does not exist')) {
+    if (error.code === 'P2025') {
       return res.status(404).json({
         error: 'Colección no encontrada',
         code: 'NOT_FOUND',

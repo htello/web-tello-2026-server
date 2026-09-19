@@ -176,9 +176,9 @@ describe('HU06 - Admin Colecciones y Pinturas', () => {
 
     describe('given collection does not exist', () => {
       it('should return 404 NOT_FOUND', async () => {
-        mockPrisma.collection.update.mockRejectedValue(
-          new Error('Record to update not found')
-        );
+        const error = new Error('Record to update not found');
+        error.code = 'P2025';
+        mockPrisma.collection.update.mockRejectedValue(error);
 
         const res = await request(app)
           .put('/api/v1/admin/collections/999')
@@ -239,9 +239,9 @@ describe('HU06 - Admin Colecciones y Pinturas', () => {
 
     describe('given collection does not exist', () => {
       it('should return 404 NOT_FOUND', async () => {
-        mockPrisma.collection.delete.mockRejectedValue(
-          new Error('Record to delete does not exist')
-        );
+        const error = new Error('Record to delete does not exist');
+        error.code = 'P2025';
+        mockPrisma.collection.delete.mockRejectedValue(error);
 
         const res = await request(app)
           .delete('/api/v1/admin/collections/999')
@@ -545,9 +545,9 @@ describe('HU06 - Admin Colecciones y Pinturas', () => {
 
     describe('given painting does not exist', () => {
       it('should return 404 NOT_FOUND', async () => {
-        mockPrisma.painting.update.mockRejectedValue(
-          new Error('Record to update not found')
-        );
+        const error = new Error('Record to update not found');
+        error.code = 'P2025';
+        mockPrisma.painting.update.mockRejectedValue(error);
 
         const res = await request(app)
           .put('/api/v1/admin/paintings/999')
@@ -638,9 +638,9 @@ describe('HU06 - Admin Colecciones y Pinturas', () => {
 
     describe('given painting does not exist', () => {
       it('should return 404 NOT_FOUND', async () => {
-        mockPrisma.painting.delete.mockRejectedValue(
-          new Error('Record to delete does not exist')
-        );
+        const error = new Error('Record to delete does not exist');
+        error.code = 'P2025';
+        mockPrisma.painting.delete.mockRejectedValue(error);
 
         const res = await request(app)
           .delete('/api/v1/admin/paintings/999')
