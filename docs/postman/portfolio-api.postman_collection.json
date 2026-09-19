@@ -380,17 +380,20 @@
                 "method": "POST",
                 "header": [
                   {
-                    "key": "Content-Type",
-                    "value": "application/json"
-                  },
-                  {
                     "key": "Authorization",
                     "value": "Bearer {{authToken}}"
                   }
                 ],
                 "body": {
-                  "mode": "raw",
-                  "raw": "{\n  \"title\": \"Nueva Pintura\",\n  \"imageUrl\": \"https://res.cloudinary.com/test/image.jpg\",\n  \"collectionId\": 1,\n  \"dimensions\": \"80x60 cm\",\n  \"technique\": \"Oleo sobre lienzo\",\n  \"year\": 2024\n}"
+                  "mode": "formdata",
+                  "formdata": [
+                    { "key": "title", "value": "Nueva Pintura", "type": "text" },
+                    { "key": "dimensions", "value": "80x60 cm", "type": "text" },
+                    { "key": "technique", "value": "Oleo sobre lienzo", "type": "text" },
+                    { "key": "year", "value": "2024", "type": "text" },
+                    { "key": "collectionId", "value": "1", "type": "text" },
+                    { "key": "image", "type": "file", "src": "" }
+                  ]
                 },
                 "url": {
                   "raw": "{{baseUrl}}/admin/paintings",
@@ -405,17 +408,19 @@
                 "method": "PUT",
                 "header": [
                   {
-                    "key": "Content-Type",
-                    "value": "application/json"
-                  },
-                  {
                     "key": "Authorization",
                     "value": "Bearer {{authToken}}"
                   }
                 ],
                 "body": {
-                  "mode": "raw",
-                  "raw": "{\n  \"title\": \"Pintura Actualizada\",\n  \"dimensions\": \"100x80 cm\",\n  \"technique\": \"Acrilico\",\n  \"year\": 2025\n}"
+                  "mode": "formdata",
+                  "formdata": [
+                    { "key": "title", "value": "Pintura Actualizada", "type": "text" },
+                    { "key": "dimensions", "value": "100x80 cm", "type": "text" },
+                    { "key": "technique", "value": "Acrilico", "type": "text" },
+                    { "key": "year", "value": "2025", "type": "text" },
+                    { "key": "image", "type": "file", "src": "" }
+                  ]
                 },
                 "url": {
                   "raw": "{{baseUrl}}/admin/paintings/1",
@@ -712,17 +717,19 @@
                 "method": "POST",
                 "header": [
                   {
-                    "key": "Content-Type",
-                    "value": "application/json"
-                  },
-                  {
                     "key": "Authorization",
                     "value": "Bearer {{authToken}}"
                   }
                 ],
                 "body": {
-                  "mode": "raw",
-                  "raw": "{\n  \"title\": \"Nuevo Proyecto Diseno\",\n  \"description\": \"Descripcion del proyecto\",\n  \"imageUrl\": \"https://res.cloudinary.com/test/design.jpg\",\n  \"category\": \"diseno-grafico\",\n  \"subcategory\": \"imagen-corporativa\"\n}"
+                  "mode": "formdata",
+                  "formdata": [
+                    { "key": "title", "value": "Nuevo Proyecto Diseno", "type": "text" },
+                    { "key": "description", "value": "Descripcion del proyecto", "type": "text" },
+                    { "key": "category", "value": "diseno-grafico", "type": "text" },
+                    { "key": "subcategory", "value": "imagen-corporativa", "type": "text" },
+                    { "key": "image", "type": "file", "src": "" }
+                  ]
                 },
                 "url": {
                   "raw": "{{baseUrl}}/admin/design",
@@ -737,17 +744,17 @@
                 "method": "PUT",
                 "header": [
                   {
-                    "key": "Content-Type",
-                    "value": "application/json"
-                  },
-                  {
                     "key": "Authorization",
                     "value": "Bearer {{authToken}}"
                   }
                 ],
                 "body": {
-                  "mode": "raw",
-                  "raw": "{\n  \"title\": \"Proyecto Actualizado\",\n  \"description\": \"Nueva descripcion\"\n}"
+                  "mode": "formdata",
+                  "formdata": [
+                    { "key": "title", "value": "Proyecto Actualizado", "type": "text" },
+                    { "key": "description", "value": "Nueva descripcion", "type": "text" },
+                    { "key": "image", "type": "file", "src": "" }
+                  ]
                 },
                 "url": {
                   "raw": "{{baseUrl}}/admin/design/1",
@@ -806,17 +813,17 @@
                 "method": "POST",
                 "header": [
                   {
-                    "key": "Content-Type",
-                    "value": "application/json"
-                  },
-                  {
                     "key": "Authorization",
                     "value": "Bearer {{authToken}}"
                   }
                 ],
                 "body": {
-                  "mode": "raw",
-                  "raw": "{\n  \"title\": \"Nueva Ilustracion\",\n  \"description\": \"Descripcion de la ilustracion\",\n  \"imageUrl\": \"https://res.cloudinary.com/test/illustration.jpg\"\n}"
+                  "mode": "formdata",
+                  "formdata": [
+                    { "key": "title", "value": "Nueva Ilustracion", "type": "text" },
+                    { "key": "description", "value": "Descripcion de la ilustracion", "type": "text" },
+                    { "key": "image", "type": "file", "src": "" }
+                  ]
                 },
                 "url": {
                   "raw": "{{baseUrl}}/admin/illustrations",
@@ -831,17 +838,17 @@
                 "method": "PUT",
                 "header": [
                   {
-                    "key": "Content-Type",
-                    "value": "application/json"
-                  },
-                  {
                     "key": "Authorization",
                     "value": "Bearer {{authToken}}"
                   }
                 ],
                 "body": {
-                  "mode": "raw",
-                  "raw": "{\n  \"title\": \"Ilustracion Actualizada\",\n  \"description\": \"Nueva descripcion\"\n}"
+                  "mode": "formdata",
+                  "formdata": [
+                    { "key": "title", "value": "Ilustracion Actualizada", "type": "text" },
+                    { "key": "description", "value": "Nueva descripcion", "type": "text" },
+                    { "key": "image", "type": "file", "src": "" }
+                  ]
                 },
                 "url": {
                   "raw": "{{baseUrl}}/admin/illustrations/1",
@@ -900,17 +907,16 @@
                 "method": "POST",
                 "header": [
                   {
-                    "key": "Content-Type",
-                    "value": "application/json"
-                  },
-                  {
                     "key": "Authorization",
                     "value": "Bearer {{authToken}}"
                   }
                 ],
                 "body": {
-                  "mode": "raw",
-                  "raw": "{\n  \"content\": \"Biografia del artista Antonio Tello. Nacido en Espana, su obra abarca desde el arte tradicional hasta el diseno grafico contemporaneo.\"\n}"
+                  "mode": "formdata",
+                  "formdata": [
+                    { "key": "content", "value": "Biografia del artista Antonio Tello. Nacido en Espana, su obra abarca desde el arte tradicional hasta el diseno grafico contemporaneo.", "type": "text" },
+                    { "key": "image", "type": "file", "src": "" }
+                  ]
                 },
                 "url": {
                   "raw": "{{baseUrl}}/admin/biography",
@@ -925,17 +931,16 @@
                 "method": "PUT",
                 "header": [
                   {
-                    "key": "Content-Type",
-                    "value": "application/json"
-                  },
-                  {
                     "key": "Authorization",
                     "value": "Bearer {{authToken}}"
                   }
                 ],
                 "body": {
-                  "mode": "raw",
-                  "raw": "{\n  \"content\": \"Biografia actualizada del artista Antonio Tello. Con mas de 10 anos de experiencia en el mundo del arte y el diseno.\"\n}"
+                  "mode": "formdata",
+                  "formdata": [
+                    { "key": "content", "value": "Biografia actualizada del artista Antonio Tello. Con mas de 10 anos de experiencia en el mundo del arte y el diseno.", "type": "text" },
+                    { "key": "image", "type": "file", "src": "" }
+                  ]
                 },
                 "url": {
                   "raw": "{{baseUrl}}/admin/biography",

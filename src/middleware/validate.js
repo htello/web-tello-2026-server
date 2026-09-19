@@ -108,6 +108,7 @@ const collectionSchema = Joi.object({
 
 /**
  * Schema de validación para pinturas
+ * imageUrl es opcional porque puede venir de un archivo upload
  * @type {Joi.ObjectSchema}
  */
 const paintingSchema = Joi.object({
@@ -119,9 +120,9 @@ const paintingSchema = Joi.object({
     }),
   imageUrl: Joi.string()
     .uri()
-    .required()
+    .optional()
+    .allow('', null)
     .messages({
-      'any.required': 'La imagen es obligatoria',
       'string.uri': 'La imagen debe ser una URL válida',
     }),
   collectionId: Joi.number()
@@ -228,10 +229,12 @@ const designSchema = Joi.object({
       'string.empty': 'La categoría no puede estar vacía',
     }),
   subcategory: Joi.string()
+    .valid('imagen-corporativa', 'packaging-expositores', 'carteleria', 'editorial')
     .required()
     .messages({
       'any.required': 'La subcategoría es obligatoria',
       'string.empty': 'La subcategoría no puede estar vacía',
+      'any.only': 'La subcategoría debe ser: imagen-corporativa, packaging-expositores, carteleria o editorial',
     }),
   imageUrl: Joi.string()
     .uri()

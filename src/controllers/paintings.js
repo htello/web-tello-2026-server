@@ -1,13 +1,15 @@
 import prisma from '../lib/prisma.js';
 import logger from '../services/logger.js';
+import { uploadToCloudinary } from '../services/upload.js';
 
 /**
  * HU06 - Crear pintura
  * Endpoint POST /api/v1/admin/paintings
  *
  * @param {Object} req.body.title - Título de la pintura (requerido)
- * @param {Object} req.body.imageUrl - URL de la imagen (requerido)
+ * @param {Object} req.body.imageUrl - URL de la imagen (requerido si no hay file)
  * @param {Object} req.body.collectionId - ID de la colección (requerido)
+ * @param {Object} [req.file] - Archivo de imagen (opcional, alternativa a imageUrl)
  * @param {Object} [req.body.dimensions] - Dimensiones
  * @param {Object} [req.body.technique] - Técnica
  * @param {Object} [req.body.year] - Año
@@ -21,10 +23,24 @@ const create = async (req, res) => {
   try {
     const { title, imageUrl, collectionId, dimensions, technique, year } = req.body;
 
+    let finalImageUrl = imageUrl;
+
+    if (req.file) {
+      const result = await uploadToCloudinary(req.file, 'pintura');
+      finalImageUrl = result.url;
+    }
+
+    if (!finalImageUrl) {
+      return res.status(400).json({
+        error: 'La imagen es obligatoria (archivo o URL)',
+        code: 'VALIDATION_ERROR',
+      });
+    }
+
     const painting = await prisma.painting.create({
       data: {
         title,
-        imageUrl,
+        imageUrl: finalImageUrl,
         collectionId: parseInt(collectionId),
         dimensions: dimensions || null,
         technique: technique || null,
@@ -36,6 +52,12 @@ const create = async (req, res) => {
 
     res.status(201).json({ data: painting });
   } catch (error) {
+    if (error.message.includes('Unique constraint failed')) {
+      return res.status(400).json({
+        error: 'Ya existe una pintura con ese título en esta colección',
+        code: 'DUPLICATE_ERROR',
+      });
+    }
     logger.error('Error al crear pintura', { error: error.message });
     res.status(500).json({
       error: 'Error interno del servidor',
@@ -60,11 +82,18 @@ const update = async (req, res) => {
     const { id } = req.params;
     const { title, imageUrl, collectionId, dimensions, technique, year } = req.body;
 
+    let finalImageUrl = imageUrl;
+
+    if (req.file) {
+      const result = await uploadToCloudinary(req.file, 'pintura');
+      finalImageUrl = result.url;
+    }
+
     const painting = await prisma.painting.update({
       where: { id: parseInt(id) },
       data: {
         ...(title !== undefined && { title }),
-        ...(imageUrl !== undefined && { imageUrl }),
+        ...(finalImageUrl !== undefined && { imageUrl: finalImageUrl }),
         ...(collectionId !== undefined && { collectionId: parseInt(collectionId) }),
         ...(dimensions !== undefined && { dimensions }),
         ...(technique !== undefined && { technique }),
@@ -80,6 +109,12 @@ const update = async (req, res) => {
       return res.status(404).json({
         error: 'Pintura no encontrada',
         code: 'NOT_FOUND',
+      });
+    }
+    if (error.message.includes('Unique constraint failed')) {
+      return res.status(400).json({
+        error: 'Ya existe una pintura con ese título en esta colección',
+        code: 'DUPLICATE_ERROR',
       });
     }
     logger.error('Error al actualizar pintura', { error: error.message });

@@ -30,6 +30,12 @@ const create = async (req, res) => {
 
     res.status(201).json({ data: collection });
   } catch (error) {
+    if (error.message.includes('Unique constraint failed')) {
+      return res.status(400).json({
+        error: 'Ya existe una colección con ese título',
+        code: 'DUPLICATE_ERROR',
+      });
+    }
     logger.error('Error al crear colección', { error: error.message });
     res.status(500).json({
       error: 'Error interno del servidor',
@@ -74,6 +80,12 @@ const update = async (req, res) => {
       return res.status(404).json({
         error: 'Colección no encontrada',
         code: 'NOT_FOUND',
+      });
+    }
+    if (error.message.includes('Unique constraint failed')) {
+      return res.status(400).json({
+        error: 'Ya existe una colección con ese título',
+        code: 'DUPLICATE_ERROR',
       });
     }
     logger.error('Error al actualizar colección', { error: error.message });

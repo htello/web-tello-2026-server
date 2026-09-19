@@ -4,13 +4,23 @@ import jwt from 'jsonwebtoken';
 import { mockPrisma } from '../helpers/prisma-mock.js';
 import { JWT_SECRET } from '../../src/lib/constants.js';
 
+vi.mock('../../src/services/upload.js', async (importOriginal) => {
+  const original = await importOriginal();
+  return {
+    ...original,
+    uploadToCloudinary: vi.fn(),
+  };
+});
+
 const app = (await import('../../src/app.js')).default;
+const { uploadToCloudinary } = await import('../../src/services/upload.js');
 
 describe('HU06 - Admin Colecciones y Pinturas', () => {
   let adminToken;
 
   beforeEach(() => {
     vi.clearAllMocks();
+    uploadToCloudinary.mockReset();
     adminToken = jwt.sign(
       { id: 1, email: 'admin@test.com', role: 'ADMIN' },
       JWT_SECRET,
@@ -96,6 +106,22 @@ describe('HU06 - Admin Colecciones y Pinturas', () => {
         expect(res.body).toHaveProperty('code', 'INTERNAL_ERROR');
       });
     });
+
+    describe('given duplicate title', () => {
+      it('should return 400 DUPLICATE_ERROR', async () => {
+        mockPrisma.collection.create.mockRejectedValue(
+          new Error('Unique constraint failed on the fields: (`title`)')
+        );
+
+        const res = await request(app)
+          .post('/api/v1/admin/collections')
+          .set('Authorization', `Bearer ${adminToken}`)
+          .send({ title: 'Óleos' });
+
+        expect(res.status).toBe(400);
+        expect(res.body).toHaveProperty('code', 'DUPLICATE_ERROR');
+      });
+    });
   });
 
   describe('PUT /admin/collections/:id', () => {
@@ -177,6 +203,22 @@ describe('HU06 - Admin Colecciones y Pinturas', () => {
 
         expect(res.status).toBe(500);
         expect(res.body).toHaveProperty('code', 'INTERNAL_ERROR');
+      });
+    });
+
+    describe('given duplicate title on update', () => {
+      it('should return 400 DUPLICATE_ERROR', async () => {
+        mockPrisma.collection.update.mockRejectedValue(
+          new Error('Unique constraint failed on the fields: (`title`)')
+        );
+
+        const res = await request(app)
+          .put('/api/v1/admin/collections/1')
+          .set('Authorization', `Bearer ${adminToken}`)
+          .send({ title: 'Esculturas' });
+
+        expect(res.status).toBe(400);
+        expect(res.body).toHaveProperty('code', 'DUPLICATE_ERROR');
       });
     });
   });
@@ -353,6 +395,76 @@ describe('HU06 - Admin Colecciones y Pinturas', () => {
         expect(res.body).toHaveProperty('code', 'INTERNAL_ERROR');
       });
     });
+
+    describe('given multipart file upload', () => {
+      it('should upload to Cloudinary and create painting', async () => {
+        uploadToCloudinary.mockResolvedValue({
+          url: 'https://res.cloudinary.com/test/uploaded.jpg',
+          thumbnail: 'https://res.cloudinary.com/test/uploaded_thumb.jpg',
+          width: 1200,
+          height: 800,
+          format: 'jpg',
+        });
+
+        mockPrisma.painting.create.mockResolvedValue({
+          id: 10,
+          title: 'Pintura Upload',
+          imageUrl: 'https://res.cloudinary.com/test/uploaded.jpg',
+          collectionId: 1,
+          isFeatured: false,
+          isPublished: true,
+          position: 0,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        });
+
+        const res = await request(app)
+          .post('/api/v1/admin/paintings')
+          .set('Authorization', `Bearer ${adminToken}`)
+          .field('title', 'Pintura Upload')
+          .field('collectionId', '1')
+          .attach('image', Buffer.from('fake-image-data'), 'test.jpg');
+
+        expect(res.status).toBe(201);
+        expect(uploadToCloudinary).toHaveBeenCalledWith(
+          expect.objectContaining({ mimetype: 'image/jpeg' }),
+          'pintura'
+        );
+        expect(res.body.data).toHaveProperty('imageUrl', 'https://res.cloudinary.com/test/uploaded.jpg');
+      });
+    });
+
+    describe('given no image file and no imageUrl', () => {
+      it('should return 400', async () => {
+        const res = await request(app)
+          .post('/api/v1/admin/paintings')
+          .set('Authorization', `Bearer ${adminToken}`)
+          .field('title', 'Sin imagen')
+          .field('collectionId', '1');
+
+        expect(res.status).toBe(400);
+      });
+    });
+
+    describe('given duplicate title in same collection', () => {
+      it('should return 400 DUPLICATE_ERROR', async () => {
+        mockPrisma.painting.create.mockRejectedValue(
+          new Error('Unique constraint failed on the fields: (`title`, `collectionId`)')
+        );
+
+        const res = await request(app)
+          .post('/api/v1/admin/paintings')
+          .set('Authorization', `Bearer ${adminToken}`)
+          .send({
+            title: 'Atardecer',
+            imageUrl: 'https://test.com/img.jpg',
+            collectionId: 1,
+          });
+
+        expect(res.status).toBe(400);
+        expect(res.body).toHaveProperty('code', 'DUPLICATE_ERROR');
+      });
+    });
   });
 
   describe('PUT /admin/paintings/:id', () => {
@@ -437,6 +549,52 @@ describe('HU06 - Admin Colecciones y Pinturas', () => {
 
         expect(res.status).toBe(500);
         expect(res.body).toHaveProperty('code', 'INTERNAL_ERROR');
+      });
+    });
+
+    describe('given duplicate title on update', () => {
+      it('should return 400 DUPLICATE_ERROR', async () => {
+        mockPrisma.painting.update.mockRejectedValue(
+          new Error('Unique constraint failed on the fields: (`title`, `collectionId`)')
+        );
+
+        const res = await request(app)
+          .put('/api/v1/admin/paintings/1')
+          .set('Authorization', `Bearer ${adminToken}`)
+          .send({ title: 'Atardecer' });
+
+        expect(res.status).toBe(400);
+        expect(res.body).toHaveProperty('code', 'DUPLICATE_ERROR');
+      });
+    });
+
+    describe('given multipart file upload on update', () => {
+      it('should upload new image and update painting', async () => {
+        uploadToCloudinary.mockResolvedValue({
+          url: 'https://res.cloudinary.com/test/new-upload.jpg',
+          thumbnail: 'https://res.cloudinary.com/test/new-upload_thumb.jpg',
+          width: 1000,
+          height: 700,
+          format: 'jpg',
+        });
+
+        mockPrisma.painting.update.mockResolvedValue({
+          id: 1,
+          title: 'Actualizada',
+          imageUrl: 'https://res.cloudinary.com/test/new-upload.jpg',
+          collectionId: 1,
+          updatedAt: new Date(),
+        });
+
+        const res = await request(app)
+          .put('/api/v1/admin/paintings/1')
+          .set('Authorization', `Bearer ${adminToken}`)
+          .field('title', 'Actualizada')
+          .attach('image', Buffer.from('new-image-data'), 'new.jpg');
+
+        expect(res.status).toBe(200);
+        expect(uploadToCloudinary).toHaveBeenCalled();
+        expect(res.body.data).toHaveProperty('imageUrl', 'https://res.cloudinary.com/test/new-upload.jpg');
       });
     });
   });
