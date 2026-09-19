@@ -20,6 +20,8 @@ import uploadRoutes from './upload.js';
 import collectionsRoutes from './collections.js';
 import paintingsRoutes from './paintings.js';
 import exhibitionsRoutes from './exhibitions.js';
+import designRoutes from './design.js';
+import illustrationsRoutes from './illustrations.js';
 
 const router = Router();
 
@@ -81,5 +83,21 @@ router.use('/paintings', paintingsRoutes);
  * - PUT /exhibitions/reorder → HU07: Reordenar exposiciones
  */
 router.use('/exhibitions', exhibitionsRoutes);
+
+/**
+ * Rutas de diseño
+ * - POST /design → HU10: Crear proyecto de diseño
+ * - PUT /design/:id → HU10: Actualizar proyecto de diseño
+ * - DELETE /design/:id → HU10: Eliminar proyecto de diseño
+ */
+router.use('/design', designRoutes);
+
+/**
+ * Rutas de ilustraciones
+ * - POST /illustrations → HU10: Crear ilustración
+ * - PUT /illustrations/:id → HU10: Actualizar ilustración
+ * - DELETE /illustrations/:id → HU10: Eliminar ilustración
+ */
+router.use('/illustrations', illustrationsRoutes);
 
 export default router;
