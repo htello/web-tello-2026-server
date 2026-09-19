@@ -176,9 +176,9 @@ describe('HU06 - Admin Colecciones y Pinturas', () => {
 
     describe('given collection does not exist', () => {
       it('should return 404 NOT_FOUND', async () => {
-        mockPrisma.collection.update.mockRejectedValue(
-          new Error('Record to update not found')
-        );
+        const error = new Error('Record to update not found');
+        error.code = 'P2025';
+        mockPrisma.collection.update.mockRejectedValue(error);
 
         const res = await request(app)
           .put('/api/v1/admin/collections/999')
@@ -239,9 +239,9 @@ describe('HU06 - Admin Colecciones y Pinturas', () => {
 
     describe('given collection does not exist', () => {
       it('should return 404 NOT_FOUND', async () => {
-        mockPrisma.collection.delete.mockRejectedValue(
-          new Error('Record to delete does not exist')
-        );
+        const error = new Error('Record to delete does not exist');
+        error.code = 'P2025';
+        mockPrisma.collection.delete.mockRejectedValue(error);
 
         const res = await request(app)
           .delete('/api/v1/admin/collections/999')
@@ -308,6 +308,7 @@ describe('HU06 - Admin Colecciones y Pinturas', () => {
   describe('POST /admin/paintings', () => {
     describe('given admin token and valid data', () => {
       it('should return 201 with created painting', async () => {
+        mockPrisma.collection.findUnique.mockResolvedValue({ id: 1 });
         mockPrisma.painting.create.mockResolvedValue({
           id: 1,
           title: 'Atardecer',
@@ -378,6 +379,7 @@ describe('HU06 - Admin Colecciones y Pinturas', () => {
 
     describe('given database error', () => {
       it('should return 500 INTERNAL_ERROR', async () => {
+        mockPrisma.collection.findUnique.mockResolvedValue({ id: 1 });
         mockPrisma.painting.create.mockRejectedValue(
           new Error('Database connection failed')
         );
@@ -406,6 +408,7 @@ describe('HU06 - Admin Colecciones y Pinturas', () => {
           format: 'jpg',
         });
 
+        mockPrisma.collection.findUnique.mockResolvedValue({ id: 1 });
         mockPrisma.painting.create.mockResolvedValue({
           id: 10,
           title: 'Pintura Upload',
@@ -448,6 +451,7 @@ describe('HU06 - Admin Colecciones y Pinturas', () => {
 
     describe('given duplicate title in same collection', () => {
       it('should return 400 DUPLICATE_ERROR', async () => {
+        mockPrisma.collection.findUnique.mockResolvedValue({ id: 1 });
         mockPrisma.painting.create.mockRejectedValue(
           new Error('Unique constraint failed on the fields: (`title`, `collectionId`)')
         );
@@ -463,6 +467,25 @@ describe('HU06 - Admin Colecciones y Pinturas', () => {
 
         expect(res.status).toBe(400);
         expect(res.body).toHaveProperty('code', 'DUPLICATE_ERROR');
+      });
+    });
+
+    describe('given non-existent collectionId', () => {
+      it('should return 404 NOT_FOUND', async () => {
+        mockPrisma.collection.findUnique.mockResolvedValue(null);
+
+        const res = await request(app)
+          .post('/api/v1/admin/paintings')
+          .set('Authorization', `Bearer ${adminToken}`)
+          .send({
+            title: 'Pintura sin colección',
+            imageUrl: 'https://test.com/img.jpg',
+            collectionId: 9999,
+          });
+
+        expect(res.status).toBe(404);
+        expect(res.body).toHaveProperty('code', 'NOT_FOUND');
+        expect(res.body.error).toBe('La colección no existe');
       });
     });
   });
@@ -522,9 +545,9 @@ describe('HU06 - Admin Colecciones y Pinturas', () => {
 
     describe('given painting does not exist', () => {
       it('should return 404 NOT_FOUND', async () => {
-        mockPrisma.painting.update.mockRejectedValue(
-          new Error('Record to update not found')
-        );
+        const error = new Error('Record to update not found');
+        error.code = 'P2025';
+        mockPrisma.painting.update.mockRejectedValue(error);
 
         const res = await request(app)
           .put('/api/v1/admin/paintings/999')
@@ -615,9 +638,9 @@ describe('HU06 - Admin Colecciones y Pinturas', () => {
 
     describe('given painting does not exist', () => {
       it('should return 404 NOT_FOUND', async () => {
-        mockPrisma.painting.delete.mockRejectedValue(
-          new Error('Record to delete does not exist')
-        );
+        const error = new Error('Record to delete does not exist');
+        error.code = 'P2025';
+        mockPrisma.painting.delete.mockRejectedValue(error);
 
         const res = await request(app)
           .delete('/api/v1/admin/paintings/999')

@@ -7,6 +7,10 @@ y este proyecto adherido al [Versionado Semántico](https://semver.org/lang/es/)
 
 ## [Unreleased]
 
+### Fixed
+- HU06: Validación de `collectionId` inexistente al crear pintura (retorna 404 NOT_FOUND en vez de 500)
+- HU06: DELETE colección/pintura inexistente usa error code P2025 en vez de message matching
+
 ### Added
 - HU06: Admin Colecciones y Pinturas (10 endpoints admin CRUD)
   - Controllers: `src/controllers/collections.js`, `src/controllers/paintings.js`
