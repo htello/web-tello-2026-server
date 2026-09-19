@@ -37,6 +37,17 @@ const create = async (req, res) => {
       });
     }
 
+    const collection = await prisma.collection.findUnique({
+      where: { id: parseInt(collectionId) },
+    });
+
+    if (!collection) {
+      return res.status(404).json({
+        error: 'La colección no existe',
+        code: 'NOT_FOUND',
+      });
+    }
+
     const painting = await prisma.painting.create({
       data: {
         title,
