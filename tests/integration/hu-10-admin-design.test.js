@@ -106,7 +106,19 @@ describe('HU10 - Admin Design', () => {
         const res = await request(app)
           .post('/api/v1/admin/design')
           .set('Authorization', `Bearer ${adminToken}`)
-          .send({ imageUrl: 'https://test.com/img.jpg', category: 'cat', subcategory: 'sub' });
+          .send({ imageUrl: 'https://test.com/img.jpg', category: 'cat', subcategory: 'imagen-corporativa' });
+
+        expect(res.status).toBe(400);
+        expect(res.body).toHaveProperty('code', 'VALIDATION_ERROR');
+      });
+    });
+
+    describe('given missing category', () => {
+      it('should return 400 VALIDATION_ERROR', async () => {
+        const res = await request(app)
+          .post('/api/v1/admin/design')
+          .set('Authorization', `Bearer ${adminToken}`)
+          .send({ title: 'Test', imageUrl: 'https://test.com/img.jpg', subcategory: 'imagen-corporativa' });
 
         expect(res.status).toBe(400);
         expect(res.body).toHaveProperty('code', 'VALIDATION_ERROR');

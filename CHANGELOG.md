@@ -10,6 +10,7 @@ y este proyecto adherido al [Versionado Semántico](https://semver.org/lang/es/)
 ### Fixed
 - HU06: Validación de `collectionId` inexistente al crear pintura (retorna 404 NOT_FOUND en vez de 500)
 - HU06: DELETE colección/pintura inexistente usa error code P2025 en vez de message matching
+- HU10: Test de validación de categoría faltante en POST /admin/design
 
 ### Added
 - Skill `endpoint-tester` para testing de endpoints en 2 fases (exploración + formalización)
