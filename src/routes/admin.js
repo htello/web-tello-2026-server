@@ -19,6 +19,7 @@ import { authenticate, requireAdmin } from '../middleware/auth.js';
 import uploadRoutes from './upload.js';
 import collectionsRoutes from './collections.js';
 import paintingsRoutes from './paintings.js';
+import exhibitionsRoutes from './exhibitions.js';
 
 const router = Router();
 
@@ -71,5 +72,14 @@ router.use('/collections', collectionsRoutes);
  * - PUT /paintings/reorder → HU06: Reordenar pinturas
  */
 router.use('/paintings', paintingsRoutes);
+
+/**
+ * Rutas de exposiciones
+ * - POST /exhibitions → HU07: Crear exposición
+ * - PUT /exhibitions/:id → HU07: Actualizar exposición
+ * - DELETE /exhibitions/:id → HU07: Eliminar exposición
+ * - PUT /exhibitions/reorder → HU07: Reordenar exposiciones
+ */
+router.use('/exhibitions', exhibitionsRoutes);
 
 export default router;

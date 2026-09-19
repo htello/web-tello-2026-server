@@ -212,6 +212,30 @@ const exhibitionSchema = Joi.object({
 });
 
 /**
+ * Schema de validación para actualizar exposición (campos opcionales)
+ * @type {Joi.ObjectSchema}
+ */
+const exhibitionUpdateSchema = Joi.object({
+  title: Joi.string()
+    .optional()
+    .messages({
+      'string.empty': 'El título no puede estar vacío',
+    }),
+  date: Joi.date()
+    .iso()
+    .optional()
+    .messages({
+      'date.base': 'La fecha debe ser válida',
+    }),
+  location: Joi.string()
+    .optional()
+    .allow('', null),
+  description: Joi.string()
+    .optional()
+    .allow('', null),
+}).min(1);
+
+/**
  * Schema de validación para proyectos de diseño
  * @type {Joi.ObjectSchema}
  */
@@ -347,6 +371,7 @@ export {
   paintingSchema,
   paintingUpdateSchema,
   exhibitionSchema,
+  exhibitionUpdateSchema,
   designSchema,
   illustrationSchema,
   biographySchema,
