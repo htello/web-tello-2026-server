@@ -147,6 +147,44 @@ const paintingSchema = Joi.object({
 });
 
 /**
+ * Schema de validación para actualizar pintura (campos opcionales)
+ * @type {Joi.ObjectSchema}
+ */
+const paintingUpdateSchema = Joi.object({
+  title: Joi.string()
+    .optional()
+    .messages({
+      'string.empty': 'El título no puede estar vacío',
+    }),
+  imageUrl: Joi.string()
+    .uri()
+    .optional()
+    .allow('', null)
+    .messages({
+      'string.uri': 'La imagen debe ser una URL válida',
+    }),
+  collectionId: Joi.number()
+    .integer()
+    .positive()
+    .optional()
+    .messages({
+      'number.base': 'La colección debe ser un número',
+    }),
+  dimensions: Joi.string()
+    .optional()
+    .allow('', null),
+  technique: Joi.string()
+    .optional()
+    .allow('', null),
+  year: Joi.number()
+    .integer()
+    .min(1900)
+    .max(2100)
+    .optional()
+    .allow(null),
+}).min(1);
+
+/**
  * Schema de validación para exposiciones
  * @type {Joi.ObjectSchema}
  */
@@ -304,6 +342,7 @@ export {
   registerSchema,
   collectionSchema,
   paintingSchema,
+  paintingUpdateSchema,
   exhibitionSchema,
   designSchema,
   illustrationSchema,

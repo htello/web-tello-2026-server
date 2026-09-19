@@ -90,8 +90,7 @@ describe('HU16 - Upload de Archivos', () => {
     it('should return 401', async () => {
       const res = await request(app)
         .post('/api/v1/admin/upload')
-        .set('Content-Type', 'multipart/form-data')
-        .attach('file', Buffer.from('fake'), { filename: 'test.jpg', contentType: 'image/jpeg' });
+        .send({});
 
       expect(res.status).toBe(401);
     });
