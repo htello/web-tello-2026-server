@@ -31,11 +31,13 @@ Uso obligatorio de skills para mantener consistencia:
 | `prisma-mock` | Al crear tests que usan base de datos | `skills/prisma-mock/SKILL.md` |
 | `express-handler` | Al crear rutas, controladores o middleware | `skills/express-handler/SKILL.md` |
 | `hu-scaffold` | Al empezar una nueva HU (HU01-HU22) | `skills/hu-scaffold/SKILL.md` |
+| `endpoint-tester` | Al testear endpoints (2 fases: exploración + formalización) | `skills/endpoint-tester/SKILL.md` |
 
 ### Flujo de Uso de Skills
 
 ```
 Nueva tarea → hu-scaffold → tdd-enforcer → prisma-mock / express-handler
+Testear endpoint → endpoint-tester (fase 1 → fase 2)
 ```
 
 1. **hu-scaffold**: Crear test file y esqueleto de tests primero

@@ -12,6 +12,7 @@ y este proyecto adherido al [Versionado Semántico](https://semver.org/lang/es/)
 - HU06: DELETE colección/pintura inexistente usa error code P2025 en vez de message matching
 
 ### Added
+- Skill `endpoint-tester` para testing de endpoints en 2 fases (exploración + formalización)
 - HU06: Admin Colecciones y Pinturas (10 endpoints admin CRUD)
   - Controllers: `src/controllers/collections.js`, `src/controllers/paintings.js`
   - Routes: `src/routes/collections.js`, `src/routes/paintings.js`
