@@ -17,6 +17,9 @@ import { register } from '../controllers/auth.js';
 import { validate, registerSchema } from '../middleware/validate.js';
 import { authenticate, requireAdmin } from '../middleware/auth.js';
 import uploadRoutes from './upload.js';
+import collectionsRoutes from './collections.js';
+import paintingsRoutes from './paintings.js';
+import exhibitionsRoutes from './exhibitions.js';
 
 const router = Router();
 
@@ -49,5 +52,34 @@ router.post(
  * - POST /upload → HU16: Upload de Archivos (requiere auth)
  */
 router.use('/upload', uploadRoutes);
+
+/**
+ * Rutas de colecciones
+ * - POST /collections → HU06: Crear colección
+ * - PUT /collections/:id → HU06: Actualizar colección
+ * - DELETE /collections/:id → HU06: Eliminar colección
+ * - PUT /collections/reorder → HU06: Reordenar colecciones
+ */
+router.use('/collections', collectionsRoutes);
+
+/**
+ * Rutas de pinturas
+ * - POST /paintings → HU06: Crear pintura
+ * - PUT /paintings/:id → HU06: Actualizar pintura
+ * - DELETE /paintings/:id → HU06: Eliminar pintura
+ * - PUT /paintings/:id/feature → HU06: Toggle destacada
+ * - PUT /paintings/:id/publish → HU06: Toggle publicada
+ * - PUT /paintings/reorder → HU06: Reordenar pinturas
+ */
+router.use('/paintings', paintingsRoutes);
+
+/**
+ * Rutas de exposiciones
+ * - POST /exhibitions → HU07: Crear exposición
+ * - PUT /exhibitions/:id → HU07: Actualizar exposición
+ * - DELETE /exhibitions/:id → HU07: Eliminar exposición
+ * - PUT /exhibitions/reorder → HU07: Reordenar exposiciones
+ */
+router.use('/exhibitions', exhibitionsRoutes);
 
 export default router;

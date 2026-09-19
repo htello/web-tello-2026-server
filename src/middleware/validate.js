@@ -108,6 +108,7 @@ const collectionSchema = Joi.object({
 
 /**
  * Schema de validación para pinturas
+ * imageUrl es opcional porque puede venir de un archivo upload
  * @type {Joi.ObjectSchema}
  */
 const paintingSchema = Joi.object({
@@ -119,9 +120,9 @@ const paintingSchema = Joi.object({
     }),
   imageUrl: Joi.string()
     .uri()
-    .required()
+    .optional()
+    .allow('', null)
     .messages({
-      'any.required': 'La imagen es obligatoria',
       'string.uri': 'La imagen debe ser una URL válida',
     }),
   collectionId: Joi.number()
@@ -145,6 +146,44 @@ const paintingSchema = Joi.object({
     .optional()
     .allow(null),
 });
+
+/**
+ * Schema de validación para actualizar pintura (campos opcionales)
+ * @type {Joi.ObjectSchema}
+ */
+const paintingUpdateSchema = Joi.object({
+  title: Joi.string()
+    .optional()
+    .messages({
+      'string.empty': 'El título no puede estar vacío',
+    }),
+  imageUrl: Joi.string()
+    .uri()
+    .optional()
+    .allow('', null)
+    .messages({
+      'string.uri': 'La imagen debe ser una URL válida',
+    }),
+  collectionId: Joi.number()
+    .integer()
+    .positive()
+    .optional()
+    .messages({
+      'number.base': 'La colección debe ser un número',
+    }),
+  dimensions: Joi.string()
+    .optional()
+    .allow('', null),
+  technique: Joi.string()
+    .optional()
+    .allow('', null),
+  year: Joi.number()
+    .integer()
+    .min(1900)
+    .max(2100)
+    .optional()
+    .allow(null),
+}).min(1);
 
 /**
  * Schema de validación para exposiciones
@@ -173,6 +212,30 @@ const exhibitionSchema = Joi.object({
 });
 
 /**
+ * Schema de validación para actualizar exposición (campos opcionales)
+ * @type {Joi.ObjectSchema}
+ */
+const exhibitionUpdateSchema = Joi.object({
+  title: Joi.string()
+    .optional()
+    .messages({
+      'string.empty': 'El título no puede estar vacío',
+    }),
+  date: Joi.date()
+    .iso()
+    .optional()
+    .messages({
+      'date.base': 'La fecha debe ser válida',
+    }),
+  location: Joi.string()
+    .optional()
+    .allow('', null),
+  description: Joi.string()
+    .optional()
+    .allow('', null),
+}).min(1);
+
+/**
  * Schema de validación para proyectos de diseño
  * @type {Joi.ObjectSchema}
  */
@@ -190,10 +253,12 @@ const designSchema = Joi.object({
       'string.empty': 'La categoría no puede estar vacía',
     }),
   subcategory: Joi.string()
+    .valid('imagen-corporativa', 'packaging-expositores', 'carteleria', 'editorial')
     .required()
     .messages({
       'any.required': 'La subcategoría es obligatoria',
       'string.empty': 'La subcategoría no puede estar vacía',
+      'any.only': 'La subcategoría debe ser: imagen-corporativa, packaging-expositores, carteleria o editorial',
     }),
   imageUrl: Joi.string()
     .uri()
@@ -304,7 +369,9 @@ export {
   registerSchema,
   collectionSchema,
   paintingSchema,
+  paintingUpdateSchema,
   exhibitionSchema,
+  exhibitionUpdateSchema,
   designSchema,
   illustrationSchema,
   biographySchema,

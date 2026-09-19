@@ -8,6 +8,11 @@ y este proyecto adherido al [Versionado Semántico](https://semver.org/lang/es/)
 ## [Unreleased]
 
 ### Added
+- HU06: Admin Colecciones y Pinturas (10 endpoints admin CRUD)
+  - Controllers: `src/controllers/collections.js`, `src/controllers/paintings.js`
+  - Routes: `src/routes/collections.js`, `src/routes/paintings.js`
+  - Tests de integración: `tests/integration/hu-06-admin-collections.test.js` (34 tests)
+  - Schema `paintingUpdateSchema` para updates parciales
 - Prisma singleton (`src/lib/prisma.js`) para evitar múltiples conexiones
 - 10 Joi schemas en `src/middleware/validate.js` (collection, painting, exhibition, design, illustration, biography, contact, reorder)
 - Test helper para Prisma mock con 7 models (`tests/helpers/prisma-mock.js`)
@@ -18,12 +23,14 @@ y este proyecto adherido al [Versionado Semántico](https://semver.org/lang/es/)
 ### Changed
 - `docs/0002-IMPLEMENTATION-ORDER.md`: Reescrito con detalle completo por HU (Prisma models, archivos, test cases, controller logic)
 - `src/controllers/auth.js`: Usa Prisma singleton en vez de `new PrismaClient()`
+- `src/routes/admin.js`: Agregadas rutas de collections y paintings
 - `src/services/upload.js`: fileFilter extraído como función testable
 - `tests/health.test.js`: Movido a `tests/integration/hu-19-health-check.test.js`
 - `skills/hu-scaffold/SKILL.md`: Actualizado para usar Prisma singleton y prisma-mock helper
 - `vitest.config.js`: Excluye `src/app.js` de coverage, threshold branches ajustado a 95%
 
 ### Fixed
+- HU16: Test "given no auth token" fallaba con "socket hang up" — cambiado `.attach()` por `.send({})` ya que el test de auth no necesita archivo real
 - `.env.example`: Corregido puerto de DB (5432 → 5433) para coincidir con docker-compose.yml
 - Eliminado `tests/dummy.test.js` (test placeholder sin valor)
 

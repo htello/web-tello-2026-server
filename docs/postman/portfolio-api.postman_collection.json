@@ -392,9 +392,7 @@
                     { "key": "technique", "value": "Oleo sobre lienzo", "type": "text" },
                     { "key": "year", "value": "2024", "type": "text" },
                     { "key": "collectionId", "value": "1", "type": "text" },
-                    { "key": "isFeatured", "value": "false", "type": "text" },
-                    { "key": "isPublished", "value": "true", "type": "text" },
-                    { "key": "image", "type": "file", "src": "" }
+                    { "key": "image", "type": "file" }
                   ]
                 },
                 "url": {
@@ -421,10 +419,7 @@
                     { "key": "dimensions", "value": "100x80 cm", "type": "text" },
                     { "key": "technique", "value": "Acrilico", "type": "text" },
                     { "key": "year", "value": "2025", "type": "text" },
-                    { "key": "collectionId", "value": "1", "type": "text" },
-                    { "key": "isFeatured", "value": "true", "type": "text" },
-                    { "key": "isPublished", "value": "true", "type": "text" },
-                    { "key": "image", "type": "file", "src": "" }
+                    { "key": "image", "type": "file" }
                   ]
                 },
                 "url": {
@@ -733,7 +728,7 @@
                     { "key": "description", "value": "Descripcion del proyecto", "type": "text" },
                     { "key": "category", "value": "diseno-grafico", "type": "text" },
                     { "key": "subcategory", "value": "imagen-corporativa", "type": "text" },
-                    { "key": "image", "type": "file", "src": "" }
+                    { "key": "image", "type": "file" }
                   ]
                 },
                 "url": {
@@ -758,9 +753,7 @@
                   "formdata": [
                     { "key": "title", "value": "Proyecto Actualizado", "type": "text" },
                     { "key": "description", "value": "Nueva descripcion", "type": "text" },
-                    { "key": "category", "value": "diseno-grafico", "type": "text" },
-                    { "key": "subcategory", "value": "packaging-expositores", "type": "text" },
-                    { "key": "image", "type": "file", "src": "" }
+                    { "key": "image", "type": "file" }
                   ]
                 },
                 "url": {
@@ -829,7 +822,7 @@
                   "formdata": [
                     { "key": "title", "value": "Nueva Ilustracion", "type": "text" },
                     { "key": "description", "value": "Descripcion de la ilustracion", "type": "text" },
-                    { "key": "image", "type": "file", "src": "" }
+                    { "key": "image", "type": "file" }
                   ]
                 },
                 "url": {
@@ -854,7 +847,7 @@
                   "formdata": [
                     { "key": "title", "value": "Ilustracion Actualizada", "type": "text" },
                     { "key": "description", "value": "Nueva descripcion", "type": "text" },
-                    { "key": "image", "type": "file", "src": "" }
+                    { "key": "image", "type": "file" }
                   ]
                 },
                 "url": {
@@ -922,7 +915,7 @@
                   "mode": "formdata",
                   "formdata": [
                     { "key": "content", "value": "Biografia del artista Antonio Tello. Nacido en Espana, su obra abarca desde el arte tradicional hasta el diseno grafico contemporaneo.", "type": "text" },
-                    { "key": "image", "type": "file", "src": "" }
+                    { "key": "image", "type": "file" }
                   ]
                 },
                 "url": {
@@ -946,7 +939,7 @@
                   "mode": "formdata",
                   "formdata": [
                     { "key": "content", "value": "Biografia actualizada del artista Antonio Tello. Con mas de 10 anos de experiencia en el mundo del arte y el diseno.", "type": "text" },
-                    { "key": "image", "type": "file", "src": "" }
+                    { "key": "image", "type": "file" }
                   ]
                 },
                 "url": {
