@@ -176,6 +176,7 @@ chore(docker): add postgres 16
 5. `git add . && git commit -m "feat(hu-XX): descripcion"`
 6. `git push origin hu/XX-nombre` → merge a develop con `--no-ff`
 7. Actualizar CHANGELOG antes del commit
+8. Eliminar branch local y remoto después del merge y pasar CI/CD: `git branch -d hu/XX-nombre && git push origin --delete hu/XX-nombre`
 
 ## CHANGELOG
 
