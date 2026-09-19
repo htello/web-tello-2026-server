@@ -256,7 +256,7 @@ const main = async () => {
         description: 'Proyecto de identidad visual para café artesanal',
         imageUrl: 'https://res.cloudinary.com/demo/image/upload/design1.jpg',
         category: 'imagen-corporativa',
-        subcategory: 'imagen-corporativa',
+        subcategory: 'IMAGEN_CORPORATIVA',
       },
     }),
     prisma.designProject.create({
@@ -265,7 +265,7 @@ const main = async () => {
         description: 'Diseño de etiquetas y embalaje para vino premium',
         imageUrl: 'https://res.cloudinary.com/demo/image/upload/design2.jpg',
         category: 'packaging',
-        subcategory: 'packaging-expositores',
+        subcategory: 'PACKAGING_EXPOSITORES',
       },
     }),
     prisma.designProject.create({
@@ -274,7 +274,7 @@ const main = async () => {
         description: 'Diseño de cartel para festival de música indie',
         imageUrl: 'https://res.cloudinary.com/demo/image/upload/design3.jpg',
         category: 'carteleria',
-        subcategory: 'carteleria',
+        subcategory: 'CARTERERIA',
       },
     }),
   ]);

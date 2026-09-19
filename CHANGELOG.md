@@ -14,6 +14,7 @@ y este proyecto adherido al [Versionado Semántico](https://semver.org/lang/es/)
 
 ### Added
 - Skill `endpoint-tester` para testing de endpoints en 2 fases (exploración + formalización)
+- Enum `DesignSubcategory` para subcategorías de diseño (IMAGEN_CORPORATIVA, PACKAGING_EXPOSITORES, CARTERERIA, EDITORIAL)
 - HU06: Admin Colecciones y Pinturas (10 endpoints admin CRUD)
   - Controllers: `src/controllers/collections.js`, `src/controllers/paintings.js`
   - Routes: `src/routes/collections.js`, `src/routes/paintings.js`

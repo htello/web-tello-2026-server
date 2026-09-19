@@ -75,7 +75,7 @@ const update = async (req, res) => {
 
     res.status(200).json({ data: project });
   } catch (error) {
-    if (error.message.includes('Record to update not found')) {
+    if (error.code === 'P2025') {
       return res.status(404).json({
         error: 'Proyecto de diseño no encontrado',
         code: 'NOT_FOUND',
@@ -109,7 +109,7 @@ const remove = async (req, res) => {
       data: { message: 'Proyecto de diseño eliminado correctamente' },
     });
   } catch (error) {
-    if (error.message.includes('Record to delete does not exist')) {
+    if (error.code === 'P2025') {
       return res.status(404).json({
         error: 'Proyecto de diseño no encontrado',
         code: 'NOT_FOUND',

@@ -37,7 +37,7 @@ describe('HU10 - Admin Design', () => {
           description: 'Descripcion',
           imageUrl: 'https://res.cloudinary.com/test/design.jpg',
           category: 'diseno-grafico',
-          subcategory: 'imagen-corporativa',
+          subcategory: 'IMAGEN_CORPORATIVA',
           createdAt: new Date(),
         });
 
@@ -48,7 +48,7 @@ describe('HU10 - Admin Design', () => {
             title: 'Nuevo Diseño',
             imageUrl: 'https://res.cloudinary.com/test/design.jpg',
             category: 'diseno-grafico',
-            subcategory: 'imagen-corporativa',
+            subcategory: 'IMAGEN_CORPORATIVA',
             description: 'Descripcion',
           });
 
@@ -73,7 +73,7 @@ describe('HU10 - Admin Design', () => {
           title: 'Diseño Upload',
           imageUrl: 'https://res.cloudinary.com/test/uploaded.jpg',
           category: 'diseno-grafico',
-          subcategory: 'carteleria',
+          subcategory: 'CARTERERIA',
           createdAt: new Date(),
         });
 
@@ -82,7 +82,7 @@ describe('HU10 - Admin Design', () => {
           .set('Authorization', `Bearer ${adminToken}`)
           .field('title', 'Diseño Upload')
           .field('category', 'diseno-grafico')
-          .field('subcategory', 'carteleria')
+          .field('subcategory', 'CARTERERIA')
           .attach('image', Buffer.from('fake-image-data'), 'test.jpg');
 
         expect(res.status).toBe(201);
@@ -95,7 +95,7 @@ describe('HU10 - Admin Design', () => {
       it('should return 401', async () => {
         const res = await request(app)
           .post('/api/v1/admin/design')
-          .send({ title: 'Test', imageUrl: 'https://test.com/img.jpg', category: 'cat', subcategory: 'sub' });
+          .send({ title: 'Test', imageUrl: 'https://test.com/img.jpg', category: 'cat', subcategory: 'IMAGEN_CORPORATIVA' });
 
         expect(res.status).toBe(401);
       });
@@ -106,7 +106,7 @@ describe('HU10 - Admin Design', () => {
         const res = await request(app)
           .post('/api/v1/admin/design')
           .set('Authorization', `Bearer ${adminToken}`)
-          .send({ imageUrl: 'https://test.com/img.jpg', category: 'cat', subcategory: 'imagen-corporativa' });
+          .send({ imageUrl: 'https://test.com/img.jpg', category: 'cat', subcategory: 'IMAGEN_CORPORATIVA' });
 
         expect(res.status).toBe(400);
         expect(res.body).toHaveProperty('code', 'VALIDATION_ERROR');
@@ -118,7 +118,7 @@ describe('HU10 - Admin Design', () => {
         const res = await request(app)
           .post('/api/v1/admin/design')
           .set('Authorization', `Bearer ${adminToken}`)
-          .send({ title: 'Test', imageUrl: 'https://test.com/img.jpg', subcategory: 'imagen-corporativa' });
+          .send({ title: 'Test', imageUrl: 'https://test.com/img.jpg', subcategory: 'IMAGEN_CORPORATIVA' });
 
         expect(res.status).toBe(400);
         expect(res.body).toHaveProperty('code', 'VALIDATION_ERROR');
@@ -142,7 +142,7 @@ describe('HU10 - Admin Design', () => {
         const res = await request(app)
           .post('/api/v1/admin/design')
           .set('Authorization', `Bearer ${adminToken}`)
-          .send({ title: 'Test', category: 'cat', subcategory: 'imagen-corporativa' });
+          .send({ title: 'Test', category: 'cat', subcategory: 'IMAGEN_CORPORATIVA' });
 
         expect(res.status).toBe(400);
         expect(res.body).toHaveProperty('code', 'VALIDATION_ERROR');
@@ -162,7 +162,7 @@ describe('HU10 - Admin Design', () => {
             title: 'Existente',
             imageUrl: 'https://test.com/img.jpg',
             category: 'cat',
-            subcategory: 'imagen-corporativa',
+            subcategory: 'IMAGEN_CORPORATIVA',
           });
 
         expect(res.status).toBe(400);
@@ -183,7 +183,7 @@ describe('HU10 - Admin Design', () => {
             title: 'Test',
             imageUrl: 'https://test.com/img.jpg',
             category: 'cat',
-            subcategory: 'imagen-corporativa',
+            subcategory: 'IMAGEN_CORPORATIVA',
           });
 
         expect(res.status).toBe(500);
@@ -246,9 +246,9 @@ describe('HU10 - Admin Design', () => {
 
     describe('given project does not exist', () => {
       it('should return 404 NOT_FOUND', async () => {
-        mockPrisma.designProject.update.mockRejectedValue(
-          new Error('Record to update not found')
-        );
+        const error = new Error('Record to update not found');
+        error.code = 'P2025';
+        mockPrisma.designProject.update.mockRejectedValue(error);
 
         const res = await request(app)
           .put('/api/v1/admin/design/999')
@@ -309,9 +309,9 @@ describe('HU10 - Admin Design', () => {
 
     describe('given project does not exist', () => {
       it('should return 404 NOT_FOUND', async () => {
-        mockPrisma.designProject.delete.mockRejectedValue(
-          new Error('Record to delete does not exist')
-        );
+        const error = new Error('Record to delete does not exist');
+        error.code = 'P2025';
+        mockPrisma.designProject.delete.mockRejectedValue(error);
 
         const res = await request(app)
           .delete('/api/v1/admin/design/999')
