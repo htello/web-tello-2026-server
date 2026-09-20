@@ -8,7 +8,7 @@ import authRoutes from '../../src/routes/auth.js';
 import adminRoutes from '../../src/routes/admin.js';
 import collectionsRouter, { publicRouter } from '../../src/routes/collections.js';
 import uploadRoutes from '../../src/routes/upload.js';
-import paintingsRoutes from '../../src/routes/paintings.js';
+import paintingsRoutes, { publicRouter as paintingsPublicRouter } from '../../src/routes/paintings.js';
 import exhibitionsRoutes from '../../src/routes/exhibitions.js';
 import designRoutes from '../../src/routes/design.js';
 import illustrationsRoutes from '../../src/routes/illustrations.js';
@@ -28,6 +28,7 @@ const MOUNTS = new Map([
   [uploadRoutes, '/upload'],
   [collectionsRouter, '/collections'],
   [paintingsRoutes, '/paintings'],
+  [paintingsPublicRouter, '/paintings'],
   [exhibitionsRoutes, '/exhibitions'],
   [designRoutes, '/design'],
   [illustrationsRoutes, '/illustrations'],
