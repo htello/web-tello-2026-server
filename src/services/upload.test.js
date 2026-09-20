@@ -105,6 +105,39 @@ describe('HU16 - Upload Service', () => {
     });
   });
 
+  describe('resolveImageUrl', () => {
+    it('should return provided imageUrl when no file is present', async () => {
+      const { resolveImageUrl } = await import('./upload.js');
+
+      const result = await resolveImageUrl(null, 'https://example.com/p.jpg', 'pintura');
+
+      expect(result).toBe('https://example.com/p.jpg');
+      expect(cloudinary.uploader.upload).not.toHaveBeenCalled();
+    });
+
+    it('should upload file and return its url when file is present', async () => {
+      cloudinary.uploader.upload.mockResolvedValue({
+        secure_url: 'https://res.cloudinary.com/test/image/upload/pintura.jpg',
+        public_id: 'portfolio-antonio-tello/pintura/pintura',
+        width: 1200,
+        height: 800,
+        format: 'jpg',
+      });
+      cloudinary.url.mockReturnValue('https://res.cloudinary.com/test/image/upload/pintura_thumb.jpg');
+
+      const { resolveImageUrl } = await import('./upload.js');
+      const file = { buffer: Buffer.from('img'), mimetype: 'image/jpeg', originalname: 'pintura.jpg' };
+
+      const result = await resolveImageUrl(file, undefined, 'pintura');
+
+      expect(result).toBe('https://res.cloudinary.com/test/image/upload/pintura.jpg');
+      expect(cloudinary.uploader.upload).toHaveBeenCalledWith(
+        expect.any(String),
+        expect.objectContaining({ folder: 'portfolio-antonio-tello/pintura' })
+      );
+    });
+  });
+
   describe('ALLOWED_TYPES', () => {
     it('should include image/jpeg, image/png, image/webp', async () => {
       const { ALLOWED_TYPES } = await import('./upload.js');

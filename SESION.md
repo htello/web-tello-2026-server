@@ -21,7 +21,7 @@ ESTADO DE LAS HUS POR FASE:
 ✅ Fase 1: Auth + Infraestructura (HU20, HU22, HU21, HU19)
 ✅ Fase 2: Upload de Archivos (HU16 - Multer + Cloudinary)
 ✅ Fase 3: Admin CRUD (HU06, HU07, HU10, HU12)
-✅ Extras: Skill endpoint-tester + Enum DesignSubcategory + Fixes Prisma
+✅ Extras: Skill endpoint-tester + Enum DesignSubcategory (typo CARTELERIA corregido) + Fixes Prisma + Sync OpenAPI/docs + Test de consistencia
 ⏳ Fase 4: Galería Pública (HU01 ✅ → HU02 ⏳ → HU03 → HU04 → HU05) - EN PROGRESO
 ⏳ Fase 5: Diseño e Ilustración (HU08 → HU09) - Pendiente
 ⏳ Fase 6: Resto Backend (HU11 → HU13 → HU14 → HU15) - Pendiente

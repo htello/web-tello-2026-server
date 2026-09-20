@@ -11,9 +11,14 @@ y este proyecto adherido al [Versionado Semántico](https://semver.org/lang/es/)
 - HU06: Validación de `collectionId` inexistente al crear pintura (retorna 404 NOT_FOUND en vez de 500)
 - HU06: DELETE colección/pintura inexistente usa error code P2025 en vez de message matching
 - HU10: Test de validación de categoría faltante en POST /admin/design
+- Typo `CARTERERIA` → `CARTELERIA` en enum `DesignSubcategory` (Prisma, Joi, seed, tests) con migración `fix_design_subcategory_typo`
+- Sincronizado `docs/openapi.yaml`, `docs/0001-API-DESIGN.md` y colección Postman con la lógica actual (enum `DesignSubcategory` en SCREAMING_SNAKE_CASE y `/admin/biography` como GET + PUT JSON)
 
 ### Added
 - Tests unitarios para controllers admin: `design.js`, `illustrations.js`, `exhibitions.js`, `paintings.js`, `collections.js`
+- Test unitario para `src/controllers/biography.js` (get y createOrUpdate con/sin imageUrl)
+- Test unitario para `src/lib/prisma-utils.js`
+- Test unitario para `resolveImageUrl` en `src/services/upload.test.js`
 - Test unitario para `src/services/logger.js` (formateo con/sin metadata)
 - HU01: Galería de Colecciones (GET /api/v1/collections)
   - Controller: `listPublished` en `src/controllers/collections.js` (filtra publicadas, ordena por position, cuenta solo pinturas publicadas)
@@ -21,7 +26,8 @@ y este proyecto adherido al [Versionado Semántico](https://semver.org/lang/es/)
   - Test unitario: `src/controllers/collections.test.js` (4 tests)
   - Test de integración: `tests/integration/hu-01-gallery.test.js` (3 tests)
 - Skill `endpoint-tester` para testing de endpoints en 2 fases (exploración + formalización)
-- Enum `DesignSubcategory` para subcategorías de diseño (IMAGEN_CORPORATIVA, PACKAGING_EXPOSITORES, CARTERERIA, EDITORIAL)
+- Test de consistencia `tests/docs/openapi-consistency.test.js` que verifica que todas las rutas implementadas están documentadas en `openapi.yaml` y que el enum `DesignSubcategory` coincide con `prisma/schema.prisma`
+- Enum `DesignSubcategory` para subcategorías de diseño (IMAGEN_CORPORATIVA, PACKAGING_EXPOSITORES, CARTELERIA, EDITORIAL)
 - HU06: Admin Colecciones y Pinturas (10 endpoints admin CRUD)
   - Controllers: `src/controllers/collections.js`, `src/controllers/paintings.js`
   - Routes: `src/routes/collections.js`, `src/routes/paintings.js`
@@ -49,6 +55,10 @@ y este proyecto adherido al [Versionado Semántico](https://semver.org/lang/es/)
 - Sección de patrones de implementación en `docs/0002-IMPLEMENTATION-ORDER.md` (Prisma singleton, error handling, reorder, tests, Joi schemas)
 
 ### Changed
+- Refactor: extraídos helpers compartidos de Prisma en `src/lib/prisma-utils.js` (`parseId`, `isNotFoundError`, `isDuplicateError`, `reorderByPosition`)
+- Refactor: extraída resolución de imagen (`resolveImageUrl`) en `src/services/upload.js` para pinturas, diseño e ilustraciones
+- Refactor: estandarizada detección de errores Prisma por código (`P2025`/`P2002`) en lugar de `error.message.includes(...)` en todos los controladores admin
+- HU12: `createOrUpdate` de biografía ahora persiste `imageUrl`
 - `src/routes/index.js`: Montado router público de colecciones en `/api/v1/collections`
 - `docs/0002-IMPLEMENTATION-ORDER.md`: Reescrito con detalle completo por HU (Prisma models, archivos, test cases, controller logic)
 - `src/controllers/auth.js`: Usa Prisma singleton en vez de `new PrismaClient()`

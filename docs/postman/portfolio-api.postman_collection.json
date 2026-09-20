@@ -647,61 +647,61 @@
               }
             },
             {
-              "name": "GET /design?subcategory=imagen-corporativa",
+              "name": "GET /design?subcategory=IMAGEN_CORPORATIVA",
               "request": {
                 "method": "GET",
                 "header": [],
                 "url": {
-                  "raw": "{{baseUrl}}/design?subcategory=imagen-corporativa",
+                  "raw": "{{baseUrl}}/design?subcategory=IMAGEN_CORPORATIVA",
                   "host": ["{{baseUrl}}"],
                   "path": ["design"],
                   "query": [
-                    { "key": "subcategory", "value": "imagen-corporativa" }
+                    { "key": "subcategory", "value": "IMAGEN_CORPORATIVA" }
                   ]
                 }
               }
             },
             {
-              "name": "GET /design?subcategory=packaging-expositores",
+              "name": "GET /design?subcategory=PACKAGING_EXPOSITORES",
               "request": {
                 "method": "GET",
                 "header": [],
                 "url": {
-                  "raw": "{{baseUrl}}/design?subcategory=packaging-expositores",
+                  "raw": "{{baseUrl}}/design?subcategory=PACKAGING_EXPOSITORES",
                   "host": ["{{baseUrl}}"],
                   "path": ["design"],
                   "query": [
-                    { "key": "subcategory", "value": "packaging-expositores" }
+                    { "key": "subcategory", "value": "PACKAGING_EXPOSITORES" }
                   ]
                 }
               }
             },
             {
-              "name": "GET /design?subcategory=carteleria",
+              "name": "GET /design?subcategory=CARTELERIA",
               "request": {
                 "method": "GET",
                 "header": [],
                 "url": {
-                  "raw": "{{baseUrl}}/design?subcategory=carteleria",
+                  "raw": "{{baseUrl}}/design?subcategory=CARTELERIA",
                   "host": ["{{baseUrl}}"],
                   "path": ["design"],
                   "query": [
-                    { "key": "subcategory", "value": "carteleria" }
+                    { "key": "subcategory", "value": "CARTELERIA" }
                   ]
                 }
               }
             },
             {
-              "name": "GET /design?subcategory=editorial",
+              "name": "GET /design?subcategory=EDITORIAL",
               "request": {
                 "method": "GET",
                 "header": [],
                 "url": {
-                  "raw": "{{baseUrl}}/design?subcategory=editorial",
+                  "raw": "{{baseUrl}}/design?subcategory=EDITORIAL",
                   "host": ["{{baseUrl}}"],
                   "path": ["design"],
                   "query": [
-                    { "key": "subcategory", "value": "editorial" }
+                    { "key": "subcategory", "value": "EDITORIAL" }
                   ]
                 }
               }
@@ -727,7 +727,7 @@
                     { "key": "title", "value": "Nuevo Proyecto Diseno", "type": "text" },
                     { "key": "description", "value": "Descripcion del proyecto", "type": "text" },
                     { "key": "category", "value": "diseno-grafico", "type": "text" },
-                    { "key": "subcategory", "value": "imagen-corporativa", "type": "text" },
+                    { "key": "subcategory", "value": "IMAGEN_CORPORATIVA", "type": "text" },
                     { "key": "image", "type": "file" }
                   ]
                 },
@@ -902,22 +902,15 @@
           "name": "Admin",
           "item": [
             {
-              "name": "POST /admin/biography",
+              "name": "GET /admin/biography",
               "request": {
-                "method": "POST",
+                "method": "GET",
                 "header": [
                   {
                     "key": "Authorization",
                     "value": "Bearer {{authToken}}"
                   }
                 ],
-                "body": {
-                  "mode": "formdata",
-                  "formdata": [
-                    { "key": "content", "value": "Biografia del artista Antonio Tello. Nacido en Espana, su obra abarca desde el arte tradicional hasta el diseno grafico contemporaneo.", "type": "text" },
-                    { "key": "image", "type": "file" }
-                  ]
-                },
                 "url": {
                   "raw": "{{baseUrl}}/admin/biography",
                   "host": ["{{baseUrl}}"],
@@ -936,11 +929,11 @@
                   }
                 ],
                 "body": {
-                  "mode": "formdata",
-                  "formdata": [
-                    { "key": "content", "value": "Biografia actualizada del artista Antonio Tello. Con mas de 10 anos de experiencia en el mundo del arte y el diseno.", "type": "text" },
-                    { "key": "image", "type": "file" }
-                  ]
+                  "mode": "raw",
+                  "raw": "{\n  \"content\": \"Biografia actualizada del artista Antonio Tello. Con mas de 10 anos de experiencia en el mundo del arte y el diseno.\",\n  \"imageUrl\": \"https://res.cloudinary.com/.../portrait.jpg\"\n}",
+                  "options": {
+                    "raw": { "language": "json" }
+                  }
                 },
                 "url": {
                   "raw": "{{baseUrl}}/admin/biography",

@@ -294,12 +294,12 @@
 | Método | Endpoint | Descripción | Auth |
 |--------|----------|-------------|------|
 | `GET` | `/api/v1/design` | Listar proyectos de diseño | No |
-| `GET` | `/api/v1/design?subcategory=packaging-expositores` | Filtrar por subcategoría | No |
+| `GET` | `/api/v1/design?subcategory=PACKAGING_EXPOSITORES` | Filtrar por subcategoría | No |
 | `POST` | `/api/v1/admin/design` | Crear proyecto de diseño | Admin |
 | `PUT` | `/api/v1/admin/design/:id` | Editar proyecto de diseño | Admin |
 | `DELETE` | `/api/v1/admin/design/:id` | Eliminar proyecto de diseño | Admin |
 
-**Subcategorías válidas:** `imagen-corporativa`, `packaging-expositores`, `carteleria`, `editorial`
+**Subcategorías válidas:** `IMAGEN_CORPORATIVA`, `PACKAGING_EXPOSITORES`, `CARTELERIA`, `EDITORIAL`
 
 **GET /api/v1/design**
 ```json
@@ -310,7 +310,7 @@
       "id": 1,
       "title": "Branding Café Aroma",
       "category": "imagen-corporativa",
-      "subcategory": "imagen-corporativa",
+      "subcategory": "IMAGEN_CORPORATIVA",
       "imageUrl": "...",
       "description": "Proyecto de identidad visual"
     }
@@ -351,8 +351,8 @@
 | Método | Endpoint | Descripción | Auth |
 |--------|----------|-------------|------|
 | `GET` | `/api/v1/biography` | Obtener biografía | No |
-| `POST` | `/api/v1/admin/biography` | Crear biografía | Admin |
-| `PUT` | `/api/v1/admin/biography` | Actualizar biografía | Admin |
+| `GET` | `/api/v1/admin/biography` | Obtener biografía (admin) | Admin |
+| `PUT` | `/api/v1/admin/biography` | Crear o actualizar biografía | Admin |
 
 **GET /api/v1/biography**
 ```json
@@ -367,21 +367,25 @@
 }
 ```
 
-**POST /api/v1/admin/biography**
+**GET /api/v1/admin/biography**
 ```json
-// Request (multipart/form-data)
+// Response 200
 {
-  "content": "Biografía del artista...",
-  "image": <File>
+  "data": {
+    "id": 1,
+    "content": "Texto plano de la biografía del artista...",
+    "imageUrl": "https://res.cloudinary.com/.../portrait.jpg",
+    "updatedAt": "2024-01-15T10:30:00Z"
+  }
 }
 ```
 
 **PUT /api/v1/admin/biography**
 ```json
-// Request (multipart/form-data)
+// Request (application/json)
 {
-  "content": "Nueva biografía actualizada...",
-  "image": <File>  // opcional, solo si se cambia
+  "content": "Biografía del artista...",
+  "imageUrl": "https://res.cloudinary.com/.../portrait.jpg"  // opcional
 }
 ```
 

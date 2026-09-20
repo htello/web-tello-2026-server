@@ -31,9 +31,10 @@
    - Si algún test o regla de ESLint falla, el agente DEBE detenerse, informar explícitamente al usuario de los errores y solucionar las fallas antes de proceder. No se permite forzar commits con errores pendientes.
 7. **Respuestas Concisas (Ahorro de Tokens)**:
    - Eliminar saludos, intros ("Aquí tienes..."), rodeos y explicaciones teóricas no solicitadas.
+   - Restringir al mínimo los procesos de pensamiento interno o explicaciones previas a la entrega de código.
    - Presentar directamente el código, comandos o resultados.
    - Proponer cambios específicos o funciones modificadas en lugar de reimprimir archivos enteros innecesariamente durante la fase de discusión.
-
+   
 ## Skills del Proyecto
 
 Usar las convenciones de las skills únicamente al generar o modificar el tipo de código correspondiente:

@@ -6,9 +6,15 @@ import { JWT_SECRET } from '../../src/lib/constants.js';
 
 vi.mock('../../src/services/upload.js', async (importOriginal) => {
   const original = await importOriginal();
+  const uploadToCloudinary = vi.fn();
   return {
     ...original,
-    uploadToCloudinary: vi.fn(),
+    uploadToCloudinary,
+    resolveImageUrl: vi.fn(async (file, imageUrl, section) => {
+      if (!file) return imageUrl;
+      const result = await uploadToCloudinary(file, section);
+      return result.url;
+    }),
   };
 });
 
@@ -109,9 +115,9 @@ describe('HU06 - Admin Colecciones y Pinturas', () => {
 
     describe('given duplicate title', () => {
       it('should return 400 DUPLICATE_ERROR', async () => {
-        mockPrisma.collection.create.mockRejectedValue(
-          new Error('Unique constraint failed on the fields: (`title`)')
-        );
+        const dupError = new Error('Unique constraint failed');
+        dupError.code = 'P2002';
+        mockPrisma.collection.create.mockRejectedValue(dupError);
 
         const res = await request(app)
           .post('/api/v1/admin/collections')
@@ -208,9 +214,9 @@ describe('HU06 - Admin Colecciones y Pinturas', () => {
 
     describe('given duplicate title on update', () => {
       it('should return 400 DUPLICATE_ERROR', async () => {
-        mockPrisma.collection.update.mockRejectedValue(
-          new Error('Unique constraint failed on the fields: (`title`)')
-        );
+        const dupError = new Error('Unique constraint failed');
+        dupError.code = 'P2002';
+        mockPrisma.collection.update.mockRejectedValue(dupError);
 
         const res = await request(app)
           .put('/api/v1/admin/collections/1')
@@ -452,9 +458,9 @@ describe('HU06 - Admin Colecciones y Pinturas', () => {
     describe('given duplicate title in same collection', () => {
       it('should return 400 DUPLICATE_ERROR', async () => {
         mockPrisma.collection.findUnique.mockResolvedValue({ id: 1 });
-        mockPrisma.painting.create.mockRejectedValue(
-          new Error('Unique constraint failed on the fields: (`title`, `collectionId`)')
-        );
+        const dupError = new Error('Unique constraint failed');
+        dupError.code = 'P2002';
+        mockPrisma.painting.create.mockRejectedValue(dupError);
 
         const res = await request(app)
           .post('/api/v1/admin/paintings')
@@ -577,9 +583,9 @@ describe('HU06 - Admin Colecciones y Pinturas', () => {
 
     describe('given duplicate title on update', () => {
       it('should return 400 DUPLICATE_ERROR', async () => {
-        mockPrisma.painting.update.mockRejectedValue(
-          new Error('Unique constraint failed on the fields: (`title`, `collectionId`)')
-        );
+        const dupError = new Error('Unique constraint failed');
+        dupError.code = 'P2002';
+        mockPrisma.painting.update.mockRejectedValue(dupError);
 
         const res = await request(app)
           .put('/api/v1/admin/paintings/1')

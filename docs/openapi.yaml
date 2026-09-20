@@ -336,10 +336,10 @@ components:
         subcategory:
           type: string
           enum:
-            - imagen-corporativa
-            - packaging-expositores
-            - carteleria
-            - editorial
+            - IMAGEN_CORPORATIVA
+            - PACKAGING_EXPOSITORES
+            - CARTELERIA
+            - EDITORIAL
 
     DesignRequest:
       type: object
@@ -357,10 +357,10 @@ components:
         subcategory:
           type: string
           enum:
-            - imagen-corporativa
-            - packaging-expositores
-            - carteleria
-            - editorial
+            - IMAGEN_CORPORATIVA
+            - PACKAGING_EXPOSITORES
+            - CARTELERIA
+            - EDITORIAL
         image:
           type: string
           format: binary
@@ -412,9 +412,9 @@ components:
       properties:
         content:
           type: string
-        image:
+        imageUrl:
           type: string
-          format: binary
+          format: uri
 
     ContactRequest:
       type: object
@@ -1350,10 +1350,10 @@ paths:
           schema:
             type: string
             enum:
-              - imagen-corporativa
-              - packaging-expositores
-              - carteleria
-              - editorial
+              - IMAGEN_CORPORATIVA
+              - PACKAGING_EXPOSITORES
+              - CARTELERIA
+              - EDITORIAL
           description: Filtrar por subcategoría
       responses:
         '200':
@@ -1615,18 +1615,12 @@ paths:
                     $ref: '#/components/schemas/Biography'
 
   /admin/biography:
-    post:
+    get:
       tags: [Biography]
-      summary: Crear biografía
-      requestBody:
-        required: true
-        content:
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/BiographyRequest'
+      summary: Obtener biografía (admin)
       responses:
-        '201':
-          description: Biografía creada
+        '200':
+          description: Biografía
           content:
             application/json:
               schema:
@@ -1634,30 +1628,30 @@ paths:
                 properties:
                   data:
                     $ref: '#/components/schemas/Biography'
-        '400':
-          description: Solicitud inválida
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
         '401':
           description: No autenticado
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Biografía no encontrada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
     put:
       tags: [Biography]
-      summary: Actualizar biografía
+      summary: Crear o actualizar biografía
       requestBody:
         required: true
         content:
-          multipart/form-data:
+          application/json:
             schema:
               $ref: '#/components/schemas/BiographyRequest'
       responses:
         '200':
-          description: Biografía actualizada
+          description: Biografía guardada
           content:
             application/json:
               schema:

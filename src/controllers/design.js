@@ -1,17 +1,13 @@
 import prisma from '../lib/prisma.js';
 import logger from '../services/logger.js';
-import { uploadToCloudinary } from '../services/upload.js';
+import { resolveImageUrl } from '../services/upload.js';
+import { parseId, isNotFoundError, isDuplicateError } from '../lib/prisma-utils.js';
 
 const create = async (req, res) => {
   try {
     const { title, description, imageUrl, category, subcategory } = req.body;
 
-    let finalImageUrl = imageUrl;
-
-    if (req.file) {
-      const result = await uploadToCloudinary(req.file, 'diseno');
-      finalImageUrl = result.url;
-    }
+    const finalImageUrl = await resolveImageUrl(req.file, imageUrl, 'diseno');
 
     if (!finalImageUrl) {
       return res.status(400).json({
@@ -34,7 +30,7 @@ const create = async (req, res) => {
 
     res.status(201).json({ data: project });
   } catch (error) {
-    if (error.message.includes('Unique constraint failed')) {
+    if (isDuplicateError(error)) {
       return res.status(400).json({
         error: 'Ya existe un proyecto de diseño con ese título',
         code: 'DUPLICATE_ERROR',
@@ -53,15 +49,10 @@ const update = async (req, res) => {
     const { id } = req.params;
     const { title, description, imageUrl, category, subcategory } = req.body;
 
-    let finalImageUrl = imageUrl;
-
-    if (req.file) {
-      const result = await uploadToCloudinary(req.file, 'diseno');
-      finalImageUrl = result.url;
-    }
+    const finalImageUrl = await resolveImageUrl(req.file, imageUrl, 'diseno');
 
     const project = await prisma.designProject.update({
-      where: { id: parseInt(id) },
+      where: { id: parseId(id) },
       data: {
         ...(title !== undefined && { title }),
         ...(description !== undefined && { description }),
@@ -75,13 +66,13 @@ const update = async (req, res) => {
 
     res.status(200).json({ data: project });
   } catch (error) {
-    if (error.code === 'P2025') {
+    if (isNotFoundError(error)) {
       return res.status(404).json({
         error: 'Proyecto de diseño no encontrado',
         code: 'NOT_FOUND',
       });
     }
-    if (error.message.includes('Unique constraint failed')) {
+    if (isDuplicateError(error)) {
       return res.status(400).json({
         error: 'Ya existe un proyecto de diseño con ese título',
         code: 'DUPLICATE_ERROR',
@@ -100,16 +91,16 @@ const remove = async (req, res) => {
     const { id } = req.params;
 
     await prisma.designProject.delete({
-      where: { id: parseInt(id) },
+      where: { id: parseId(id) },
     });
 
-    logger.info('Proyecto de diseño eliminado', { id: parseInt(id) });
+    logger.info('Proyecto de diseño eliminado', { id: parseId(id) });
 
     res.status(200).json({
       data: { message: 'Proyecto de diseño eliminado correctamente' },
     });
   } catch (error) {
-    if (error.code === 'P2025') {
+    if (isNotFoundError(error)) {
       return res.status(404).json({
         error: 'Proyecto de diseño no encontrado',
         code: 'NOT_FOUND',

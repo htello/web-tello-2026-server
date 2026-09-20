@@ -26,7 +26,7 @@ const get = async (req, res) => {
 
 const createOrUpdate = async (req, res) => {
   try {
-    const { content } = req.body;
+    const { content, imageUrl } = req.body;
 
     const existing = await prisma.biography.findFirst();
 
@@ -34,12 +34,12 @@ const createOrUpdate = async (req, res) => {
     if (existing) {
       biography = await prisma.biography.update({
         where: { id: existing.id },
-        data: { content },
+        data: { content, imageUrl: imageUrl || null },
       });
       logger.info('Biografía actualizada', { id: biography.id });
     } else {
       biography = await prisma.biography.create({
-        data: { content },
+        data: { content, imageUrl: imageUrl || null },
       });
       logger.info('Biografía creada', { id: biography.id });
     }

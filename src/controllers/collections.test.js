@@ -141,9 +141,9 @@ describe('HU01 - Galería de Colecciones', () => {
 
       describe('given duplicate title', () => {
         it('should return 400 DUPLICATE_ERROR', async () => {
-          mockPrisma.collection.create.mockRejectedValue(
-            new Error('Unique constraint failed on the fields: (`title`)')
-          );
+          const dupError = new Error('Unique constraint failed');
+          dupError.code = 'P2002';
+          mockPrisma.collection.create.mockRejectedValue(dupError);
           req.body = { title: 'Óleos' };
 
           await create(req, res);
@@ -222,9 +222,9 @@ describe('HU01 - Galería de Colecciones', () => {
 
       describe('given duplicate title on update', () => {
         it('should return 400 DUPLICATE_ERROR', async () => {
-          mockPrisma.collection.update.mockRejectedValue(
-            new Error('Unique constraint failed on the fields: (`title`)')
-          );
+          const dupError = new Error('Unique constraint failed');
+          dupError.code = 'P2002';
+          mockPrisma.collection.update.mockRejectedValue(dupError);
           req.params = { id: '1' };
           req.body = { title: 'Esculturas' };
 

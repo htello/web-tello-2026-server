@@ -1,5 +1,6 @@
 import prisma from '../lib/prisma.js';
 import logger from '../services/logger.js';
+import { parseId, isNotFoundError, reorderByPosition } from '../lib/prisma-utils.js';
 
 const create = async (req, res) => {
   try {
@@ -32,7 +33,7 @@ const update = async (req, res) => {
     const { title, date, location, description } = req.body;
 
     const exhibition = await prisma.exhibition.update({
-      where: { id: parseInt(id) },
+      where: { id: parseId(id) },
       data: {
         ...(title !== undefined && { title }),
         ...(date !== undefined && { date: new Date(date) }),
@@ -45,7 +46,7 @@ const update = async (req, res) => {
 
     res.status(200).json({ data: exhibition });
   } catch (error) {
-    if (error.message.includes('Record to update not found')) {
+    if (isNotFoundError(error)) {
       return res.status(404).json({
         error: 'Exposición no encontrada',
         code: 'NOT_FOUND',
@@ -64,16 +65,16 @@ const remove = async (req, res) => {
     const { id } = req.params;
 
     await prisma.exhibition.delete({
-      where: { id: parseInt(id) },
+      where: { id: parseId(id) },
     });
 
-    logger.info('Exposición eliminada', { id: parseInt(id) });
+    logger.info('Exposición eliminada', { id: parseId(id) });
 
     res.status(200).json({
       data: { message: 'Exposición eliminada correctamente' },
     });
   } catch (error) {
-    if (error.message.includes('Record to delete does not exist')) {
+    if (isNotFoundError(error)) {
       return res.status(404).json({
         error: 'Exposición no encontrada',
         code: 'NOT_FOUND',
@@ -91,14 +92,7 @@ const reorder = async (req, res) => {
   try {
     const { orderedIds } = req.body;
 
-    await prisma.$transaction(
-      orderedIds.map((id, index) =>
-        prisma.exhibition.update({
-          where: { id },
-          data: { position: index },
-        })
-      )
-    );
+    await reorderByPosition(prisma, prisma.exhibition, orderedIds);
 
     logger.info('Exposiciones reordenadas', { count: orderedIds.length });
 

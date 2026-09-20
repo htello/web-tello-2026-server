@@ -1,6 +1,7 @@
 import prisma from '../lib/prisma.js';
 import logger from '../services/logger.js';
-import { uploadToCloudinary } from '../services/upload.js';
+import { resolveImageUrl } from '../services/upload.js';
+import { parseId, isNotFoundError, isDuplicateError, reorderByPosition } from '../lib/prisma-utils.js';
 
 /**
  * HU06 - Crear pintura
@@ -23,12 +24,7 @@ const create = async (req, res) => {
   try {
     const { title, imageUrl, collectionId, dimensions, technique, year } = req.body;
 
-    let finalImageUrl = imageUrl;
-
-    if (req.file) {
-      const result = await uploadToCloudinary(req.file, 'pintura');
-      finalImageUrl = result.url;
-    }
+    const finalImageUrl = await resolveImageUrl(req.file, imageUrl, 'pintura');
 
     if (!finalImageUrl) {
       return res.status(400).json({
@@ -38,7 +34,7 @@ const create = async (req, res) => {
     }
 
     const collection = await prisma.collection.findUnique({
-      where: { id: parseInt(collectionId) },
+      where: { id: parseId(collectionId) },
     });
 
     if (!collection) {
@@ -52,7 +48,7 @@ const create = async (req, res) => {
       data: {
         title,
         imageUrl: finalImageUrl,
-        collectionId: parseInt(collectionId),
+        collectionId: parseId(collectionId),
         dimensions: dimensions || null,
         technique: technique || null,
         year: year || null,
@@ -63,7 +59,7 @@ const create = async (req, res) => {
 
     res.status(201).json({ data: painting });
   } catch (error) {
-    if (error.message.includes('Unique constraint failed')) {
+    if (isDuplicateError(error)) {
       return res.status(400).json({
         error: 'Ya existe una pintura con ese título en esta colección',
         code: 'DUPLICATE_ERROR',
@@ -93,19 +89,14 @@ const update = async (req, res) => {
     const { id } = req.params;
     const { title, imageUrl, collectionId, dimensions, technique, year } = req.body;
 
-    let finalImageUrl = imageUrl;
-
-    if (req.file) {
-      const result = await uploadToCloudinary(req.file, 'pintura');
-      finalImageUrl = result.url;
-    }
+    const finalImageUrl = await resolveImageUrl(req.file, imageUrl, 'pintura');
 
     const painting = await prisma.painting.update({
-      where: { id: parseInt(id) },
+      where: { id: parseId(id) },
       data: {
         ...(title !== undefined && { title }),
         ...(finalImageUrl !== undefined && { imageUrl: finalImageUrl }),
-        ...(collectionId !== undefined && { collectionId: parseInt(collectionId) }),
+        ...(collectionId !== undefined && { collectionId: parseId(collectionId) }),
         ...(dimensions !== undefined && { dimensions }),
         ...(technique !== undefined && { technique }),
         ...(year !== undefined && { year }),
@@ -116,13 +107,13 @@ const update = async (req, res) => {
 
     res.status(200).json({ data: painting });
   } catch (error) {
-    if (error.code === 'P2025') {
+    if (isNotFoundError(error)) {
       return res.status(404).json({
         error: 'Pintura no encontrada',
         code: 'NOT_FOUND',
       });
     }
-    if (error.message.includes('Unique constraint failed')) {
+    if (isDuplicateError(error)) {
       return res.status(400).json({
         error: 'Ya existe una pintura con ese título en esta colección',
         code: 'DUPLICATE_ERROR',
@@ -152,16 +143,16 @@ const remove = async (req, res) => {
     const { id } = req.params;
 
     await prisma.painting.delete({
-      where: { id: parseInt(id) },
+      where: { id: parseId(id) },
     });
 
-    logger.info('Pintura eliminada', { id: parseInt(id) });
+    logger.info('Pintura eliminada', { id: parseId(id) });
 
     res.status(200).json({
       data: { message: 'Pintura eliminada correctamente' },
     });
   } catch (error) {
-    if (error.code === 'P2025') {
+    if (isNotFoundError(error)) {
       return res.status(404).json({
         error: 'Pintura no encontrada',
         code: 'NOT_FOUND',
@@ -191,7 +182,7 @@ const feature = async (req, res) => {
     const { id } = req.params;
 
     const painting = await prisma.painting.findUnique({
-      where: { id: parseInt(id) },
+      where: { id: parseId(id) },
     });
 
     if (!painting) {
@@ -202,7 +193,7 @@ const feature = async (req, res) => {
     }
 
     const updated = await prisma.painting.update({
-      where: { id: parseInt(id) },
+      where: { id: parseId(id) },
       data: { isFeatured: !painting.isFeatured },
     });
 
@@ -234,7 +225,7 @@ const publish = async (req, res) => {
     const { id } = req.params;
 
     const painting = await prisma.painting.findUnique({
-      where: { id: parseInt(id) },
+      where: { id: parseId(id) },
     });
 
     if (!painting) {
@@ -245,7 +236,7 @@ const publish = async (req, res) => {
     }
 
     const updated = await prisma.painting.update({
-      where: { id: parseInt(id) },
+      where: { id: parseId(id) },
       data: { isPublished: !painting.isPublished },
     });
 
@@ -276,14 +267,7 @@ const reorder = async (req, res) => {
   try {
     const { orderedIds } = req.body;
 
-    await prisma.$transaction(
-      orderedIds.map((id, index) =>
-        prisma.painting.update({
-          where: { id },
-          data: { position: index },
-        })
-      )
-    );
+    await reorderByPosition(prisma, prisma.painting, orderedIds);
 
     logger.info('Pinturas reordenadas', { count: orderedIds.length });
 
