@@ -7,6 +7,9 @@ y este proyecto adherido al [Versionado Semántico](https://semver.org/lang/es/)
 
 ## [Unreleased]
 
+### Changed
+- Subcategorías de diseño en kebab-case (`imagen-corporativa`, `packaging-expositores`, `carteleria`, `editorial`): `DesignProject.subcategory` pasa de enum `DesignSubcategory` a `String` (Prisma no admite guiones en valores de enum) y se elimina el campo redundante `category`. Migración `drop_design_category_kebab_subcategory`. Validación vía `DESIGN_SUBCATEGORIES` en `constants.js`.
+
 ### Fixed
 - Schemas de actualización (`paintingUpdateSchema`, `exhibitionUpdateSchema`, `designUpdateSchema`, `illustrationUpdateSchema`): enviar body vacío devolvía el mensaje en inglés `"value" must have at least 1 key`. Ahora devuelve `"Debe enviar al menos un campo para actualizar"`.
 - HU08: `GET /api/v1/design?subcategory=<valor_no_en_enum>` retornaba `500 INTERNAL_ERROR` (Prisma validation). Ahora valida contra `DESIGN_SUBCATEGORIES` y devuelve `404` con `"Subcategoría inválida"`.

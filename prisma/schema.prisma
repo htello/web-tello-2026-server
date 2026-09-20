@@ -22,13 +22,6 @@ enum Role {
   USER
 }
 
-enum DesignSubcategory {
-  IMAGEN_CORPORATIVA
-  PACKAGING_EXPOSITORES
-  CARTELERIA
-  EDITORIAL
-}
-
 model Collection {
   id          Int       @id @default(autoincrement())
   title       String    @unique
@@ -71,14 +64,13 @@ model Exhibition {
 }
 
 model DesignProject {
-  id          Int               @id @default(autoincrement())
+  id          Int      @id @default(autoincrement())
   title       String
   description String?
   imageUrl    String
-  category    String
-  subcategory DesignSubcategory
-  createdAt   DateTime          @default(now())
-  updatedAt   DateTime          @updatedAt
+  subcategory String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }
 
 model Illustration {

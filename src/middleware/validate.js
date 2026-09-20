@@ -251,12 +251,6 @@ const designSchema = Joi.object({
       'any.required': 'El título es obligatorio',
       'string.empty': 'El título no puede estar vacío',
     }),
-  category: Joi.string()
-    .required()
-    .messages({
-      'any.required': 'La categoría es obligatoria',
-      'string.empty': 'La categoría no puede estar vacía',
-    }),
   subcategory: Joi.string()
     .valid(...DESIGN_SUBCATEGORIES)
     .required()
@@ -286,11 +280,6 @@ const designUpdateSchema = Joi.object({
     .optional()
     .messages({
       'string.empty': 'El título no puede estar vacío',
-    }),
-  category: Joi.string()
-    .optional()
-    .messages({
-      'string.empty': 'La categoría no puede estar vacía',
     }),
   subcategory: Joi.string()
     .valid(...DESIGN_SUBCATEGORIES)

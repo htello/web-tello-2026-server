@@ -255,8 +255,7 @@ const main = async () => {
         title: 'Branding Café Aroma',
         description: 'Proyecto de identidad visual para café artesanal',
         imageUrl: 'https://res.cloudinary.com/demo/image/upload/design1.jpg',
-        category: 'imagen-corporativa',
-        subcategory: 'IMAGEN_CORPORATIVA',
+        subcategory: 'imagen-corporativa',
       },
     }),
     prisma.designProject.create({
@@ -264,8 +263,7 @@ const main = async () => {
         title: 'Packaging Vino Reserva',
         description: 'Diseño de etiquetas y embalaje para vino premium',
         imageUrl: 'https://res.cloudinary.com/demo/image/upload/design2.jpg',
-        category: 'packaging',
-        subcategory: 'PACKAGING_EXPOSITORES',
+        subcategory: 'packaging-expositores',
       },
     }),
     prisma.designProject.create({
@@ -273,8 +271,7 @@ const main = async () => {
         title: 'Cartel Festival de Música',
         description: 'Diseño de cartel para festival de música indie',
         imageUrl: 'https://res.cloudinary.com/demo/image/upload/design3.jpg',
-        category: 'carteleria',
-        subcategory: 'CARTELERIA',
+        subcategory: 'carteleria',
       },
     }),
     prisma.designProject.create({
@@ -282,8 +279,7 @@ const main = async () => {
         title: 'Catálogo Editorial 2025',
         description: 'Diseño editorial de catálogo de obra gráfica',
         imageUrl: 'https://res.cloudinary.com/demo/image/upload/design4.jpg',
-        category: 'editorial',
-        subcategory: 'EDITORIAL',
+        subcategory: 'editorial',
       },
     }),
   ]);

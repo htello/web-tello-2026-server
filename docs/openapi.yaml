@@ -331,36 +331,31 @@ components:
         imageUrl:
           type: string
           format: uri
-        category:
-          type: string
         subcategory:
           type: string
           enum:
-            - IMAGEN_CORPORATIVA
-            - PACKAGING_EXPOSITORES
-            - CARTELERIA
-            - EDITORIAL
+            - imagen-corporativa
+            - packaging-expositores
+            - carteleria
+            - editorial
 
     DesignRequest:
       type: object
       required:
         - title
-        - category
         - subcategory
       properties:
         title:
           type: string
         description:
           type: string
-        category:
-          type: string
         subcategory:
           type: string
           enum:
-            - IMAGEN_CORPORATIVA
-            - PACKAGING_EXPOSITORES
-            - CARTELERIA
-            - EDITORIAL
+            - imagen-corporativa
+            - packaging-expositores
+            - carteleria
+            - editorial
         image:
           type: string
           format: binary
@@ -1350,10 +1345,10 @@ paths:
           schema:
             type: string
             enum:
-              - IMAGEN_CORPORATIVA
-              - PACKAGING_EXPOSITORES
-              - CARTELERIA
-              - EDITORIAL
+              - imagen-corporativa
+              - packaging-expositores
+              - carteleria
+              - editorial
           description: Filtrar por subcategoría
       responses:
         '200':

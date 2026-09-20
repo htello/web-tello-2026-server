@@ -647,61 +647,61 @@
               }
             },
             {
-              "name": "GET /design?subcategory=IMAGEN_CORPORATIVA",
+              "name": "GET /design?subcategory=imagen-corporativa",
               "request": {
                 "method": "GET",
                 "header": [],
                 "url": {
-                  "raw": "{{baseUrl}}/design?subcategory=IMAGEN_CORPORATIVA",
+                  "raw": "{{baseUrl}}/design?subcategory=imagen-corporativa",
                   "host": ["{{baseUrl}}"],
                   "path": ["design"],
                   "query": [
-                    { "key": "subcategory", "value": "IMAGEN_CORPORATIVA" }
+                    { "key": "subcategory", "value": "imagen-corporativa" }
                   ]
                 }
               }
             },
             {
-              "name": "GET /design?subcategory=PACKAGING_EXPOSITORES",
+              "name": "GET /design?subcategory=packaging-expositores",
               "request": {
                 "method": "GET",
                 "header": [],
                 "url": {
-                  "raw": "{{baseUrl}}/design?subcategory=PACKAGING_EXPOSITORES",
+                  "raw": "{{baseUrl}}/design?subcategory=packaging-expositores",
                   "host": ["{{baseUrl}}"],
                   "path": ["design"],
                   "query": [
-                    { "key": "subcategory", "value": "PACKAGING_EXPOSITORES" }
+                    { "key": "subcategory", "value": "packaging-expositores" }
                   ]
                 }
               }
             },
             {
-              "name": "GET /design?subcategory=CARTELERIA",
+              "name": "GET /design?subcategory=carteleria",
               "request": {
                 "method": "GET",
                 "header": [],
                 "url": {
-                  "raw": "{{baseUrl}}/design?subcategory=CARTELERIA",
+                  "raw": "{{baseUrl}}/design?subcategory=carteleria",
                   "host": ["{{baseUrl}}"],
                   "path": ["design"],
                   "query": [
-                    { "key": "subcategory", "value": "CARTELERIA" }
+                    { "key": "subcategory", "value": "carteleria" }
                   ]
                 }
               }
             },
             {
-              "name": "GET /design?subcategory=EDITORIAL",
+              "name": "GET /design?subcategory=editorial",
               "request": {
                 "method": "GET",
                 "header": [],
                 "url": {
-                  "raw": "{{baseUrl}}/design?subcategory=EDITORIAL",
+                  "raw": "{{baseUrl}}/design?subcategory=editorial",
                   "host": ["{{baseUrl}}"],
                   "path": ["design"],
                   "query": [
-                    { "key": "subcategory", "value": "EDITORIAL" }
+                    { "key": "subcategory", "value": "editorial" }
                   ]
                 }
               }
@@ -726,8 +726,7 @@
                   "formdata": [
                     { "key": "title", "value": "Nuevo Proyecto Diseno", "type": "text" },
                     { "key": "description", "value": "Descripcion del proyecto", "type": "text" },
-                    { "key": "category", "value": "diseno-grafico", "type": "text" },
-                    { "key": "subcategory", "value": "IMAGEN_CORPORATIVA", "type": "text" },
+                    { "key": "subcategory", "value": "imagen-corporativa", "type": "text" },
                     { "key": "imageUrl", "value": "https://res.cloudinary.com/demo/image/upload/sample.jpg", "type": "text" }
                   ]
                 },

@@ -39,8 +39,8 @@ describe('HU09 - Admin Diseño', () => {
     describe('given no subcategory', () => {
       it('should return 200 with all projects', async () => {
         mockPrisma.designProject.findMany.mockResolvedValue([
-          { id: 1, title: 'Proyecto A', subcategory: 'IMAGEN_CORPORATIVA' },
-          { id: 2, title: 'Proyecto B', subcategory: 'EDITORIAL' },
+          { id: 1, title: 'Proyecto A', subcategory: 'imagen-corporativa' },
+          { id: 2, title: 'Proyecto B', subcategory: 'editorial' },
         ]);
         req.query = {};
 
@@ -50,8 +50,8 @@ describe('HU09 - Admin Diseño', () => {
         expect(res.status).toHaveBeenCalledWith(200);
         expect(res.json).toHaveBeenCalledWith({
           data: [
-            { id: 1, title: 'Proyecto A', subcategory: 'IMAGEN_CORPORATIVA' },
-            { id: 2, title: 'Proyecto B', subcategory: 'EDITORIAL' },
+            { id: 1, title: 'Proyecto A', subcategory: 'imagen-corporativa' },
+            { id: 2, title: 'Proyecto B', subcategory: 'editorial' },
           ],
         });
       });
@@ -60,18 +60,18 @@ describe('HU09 - Admin Diseño', () => {
     describe('given a subcategory', () => {
       it('should return 200 with filtered projects', async () => {
         mockPrisma.designProject.findMany.mockResolvedValue([
-          { id: 1, title: 'Proyecto A', subcategory: 'IMAGEN_CORPORATIVA' },
+          { id: 1, title: 'Proyecto A', subcategory: 'imagen-corporativa' },
         ]);
-        req.query = { subcategory: 'IMAGEN_CORPORATIVA' };
+        req.query = { subcategory: 'imagen-corporativa' };
 
         await listFiltered(req, res);
 
         expect(mockPrisma.designProject.findMany).toHaveBeenCalledWith({
-          where: { subcategory: 'IMAGEN_CORPORATIVA' },
+          where: { subcategory: 'imagen-corporativa' },
         });
         expect(res.status).toHaveBeenCalledWith(200);
         expect(res.json).toHaveBeenCalledWith({
-          data: [{ id: 1, title: 'Proyecto A', subcategory: 'IMAGEN_CORPORATIVA' }],
+          data: [{ id: 1, title: 'Proyecto A', subcategory: 'imagen-corporativa' }],
         });
       });
     });
@@ -79,12 +79,12 @@ describe('HU09 - Admin Diseño', () => {
     describe('given a subcategory with no matches', () => {
       it('should return 200 with an empty array', async () => {
         mockPrisma.designProject.findMany.mockResolvedValue([]);
-        req.query = { subcategory: 'PACKAGING_EXPOSITORES' };
+        req.query = { subcategory: 'packaging-expositores' };
 
         await listFiltered(req, res);
 
         expect(mockPrisma.designProject.findMany).toHaveBeenCalledWith({
-          where: { subcategory: 'PACKAGING_EXPOSITORES' },
+          where: { subcategory: 'packaging-expositores' },
         });
         expect(res.status).toHaveBeenCalledWith(200);
         expect(res.json).toHaveBeenCalledWith({ data: [] });
@@ -131,14 +131,12 @@ describe('HU09 - Admin Diseño', () => {
           title: 'Proyecto',
           description: 'Desc',
           imageUrl: 'https://example.com/d.jpg',
-          category: 'BRANDING',
           subcategory: 'LOGO',
         });
         req.body = {
           title: 'Proyecto',
           description: 'Desc',
           imageUrl: 'https://example.com/d.jpg',
-          category: 'BRANDING',
           subcategory: 'LOGO',
         };
 
@@ -149,7 +147,6 @@ describe('HU09 - Admin Diseño', () => {
             title: 'Proyecto',
             description: 'Desc',
             imageUrl: 'https://example.com/d.jpg',
-            category: 'BRANDING',
             subcategory: 'LOGO',
           },
         });
@@ -170,11 +167,10 @@ describe('HU09 - Admin Diseño', () => {
           id: 2,
           title: 'Con archivo',
           imageUrl: 'https://cloudinary.com/d.jpg',
-          category: 'BRANDING',
           subcategory: 'LOGO',
         });
         req.file = { originalname: 'd.jpg', mimetype: 'image/jpeg', buffer: Buffer.from('x') };
-        req.body = { title: 'Con archivo', category: 'BRANDING', subcategory: 'LOGO' };
+        req.body = { title: 'Con archivo', subcategory: 'LOGO' };
 
         await create(req, res);
 
@@ -190,7 +186,7 @@ describe('HU09 - Admin Diseño', () => {
 
     describe('given no image file and no imageUrl', () => {
       it('should return 400 VALIDATION_ERROR', async () => {
-        req.body = { title: 'Sin imagen', category: 'BRANDING' };
+        req.body = { title: 'Sin imagen' };
 
         await create(req, res);
 
@@ -210,7 +206,6 @@ describe('HU09 - Admin Diseño', () => {
         req.body = {
           title: 'Proyecto',
           imageUrl: 'https://example.com/d.jpg',
-          category: 'BRANDING',
           subcategory: 'LOGO',
         };
 
@@ -230,7 +225,6 @@ describe('HU09 - Admin Diseño', () => {
         req.body = {
           title: 'Proyecto',
           imageUrl: 'https://example.com/d.jpg',
-          category: 'BRANDING',
           subcategory: 'LOGO',
         };
 
@@ -254,7 +248,6 @@ describe('HU09 - Admin Diseño', () => {
           title: 'Nuevo',
           description: 'Nueva desc',
           imageUrl: 'https://example.com/d.jpg',
-          category: 'WEB',
           subcategory: 'LANDING',
         });
         req.params = { id: '1' };
@@ -262,7 +255,6 @@ describe('HU09 - Admin Diseño', () => {
           title: 'Nuevo',
           description: 'Nueva desc',
           imageUrl: 'https://example.com/d.jpg',
-          category: 'WEB',
           subcategory: 'LANDING',
         };
 
@@ -274,7 +266,6 @@ describe('HU09 - Admin Diseño', () => {
             title: 'Nuevo',
             description: 'Nueva desc',
             imageUrl: 'https://example.com/d.jpg',
-            category: 'WEB',
             subcategory: 'LANDING',
           },
         });
@@ -288,7 +279,6 @@ describe('HU09 - Admin Diseño', () => {
           id: 1,
           title: 'Actualizada',
           imageUrl: 'https://cloudinary.com/nuevo.jpg',
-          category: 'BRANDING',
           subcategory: 'LOGO',
         });
         req.params = { id: '1' };

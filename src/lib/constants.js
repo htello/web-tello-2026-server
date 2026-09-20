@@ -30,12 +30,12 @@ export const JWT_EXPIRATION = '24h';
 export const BCRYPT_ROUNDS = 12;
 
 /**
- * Subcategorías válidas para proyectos de diseño (enum DesignSubcategory)
+ * Subcategorías válidas para proyectos de diseño (campo subcategory)
  * @type {string[]}
  */
 export const DESIGN_SUBCATEGORIES = [
-  'IMAGEN_CORPORATIVA',
-  'PACKAGING_EXPOSITORES',
-  'CARTELERIA',
-  'EDITORIAL',
+  'imagen-corporativa',
+  'packaging-expositores',
+  'carteleria',
+  'editorial',
 ];

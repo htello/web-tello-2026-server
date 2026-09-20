@@ -6,7 +6,7 @@ import { DESIGN_SUBCATEGORIES } from '../lib/constants.js';
 
 const create = async (req, res) => {
   try {
-    const { title, description, imageUrl, category, subcategory } = req.body;
+    const { title, description, imageUrl, subcategory } = req.body;
 
     const finalImageUrl = await resolveImageUrl(req.file, imageUrl, 'diseno');
 
@@ -22,7 +22,6 @@ const create = async (req, res) => {
         title,
         description: description || null,
         imageUrl: finalImageUrl,
-        category,
         subcategory,
       },
     });
@@ -48,7 +47,7 @@ const create = async (req, res) => {
 const update = async (req, res) => {
   try {
     const { id } = req.params;
-    const { title, description, imageUrl, category, subcategory } = req.body;
+    const { title, description, imageUrl, subcategory } = req.body;
 
     const finalImageUrl = await resolveImageUrl(req.file, imageUrl, 'diseno');
 
@@ -58,7 +57,6 @@ const update = async (req, res) => {
         ...(title !== undefined && { title }),
         ...(description !== undefined && { description }),
         ...(finalImageUrl !== undefined && { imageUrl: finalImageUrl }),
-        ...(category !== undefined && { category }),
         ...(subcategory !== undefined && { subcategory }),
       },
     });
@@ -122,7 +120,7 @@ const remove = async (req, res) => {
  * Lista proyectos de diseño, opcionalmente filtrados por subcategoría.
  *
  * @param {string} [req.query.subcategory] - Subcategoría por la que filtrar
- * @returns {Object} 200 - { data: [{ id, title, category, subcategory, imageUrl, description }] }
+ * @returns {Object} 200 - { data: [{ id, title, subcategory, imageUrl, description }] }
  * @returns {Object} 500 - Error interno del servidor
  *
  * @security Endpoint público (no requiere autenticación)

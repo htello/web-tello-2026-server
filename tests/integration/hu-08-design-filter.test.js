@@ -21,8 +21,8 @@ describe('HU08 - Filtrar Diseño', () => {
     describe('given no query params', () => {
       it('should return 200 with all projects', async () => {
         mockPrisma.designProject.findMany.mockResolvedValue([
-          { id: 1, title: 'Branding Café Aroma', subcategory: 'IMAGEN_CORPORATIVA' },
-          { id: 2, title: 'Packaging', subcategory: 'PACKAGING_EXPOSITORES' },
+          { id: 1, title: 'Branding Café Aroma', subcategory: 'imagen-corporativa' },
+          { id: 2, title: 'Packaging', subcategory: 'packaging-expositores' },
         ]);
 
         const res = await request(app).get('/api/v1/design');
@@ -37,20 +37,20 @@ describe('HU08 - Filtrar Diseño', () => {
     describe('given a subcategory filter', () => {
       it('should return 200 with only matching projects', async () => {
         mockPrisma.designProject.findMany.mockResolvedValue([
-          { id: 1, title: 'Branding Café Aroma', subcategory: 'IMAGEN_CORPORATIVA' },
+          { id: 1, title: 'Branding Café Aroma', subcategory: 'imagen-corporativa' },
         ]);
 
-        const res = await request(app).get('/api/v1/design?subcategory=IMAGEN_CORPORATIVA');
+        const res = await request(app).get('/api/v1/design?subcategory=imagen-corporativa');
 
         expect(res.status).toBe(200);
         expect(res.body.data).toHaveLength(1);
         expect(res.body.data[0]).toMatchObject({
           id: 1,
           title: 'Branding Café Aroma',
-          subcategory: 'IMAGEN_CORPORATIVA',
+          subcategory: 'imagen-corporativa',
         });
         expect(mockPrisma.designProject.findMany).toHaveBeenCalledWith({
-          where: { subcategory: 'IMAGEN_CORPORATIVA' },
+          where: { subcategory: 'imagen-corporativa' },
         });
       });
     });
@@ -59,7 +59,7 @@ describe('HU08 - Filtrar Diseño', () => {
       it('should return 200 with an empty array', async () => {
         mockPrisma.designProject.findMany.mockResolvedValue([]);
 
-        const res = await request(app).get('/api/v1/design?subcategory=PACKAGING_EXPOSITORES');
+        const res = await request(app).get('/api/v1/design?subcategory=packaging-expositores');
 
         expect(res.status).toBe(200);
         expect(res.body.data).toEqual([]);
