@@ -4,6 +4,14 @@ import { validate, illustrationSchema, illustrationUpdateSchema } from '../middl
 import { upload } from '../services/upload.js';
 import * as controller from '../controllers/illustrations.js';
 
+/**
+ * Router público de ilustraciones
+ * - GET / → HU09: Galería de ilustraciones
+ */
+const publicRouter = Router();
+
+publicRouter.get('/', controller.listAll);
+
 const router = Router();
 
 router.post(
@@ -31,4 +39,5 @@ router.delete(
   controller.remove
 );
 
+export { publicRouter };
 export default router;

@@ -110,4 +110,29 @@ const remove = async (req, res) => {
   }
 };
 
-export { create, update, remove };
+/**
+ * HU09 - Galería Ilustración
+ * Endpoint GET /api/v1/illustrations
+ *
+ * Retorna todas las ilustraciones.
+ *
+ * @returns {Object} 200 - { data: [{ id, title, imageUrl, description }] }
+ * @returns {Object} 500 - Error interno del servidor
+ *
+ * @security Endpoint público (no requiere autenticación)
+ */
+const listAll = async (req, res) => {
+  try {
+    const illustrations = await prisma.illustration.findMany();
+
+    res.status(200).json({ data: illustrations });
+  } catch (error) {
+    logger.error('Error al listar ilustraciones', { error: error.message });
+    res.status(500).json({
+      error: 'Error interno del servidor',
+      code: 'INTERNAL_ERROR',
+    });
+  }
+};
+
+export { create, update, remove, listAll };
