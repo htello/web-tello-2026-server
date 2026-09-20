@@ -10,7 +10,12 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { mockPrisma } from '../../tests/helpers/prisma-mock.js';
 
-const { listPublished } = await import('../controllers/collections.js');
+vi.mock('../services/logger.js', () => ({
+  default: { info: vi.fn(), error: vi.fn(), warn: vi.fn() },
+}));
+
+const logger = (await import('../services/logger.js')).default;
+const { listPublished, create, update, remove, reorder } = await import('../controllers/collections.js');
 
 describe('HU01 - Galería de Colecciones', () => {
   let req, res;
@@ -100,6 +105,235 @@ describe('HU01 - Galería de Colecciones', () => {
         expect(res.json).toHaveBeenCalledWith({
           error: 'Error interno del servidor',
           code: 'INTERNAL_ERROR',
+        });
+      });
+    });
+  });
+
+  describe('HU06 - Admin Colecciones', () => {
+    describe('create', () => {
+      describe('given valid data', () => {
+        it('should return 201 with created collection', async () => {
+          mockPrisma.collection.create.mockResolvedValue({
+            id: 1,
+            title: 'Mi Colección',
+            description: null,
+            coverImage: null,
+            position: 0,
+            isPublished: false,
+          });
+          req.body = { title: 'Mi Colección' };
+
+          await create(req, res);
+
+          expect(mockPrisma.collection.create).toHaveBeenCalledWith({
+            data: { title: 'Mi Colección', description: null, coverImage: null },
+          });
+          expect(res.status).toHaveBeenCalledWith(201);
+          expect(res.json).toHaveBeenCalledWith(
+            expect.objectContaining({
+              data: expect.objectContaining({ id: 1, title: 'Mi Colección' }),
+            })
+          );
+          expect(logger.info).toHaveBeenCalled();
+        });
+      });
+
+      describe('given duplicate title', () => {
+        it('should return 400 DUPLICATE_ERROR', async () => {
+          mockPrisma.collection.create.mockRejectedValue(
+            new Error('Unique constraint failed on the fields: (`title`)')
+          );
+          req.body = { title: 'Óleos' };
+
+          await create(req, res);
+
+          expect(res.status).toHaveBeenCalledWith(400);
+          expect(res.json).toHaveBeenCalledWith({
+            error: 'Ya existe una colección con ese título',
+            code: 'DUPLICATE_ERROR',
+          });
+        });
+      });
+
+      describe('given a database error', () => {
+        it('should return 500 INTERNAL_ERROR', async () => {
+          mockPrisma.collection.create.mockRejectedValue(new Error('DB Error'));
+          req.body = { title: 'Test' };
+
+          await create(req, res);
+
+          expect(res.status).toHaveBeenCalledWith(500);
+          expect(res.json).toHaveBeenCalledWith({
+            error: 'Error interno del servidor',
+            code: 'INTERNAL_ERROR',
+          });
+        });
+      });
+    });
+
+    describe('update', () => {
+      describe('given valid data', () => {
+        it('should return 200 with updated collection', async () => {
+          mockPrisma.collection.update.mockResolvedValue({
+            id: 1,
+            title: 'Nuevo Título',
+            description: null,
+            coverImage: null,
+            position: 0,
+            isPublished: false,
+          });
+          req.params = { id: '1' };
+          req.body = { title: 'Nuevo Título' };
+
+          await update(req, res);
+
+          expect(mockPrisma.collection.update).toHaveBeenCalledWith({
+            where: { id: 1 },
+            data: { title: 'Nuevo Título' },
+          });
+          expect(res.status).toHaveBeenCalledWith(200);
+          expect(res.json).toHaveBeenCalledWith(
+            expect.objectContaining({
+              data: expect.objectContaining({ id: 1, title: 'Nuevo Título' }),
+            })
+          );
+          expect(logger.info).toHaveBeenCalled();
+        });
+      });
+
+      describe('given collection does not exist', () => {
+        it('should return 404 NOT_FOUND', async () => {
+          const error = new Error('Record to update not found');
+          error.code = 'P2025';
+          mockPrisma.collection.update.mockRejectedValue(error);
+          req.params = { id: '999' };
+          req.body = { title: 'Test' };
+
+          await update(req, res);
+
+          expect(res.status).toHaveBeenCalledWith(404);
+          expect(res.json).toHaveBeenCalledWith({
+            error: 'Colección no encontrada',
+            code: 'NOT_FOUND',
+          });
+        });
+      });
+
+      describe('given duplicate title on update', () => {
+        it('should return 400 DUPLICATE_ERROR', async () => {
+          mockPrisma.collection.update.mockRejectedValue(
+            new Error('Unique constraint failed on the fields: (`title`)')
+          );
+          req.params = { id: '1' };
+          req.body = { title: 'Esculturas' };
+
+          await update(req, res);
+
+          expect(res.status).toHaveBeenCalledWith(400);
+          expect(res.json).toHaveBeenCalledWith({
+            error: 'Ya existe una colección con ese título',
+            code: 'DUPLICATE_ERROR',
+          });
+        });
+      });
+
+      describe('given a database error', () => {
+        it('should return 500 INTERNAL_ERROR', async () => {
+          mockPrisma.collection.update.mockRejectedValue(new Error('DB Error'));
+          req.params = { id: '1' };
+          req.body = { title: 'Test' };
+
+          await update(req, res);
+
+          expect(res.status).toHaveBeenCalledWith(500);
+          expect(res.json).toHaveBeenCalledWith({
+            error: 'Error interno del servidor',
+            code: 'INTERNAL_ERROR',
+          });
+        });
+      });
+    });
+
+    describe('remove', () => {
+      describe('given existing collection', () => {
+        it('should return 200 with success message', async () => {
+          mockPrisma.collection.delete.mockResolvedValue({ id: 1 });
+          req.params = { id: '1' };
+
+          await remove(req, res);
+
+          expect(mockPrisma.collection.delete).toHaveBeenCalledWith({ where: { id: 1 } });
+          expect(res.status).toHaveBeenCalledWith(200);
+          expect(res.json).toHaveBeenCalledWith({
+            data: { message: 'Colección eliminada correctamente' },
+          });
+          expect(logger.info).toHaveBeenCalled();
+        });
+      });
+
+      describe('given collection does not exist', () => {
+        it('should return 404 NOT_FOUND', async () => {
+          const error = new Error('Record to delete does not exist');
+          error.code = 'P2025';
+          mockPrisma.collection.delete.mockRejectedValue(error);
+          req.params = { id: '999' };
+
+          await remove(req, res);
+
+          expect(res.status).toHaveBeenCalledWith(404);
+          expect(res.json).toHaveBeenCalledWith({
+            error: 'Colección no encontrada',
+            code: 'NOT_FOUND',
+          });
+        });
+      });
+
+      describe('given a database error', () => {
+        it('should return 500 INTERNAL_ERROR', async () => {
+          mockPrisma.collection.delete.mockRejectedValue(new Error('DB Error'));
+          req.params = { id: '1' };
+
+          await remove(req, res);
+
+          expect(res.status).toHaveBeenCalledWith(500);
+          expect(res.json).toHaveBeenCalledWith({
+            error: 'Error interno del servidor',
+            code: 'INTERNAL_ERROR',
+          });
+        });
+      });
+    });
+
+    describe('reorder', () => {
+      describe('given orderedIds', () => {
+        it('should return 200 with success message', async () => {
+          mockPrisma.collection.update.mockResolvedValue({ id: 3, position: 0 });
+          req.body = { orderedIds: [3, 1, 2] };
+
+          await reorder(req, res);
+
+          expect(mockPrisma.$transaction).toHaveBeenCalledWith(expect.any(Array));
+          expect(res.status).toHaveBeenCalledWith(200);
+          expect(res.json).toHaveBeenCalledWith({
+            data: { message: 'Orden actualizado correctamente' },
+          });
+          expect(logger.info).toHaveBeenCalled();
+        });
+      });
+
+      describe('given a database error', () => {
+        it('should return 500 INTERNAL_ERROR', async () => {
+          mockPrisma.collection.update.mockRejectedValue(new Error('DB Error'));
+          req.body = { orderedIds: [1, 2, 3] };
+
+          await reorder(req, res);
+
+          expect(res.status).toHaveBeenCalledWith(500);
+          expect(res.json).toHaveBeenCalledWith({
+            error: 'Error interno del servidor',
+            code: 'INTERNAL_ERROR',
+          });
         });
       });
     });
