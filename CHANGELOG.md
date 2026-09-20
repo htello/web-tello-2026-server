@@ -8,6 +8,7 @@ y este proyecto adherido al [Versionado Semántico](https://semver.org/lang/es/)
 ## [Unreleased]
 
 ### Fixed
+- HU08: `GET /api/v1/design?subcategory=<valor_no_en_enum>` retornaba `500 INTERNAL_ERROR` (Prisma validation). Ahora valida contra `DESIGN_SUBCATEGORIES` y devuelve `404` con `"Subcategoría inválida"`.
 - HU06: Validación de `collectionId` inexistente al crear pintura (retorna 404 NOT_FOUND en vez de 500)
 - HU06: DELETE colección/pintura inexistente usa error code P2025 en vez de message matching
 - HU10: Test de validación de categoría faltante en POST /admin/design

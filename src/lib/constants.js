@@ -28,3 +28,14 @@ export const JWT_EXPIRATION = '24h';
  * @see https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html
  */
 export const BCRYPT_ROUNDS = 12;
+
+/**
+ * Subcategorías válidas para proyectos de diseño (enum DesignSubcategory)
+ * @type {string[]}
+ */
+export const DESIGN_SUBCATEGORIES = [
+  'IMAGEN_CORPORATIVA',
+  'PACKAGING_EXPOSITORES',
+  'CARTELERIA',
+  'EDITORIAL',
+];

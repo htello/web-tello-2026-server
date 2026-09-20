@@ -2,6 +2,7 @@ import prisma from '../lib/prisma.js';
 import logger from '../services/logger.js';
 import { resolveImageUrl } from '../services/upload.js';
 import { parseId, isNotFoundError, isDuplicateError } from '../lib/prisma-utils.js';
+import { DESIGN_SUBCATEGORIES } from '../lib/constants.js';
 
 const create = async (req, res) => {
   try {
@@ -129,6 +130,13 @@ const remove = async (req, res) => {
 const listFiltered = async (req, res) => {
   try {
     const { subcategory } = req.query;
+
+    if (subcategory && !DESIGN_SUBCATEGORIES.includes(subcategory)) {
+      return res.status(404).json({
+        error: 'Subcategoría inválida',
+        code: 'NOT_FOUND',
+      });
+    }
 
     const projects = subcategory
       ? await prisma.designProject.findMany({ where: { subcategory } })

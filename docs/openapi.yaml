@@ -1367,6 +1367,12 @@ paths:
                     type: array
                     items:
                       $ref: '#/components/schemas/DesignProject'
+        '404':
+          description: Subcategoría inválida
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
 
   /admin/design:
     post:

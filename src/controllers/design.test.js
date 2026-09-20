@@ -79,15 +79,30 @@ describe('HU09 - Admin Diseño', () => {
     describe('given a subcategory with no matches', () => {
       it('should return 200 with an empty array', async () => {
         mockPrisma.designProject.findMany.mockResolvedValue([]);
-        req.query = { subcategory: 'INEXISTENTE' };
+        req.query = { subcategory: 'PACKAGING_EXPOSITORES' };
 
         await listFiltered(req, res);
 
         expect(mockPrisma.designProject.findMany).toHaveBeenCalledWith({
-          where: { subcategory: 'INEXISTENTE' },
+          where: { subcategory: 'PACKAGING_EXPOSITORES' },
         });
         expect(res.status).toHaveBeenCalledWith(200);
         expect(res.json).toHaveBeenCalledWith({ data: [] });
+      });
+    });
+
+    describe('given an invalid subcategory', () => {
+      it('should return 404 NOT_FOUND', async () => {
+        req.query = { subcategory: 'COSA' };
+
+        await listFiltered(req, res);
+
+        expect(mockPrisma.designProject.findMany).not.toHaveBeenCalled();
+        expect(res.status).toHaveBeenCalledWith(404);
+        expect(res.json).toHaveBeenCalledWith({
+          error: 'Subcategoría inválida',
+          code: 'NOT_FOUND',
+        });
       });
     });
 
