@@ -752,6 +752,7 @@
                   "formdata": [
                     { "key": "title", "value": "Proyecto Actualizado", "type": "text" },
                     { "key": "description", "value": "Nueva descripcion", "type": "text" },
+                    { "key": "subcategory", "value": "carteleria", "type": "text" },
                     { "key": "imageUrl", "value": "https://res.cloudinary.com/demo/image/upload/sample.jpg", "type": "text" }
                   ]
                 },
