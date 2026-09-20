@@ -322,4 +322,32 @@ const getById = async (req, res) => {
   }
 };
 
-export { create, update, remove, feature, publish, reorder, getById };
+/**
+ * HU04 - Obras destacadas
+ * Endpoint GET /api/v1/paintings/featured
+ *
+ * Retorna las pinturas destacadas y publicadas, incluyendo su colección.
+ *
+ * @returns {Object} 200 - { data: [{ id, title, imageUrl, collection: { id, title } }] }
+ * @returns {Object} 500 - Error interno del servidor
+ *
+ * @security Endpoint público (no requiere autenticación)
+ */
+const getFeatured = async (req, res) => {
+  try {
+    const paintings = await prisma.painting.findMany({
+      where: { isFeatured: true, isPublished: true },
+      include: { collection: { select: { id: true, title: true } } },
+    });
+
+    res.status(200).json({ data: paintings });
+  } catch (error) {
+    logger.error('Error al obtener pinturas destacadas', { error: error.message });
+    res.status(500).json({
+      error: 'Error interno del servidor',
+      code: 'INTERNAL_ERROR',
+    });
+  }
+};
+
+export { create, update, remove, feature, publish, reorder, getById, getFeatured };
