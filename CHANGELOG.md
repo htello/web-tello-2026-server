@@ -8,6 +8,7 @@ y este proyecto adherido al [Versionado Semántico](https://semver.org/lang/es/)
 ## [Unreleased]
 
 ### Fixed
+- Schemas de actualización (`paintingUpdateSchema`, `exhibitionUpdateSchema`, `designUpdateSchema`, `illustrationUpdateSchema`): enviar body vacío devolvía el mensaje en inglés `"value" must have at least 1 key`. Ahora devuelve `"Debe enviar al menos un campo para actualizar"`.
 - HU08: `GET /api/v1/design?subcategory=<valor_no_en_enum>` retornaba `500 INTERNAL_ERROR` (Prisma validation). Ahora valida contra `DESIGN_SUBCATEGORIES` y devuelve `404` con `"Subcategoría inválida"`.
 - HU06: Validación de `collectionId` inexistente al crear pintura (retorna 404 NOT_FOUND en vez de 500)
 - HU06: DELETE colección/pintura inexistente usa error code P2025 en vez de message matching
