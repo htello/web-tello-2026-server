@@ -3,6 +3,14 @@ import { authenticate, requireAdmin } from '../middleware/auth.js';
 import { validate, exhibitionSchema, exhibitionUpdateSchema, reorderSchema } from '../middleware/validate.js';
 import * as controller from '../controllers/exhibitions.js';
 
+/**
+ * Router público de exposiciones
+ * - GET / → HU05: Listar exposiciones
+ */
+const publicRouter = Router();
+
+publicRouter.get('/', controller.listAll);
+
 const router = Router();
 
 router.post(
@@ -36,4 +44,5 @@ router.delete(
   controller.remove
 );
 
+export { publicRouter };
 export default router;

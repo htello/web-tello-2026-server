@@ -13,6 +13,7 @@ import authRoutes from './auth.js';
 import adminRoutes from './admin.js';
 import { publicRouter as collectionsPublicRoutes } from './collections.js';
 import { publicRouter as paintingsPublicRoutes } from './paintings.js';
+import { publicRouter as exhibitionsPublicRoutes } from './exhibitions.js';
 
 const router = Router();
 
@@ -33,6 +34,12 @@ router.use('/collections', collectionsPublicRoutes);
  * - GET /paintings/:id → HU03: Ficha de pintura
  */
 router.use('/paintings', paintingsPublicRoutes);
+
+/**
+ * Rutas públicas de exposiciones
+ * - GET /exhibitions → HU05: Listar exposiciones
+ */
+router.use('/exhibitions', exhibitionsPublicRoutes);
 
 /**
  * Rutas de administración
