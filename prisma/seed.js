@@ -277,6 +277,15 @@ const main = async () => {
         subcategory: 'CARTELERIA',
       },
     }),
+    prisma.designProject.create({
+      data: {
+        title: 'Catálogo Editorial 2025',
+        description: 'Diseño editorial de catálogo de obra gráfica',
+        imageUrl: 'https://res.cloudinary.com/demo/image/upload/design4.jpg',
+        category: 'editorial',
+        subcategory: 'EDITORIAL',
+      },
+    }),
   ]);
   console.log(`✅ ${designProjects.length} proyectos de diseño creados`);
 
