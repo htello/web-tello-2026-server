@@ -1,4 +1,5 @@
 import Joi from 'joi';
+import { DESIGN_SUBCATEGORIES } from '../lib/constants.js';
 
 /**
  * Middleware de validación de input
@@ -253,12 +254,12 @@ const designSchema = Joi.object({
       'string.empty': 'La categoría no puede estar vacía',
     }),
   subcategory: Joi.string()
-    .valid('IMAGEN_CORPORATIVA', 'PACKAGING_EXPOSITORES', 'CARTELERIA', 'EDITORIAL')
+    .valid(...DESIGN_SUBCATEGORIES)
     .required()
     .messages({
       'any.required': 'La subcategoría es obligatoria',
       'string.empty': 'La subcategoría no puede estar vacía',
-      'any.only': 'La subcategoría debe ser: IMAGEN_CORPORATIVA, PACKAGING_EXPOSITORES, CARTELERIA o EDITORIAL',
+      'any.only': `La subcategoría debe ser: ${DESIGN_SUBCATEGORIES.join(', ')}`,
     }),
   imageUrl: Joi.string()
     .uri()
@@ -288,10 +289,10 @@ const designUpdateSchema = Joi.object({
       'string.empty': 'La categoría no puede estar vacía',
     }),
   subcategory: Joi.string()
-    .valid('IMAGEN_CORPORATIVA', 'PACKAGING_EXPOSITORES', 'CARTELERIA', 'EDITORIAL')
+    .valid(...DESIGN_SUBCATEGORIES)
     .optional()
     .messages({
-      'any.only': 'La subcategoría debe ser: IMAGEN_CORPORATIVA, PACKAGING_EXPOSITORES, CARTELERIA o EDITORIAL',
+      'any.only': `La subcategoría debe ser: ${DESIGN_SUBCATEGORIES.join(', ')}`,
     }),
   imageUrl: Joi.string()
     .uri()

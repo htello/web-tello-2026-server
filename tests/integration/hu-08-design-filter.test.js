@@ -59,10 +59,23 @@ describe('HU08 - Filtrar Diseño', () => {
       it('should return 200 with an empty array', async () => {
         mockPrisma.designProject.findMany.mockResolvedValue([]);
 
-        const res = await request(app).get('/api/v1/design?subcategory=INEXISTENTE');
+        const res = await request(app).get('/api/v1/design?subcategory=PACKAGING_EXPOSITORES');
 
         expect(res.status).toBe(200);
         expect(res.body.data).toEqual([]);
+      });
+    });
+
+    describe('given an invalid subcategory', () => {
+      it('should return 404 NOT_FOUND', async () => {
+        const res = await request(app).get('/api/v1/design?subcategory=COSA');
+
+        expect(res.status).toBe(404);
+        expect(res.body).toEqual({
+          error: 'Subcategoría inválida',
+          code: 'NOT_FOUND',
+        });
+        expect(mockPrisma.designProject.findMany).not.toHaveBeenCalled();
       });
     });
 
