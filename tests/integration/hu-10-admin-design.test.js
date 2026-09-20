@@ -79,7 +79,7 @@ describe('HU10 - Admin Design', () => {
           title: 'Diseño Upload',
           imageUrl: 'https://res.cloudinary.com/test/uploaded.jpg',
           category: 'diseno-grafico',
-          subcategory: 'CARTERERIA',
+          subcategory: 'CARTELERIA',
           createdAt: new Date(),
         });
 
@@ -88,7 +88,7 @@ describe('HU10 - Admin Design', () => {
           .set('Authorization', `Bearer ${adminToken}`)
           .field('title', 'Diseño Upload')
           .field('category', 'diseno-grafico')
-          .field('subcategory', 'CARTERERIA')
+          .field('subcategory', 'CARTELERIA')
           .attach('image', Buffer.from('fake-image-data'), 'test.jpg');
 
         expect(res.status).toBe(201);

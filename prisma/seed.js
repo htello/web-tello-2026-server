@@ -274,7 +274,7 @@ const main = async () => {
         description: 'Diseño de cartel para festival de música indie',
         imageUrl: 'https://res.cloudinary.com/demo/image/upload/design3.jpg',
         category: 'carteleria',
-        subcategory: 'CARTERERIA',
+        subcategory: 'CARTELERIA',
       },
     }),
   ]);
