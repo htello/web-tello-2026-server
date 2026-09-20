@@ -14,7 +14,7 @@ CONTEXTO Y DOCUMENTACIÓN:
 ESTADO DEL PROYECTO:
 - Rama actual: develop
 - Cobertura de tests: 100% obligatorio (Vitest)
-- Última HU completada y mergeada: HU01 - Galería Pública de Pinturas
+- Última HU completada y mergeada: HU02 - Detalle de Colección
 
 ESTADO DE LAS HUS POR FASE:
 ✅ Fase 0: Setup del Proyecto
@@ -22,7 +22,7 @@ ESTADO DE LAS HUS POR FASE:
 ✅ Fase 2: Upload de Archivos (HU16 - Multer + Cloudinary)
 ✅ Fase 3: Admin CRUD (HU06, HU07, HU10, HU12)
 ✅ Extras: Skill endpoint-tester + Enum DesignSubcategory (typo CARTELERIA corregido) + Fixes Prisma + Sync OpenAPI/docs + Test de consistencia
-⏳ Fase 4: Galería Pública (HU01 ✅ → HU02 ⏳ → HU03 → HU04 → HU05) - EN PROGRESO
+⏳ Fase 4: Galería Pública (HU01 ✅ → HU02 ✅ → HU03 ⏳ → HU04 → HU05) - EN PROGRESO
 ⏳ Fase 5: Diseño e Ilustración (HU08 → HU09) - Pendiente
 ⏳ Fase 6: Resto Backend (HU11 → HU13 → HU14 → HU15) - Pendiente
 ⏳ Fase 7: Frontend-only (HU17 → HU18) - Pendiente

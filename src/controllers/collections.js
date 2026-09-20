@@ -203,4 +203,45 @@ const reorder = async (req, res) => {
   }
 };
 
-export { listPublished, create, update, remove, reorder };
+/**
+ * HU02 - Detalle de colección
+ * Endpoint GET /api/v1/collections/:id
+ *
+ * Retorna una colección con sus pinturas ordenadas por posición.
+ *
+ * @param {string} req.params.id - ID de la colección
+ * @returns {Object} 200 - { data: { id, title, paintings: [...] } }
+ * @returns {Object} 404 - Colección no encontrada
+ * @returns {Object} 500 - Error interno del servidor
+ *
+ * @security Endpoint público (no requiere autenticación)
+ */
+const getById = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const collection = await prisma.collection.findUnique({
+      where: { id: parseId(id) },
+      include: {
+        paintings: { orderBy: { position: 'asc' } },
+      },
+    });
+
+    if (!collection) {
+      return res.status(404).json({
+        error: 'Colección no encontrada',
+        code: 'NOT_FOUND',
+      });
+    }
+
+    res.status(200).json({ data: collection });
+  } catch (error) {
+    logger.error('Error al obtener colección', { error: error.message });
+    res.status(500).json({
+      error: 'Error interno del servidor',
+      code: 'INTERNAL_ERROR',
+    });
+  }
+};
+
+export { listPublished, getById, create, update, remove, reorder };

@@ -10,6 +10,7 @@ import * as controller from '../controllers/collections.js';
 const publicRouter = Router();
 
 publicRouter.get('/', controller.listPublished);
+publicRouter.get('/:id', controller.getById);
 
 const router = Router();
 
