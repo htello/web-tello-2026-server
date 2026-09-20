@@ -25,6 +25,10 @@ y este proyecto adherido al [Versionado Semántico](https://semver.org/lang/es/)
   - Router público `publicRouter` en `src/routes/collections.js`
   - Test unitario: `src/controllers/collections.test.js` (4 tests)
   - Test de integración: `tests/integration/hu-01-gallery.test.js` (3 tests)
+- HU02: Detalle de Colección (GET /api/v1/collections/:id)
+  - Controller: `getById` en `src/controllers/collections.js` (incluye pinturas ordenadas por position, 404 si no existe)
+  - Ruta pública `publicRouter.get('/:id')` en `src/routes/collections.js`
+  - Test de integración: `tests/integration/hu-02-collection-detail.test.js` (3 tests)
 - Skill `endpoint-tester` para testing de endpoints en 2 fases (exploración + formalización)
 - Test de consistencia `tests/docs/openapi-consistency.test.js` que verifica que todas las rutas implementadas están documentadas en `openapi.yaml` y que el enum `DesignSubcategory` coincide con `prisma/schema.prisma`
 - Enum `DesignSubcategory` para subcategorías de diseño (IMAGEN_CORPORATIVA, PACKAGING_EXPOSITORES, CARTELERIA, EDITORIAL)

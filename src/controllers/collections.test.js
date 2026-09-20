@@ -15,7 +15,7 @@ vi.mock('../services/logger.js', () => ({
 }));
 
 const logger = (await import('../services/logger.js')).default;
-const { listPublished, create, update, remove, reorder } = await import('../controllers/collections.js');
+const { listPublished, getById, create, update, remove, reorder } = await import('../controllers/collections.js');
 
 describe('HU01 - Galería de Colecciones', () => {
   let req, res;
@@ -100,6 +100,70 @@ describe('HU01 - Galería de Colecciones', () => {
         mockPrisma.collection.findMany.mockRejectedValue(new Error('DB Error'));
 
         await listPublished(req, res);
+
+        expect(res.status).toHaveBeenCalledWith(500);
+        expect(res.json).toHaveBeenCalledWith({
+          error: 'Error interno del servidor',
+          code: 'INTERNAL_ERROR',
+        });
+      });
+    });
+  });
+
+  describe('getById', () => {
+    describe('given an existing collection', () => {
+      it('should return 200 with the collection and its paintings', async () => {
+        req = { params: { id: '1' } };
+        mockPrisma.collection.findUnique.mockResolvedValue({
+          id: 1,
+          title: 'Colección Uno',
+          paintings: [
+            { id: 10, title: 'Pintura A', position: 0 },
+            { id: 11, title: 'Pintura B', position: 1 },
+          ],
+        });
+
+        await getById(req, res);
+
+        expect(res.status).toHaveBeenCalledWith(200);
+        expect(res.json).toHaveBeenCalledWith({
+          data: {
+            id: 1,
+            title: 'Colección Uno',
+            paintings: [
+              { id: 10, title: 'Pintura A', position: 0 },
+              { id: 11, title: 'Pintura B', position: 1 },
+            ],
+          },
+        });
+        expect(mockPrisma.collection.findUnique).toHaveBeenCalledWith({
+          where: { id: 1 },
+          include: { paintings: { orderBy: { position: 'asc' } } },
+        });
+      });
+    });
+
+    describe('given a non-existent collection', () => {
+      it('should return 404 NOT_FOUND', async () => {
+        req = { params: { id: '999' } };
+        mockPrisma.collection.findUnique.mockResolvedValue(null);
+
+        await getById(req, res);
+
+        expect(res.status).toHaveBeenCalledWith(404);
+        expect(res.json).toHaveBeenCalledWith({
+          error: 'Colección no encontrada',
+          code: 'NOT_FOUND',
+        });
+      });
+    });
+
+    describe('given a database error', () => {
+      it('should return 500 INTERNAL_ERROR', async () => {
+        req = { params: { id: '1' } };
+        mockPrisma.collection.findUnique.mockRejectedValue(new Error('DB Error'));
+
+        await getById(req, res);
 
         expect(res.status).toHaveBeenCalledWith(500);
         expect(res.json).toHaveBeenCalledWith({
