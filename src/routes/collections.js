@@ -3,6 +3,14 @@ import { authenticate, requireAdmin } from '../middleware/auth.js';
 import { validate, collectionSchema, reorderSchema } from '../middleware/validate.js';
 import * as controller from '../controllers/collections.js';
 
+/**
+ * Router público de colecciones
+ * - GET / → HU01: Listar colecciones publicadas
+ */
+const publicRouter = Router();
+
+publicRouter.get('/', controller.listPublished);
+
 const router = Router();
 
 router.post(
@@ -36,4 +44,5 @@ router.delete(
   controller.remove
 );
 
+export { publicRouter };
 export default router;

@@ -13,6 +13,11 @@ y este proyecto adherido al [Versionado Semántico](https://semver.org/lang/es/)
 - HU10: Test de validación de categoría faltante en POST /admin/design
 
 ### Added
+- HU01: Galería de Colecciones (GET /api/v1/collections)
+  - Controller: `listPublished` en `src/controllers/collections.js` (filtra publicadas, ordena por position, cuenta solo pinturas publicadas)
+  - Router público `publicRouter` en `src/routes/collections.js`
+  - Test unitario: `src/controllers/collections.test.js` (4 tests)
+  - Test de integración: `tests/integration/hu-01-gallery.test.js` (3 tests)
 - Skill `endpoint-tester` para testing de endpoints en 2 fases (exploración + formalización)
 - Enum `DesignSubcategory` para subcategorías de diseño (IMAGEN_CORPORATIVA, PACKAGING_EXPOSITORES, CARTERERIA, EDITORIAL)
 - HU06: Admin Colecciones y Pinturas (10 endpoints admin CRUD)
@@ -42,6 +47,7 @@ y este proyecto adherido al [Versionado Semántico](https://semver.org/lang/es/)
 - Sección de patrones de implementación en `docs/0002-IMPLEMENTATION-ORDER.md` (Prisma singleton, error handling, reorder, tests, Joi schemas)
 
 ### Changed
+- `src/routes/index.js`: Montado router público de colecciones en `/api/v1/collections`
 - `docs/0002-IMPLEMENTATION-ORDER.md`: Reescrito con detalle completo por HU (Prisma models, archivos, test cases, controller logic)
 - `src/controllers/auth.js`: Usa Prisma singleton en vez de `new PrismaClient()`
 - `src/routes/admin.js`: Agregadas rutas de collections y paintings
