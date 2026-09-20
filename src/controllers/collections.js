@@ -1,5 +1,6 @@
 import prisma from '../lib/prisma.js';
 import logger from '../services/logger.js';
+import { parseId, isNotFoundError, isDuplicateError, reorderByPosition } from '../lib/prisma-utils.js';
 
 /**
  * HU01 - Listar colecciones publicadas
@@ -67,7 +68,7 @@ const create = async (req, res) => {
 
     res.status(201).json({ data: collection });
   } catch (error) {
-    if (error.message.includes('Unique constraint failed')) {
+    if (isDuplicateError(error)) {
       return res.status(400).json({
         error: 'Ya existe una colección con ese título',
         code: 'DUPLICATE_ERROR',
@@ -101,7 +102,7 @@ const update = async (req, res) => {
     const { title, description, coverImage } = req.body;
 
     const collection = await prisma.collection.update({
-      where: { id: parseInt(id) },
+      where: { id: parseId(id) },
       data: {
         ...(title !== undefined && { title }),
         ...(description !== undefined && { description }),
@@ -113,13 +114,13 @@ const update = async (req, res) => {
 
     res.status(200).json({ data: collection });
   } catch (error) {
-    if (error.code === 'P2025') {
+    if (isNotFoundError(error)) {
       return res.status(404).json({
         error: 'Colección no encontrada',
         code: 'NOT_FOUND',
       });
     }
-    if (error.message.includes('Unique constraint failed')) {
+    if (isDuplicateError(error)) {
       return res.status(400).json({
         error: 'Ya existe una colección con ese título',
         code: 'DUPLICATE_ERROR',
@@ -149,16 +150,16 @@ const remove = async (req, res) => {
     const { id } = req.params;
 
     await prisma.collection.delete({
-      where: { id: parseInt(id) },
+      where: { id: parseId(id) },
     });
 
-    logger.info('Colección eliminada', { id: parseInt(id) });
+    logger.info('Colección eliminada', { id: parseId(id) });
 
     res.status(200).json({
       data: { message: 'Colección eliminada correctamente' },
     });
   } catch (error) {
-    if (error.code === 'P2025') {
+    if (isNotFoundError(error)) {
       return res.status(404).json({
         error: 'Colección no encontrada',
         code: 'NOT_FOUND',
@@ -186,14 +187,7 @@ const reorder = async (req, res) => {
   try {
     const { orderedIds } = req.body;
 
-    await prisma.$transaction(
-      orderedIds.map((id, index) =>
-        prisma.collection.update({
-          where: { id },
-          data: { position: index },
-        })
-      )
-    );
+    await reorderByPosition(prisma, prisma.collection, orderedIds);
 
     logger.info('Colecciones reordenadas', { count: orderedIds.length });
 

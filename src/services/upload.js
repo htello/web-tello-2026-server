@@ -109,4 +109,24 @@ const uploadToCloudinary = async (file, section = 'general') => {
   };
 };
 
-export { upload, uploadToCloudinary, fileFilter, ALLOWED_TYPES, MAX_SIZE, ALLOWED_SECTIONS };
+/**
+ * Resuelve la URL de imagen final para un recurso.
+ *
+ * Si llega un archivo (Multer) lo sube a Cloudinary y usa su URL;
+ * en caso contrario usa la URL proporcionada directamente.
+ *
+ * @param {Object} [file] - Archivo de Multer (buffer, mimetype, originalname)
+ * @param {string} [imageUrl] - URL proporcionada en el body
+ * @param {string} section - Sección para subcarpeta en Cloudinary
+ * @returns {Promise<string|undefined>} URL final o undefined si no hay ni archivo ni URL
+ */
+const resolveImageUrl = async (file, imageUrl, section) => {
+  if (!file) {
+    return imageUrl;
+  }
+
+  const result = await uploadToCloudinary(file, section);
+  return result.url;
+};
+
+export { upload, uploadToCloudinary, resolveImageUrl, fileFilter, ALLOWED_TYPES, MAX_SIZE, ALLOWED_SECTIONS };

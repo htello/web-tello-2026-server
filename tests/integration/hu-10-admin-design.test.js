@@ -6,9 +6,15 @@ import { JWT_SECRET } from '../../src/lib/constants.js';
 
 vi.mock('../../src/services/upload.js', async (importOriginal) => {
   const original = await importOriginal();
+  const uploadToCloudinary = vi.fn();
   return {
     ...original,
-    uploadToCloudinary: vi.fn(),
+    uploadToCloudinary,
+    resolveImageUrl: vi.fn(async (file, imageUrl, section) => {
+      if (!file) return imageUrl;
+      const result = await uploadToCloudinary(file, section);
+      return result.url;
+    }),
   };
 });
 
@@ -151,9 +157,9 @@ describe('HU10 - Admin Design', () => {
 
     describe('given duplicate title', () => {
       it('should return 400 DUPLICATE_ERROR', async () => {
-        mockPrisma.designProject.create.mockRejectedValue(
-          new Error('Unique constraint failed on the fields: (`title`)')
-        );
+        const dupError = new Error('Unique constraint failed');
+        dupError.code = 'P2002';
+        mockPrisma.designProject.create.mockRejectedValue(dupError);
 
         const res = await request(app)
           .post('/api/v1/admin/design')
@@ -262,9 +268,9 @@ describe('HU10 - Admin Design', () => {
 
     describe('given duplicate title on update', () => {
       it('should return 400 DUPLICATE_ERROR', async () => {
-        mockPrisma.designProject.update.mockRejectedValue(
-          new Error('Unique constraint failed on the fields: (`title`)')
-        );
+        const dupError = new Error('Unique constraint failed');
+        dupError.code = 'P2002';
+        mockPrisma.designProject.update.mockRejectedValue(dupError);
 
         const res = await request(app)
           .put('/api/v1/admin/design/1')
@@ -421,9 +427,9 @@ describe('HU10 - Admin Design', () => {
 
     describe('given duplicate title', () => {
       it('should return 400 DUPLICATE_ERROR', async () => {
-        mockPrisma.illustration.create.mockRejectedValue(
-          new Error('Unique constraint failed on the fields: (`title`)')
-        );
+        const dupError = new Error('Unique constraint failed');
+        dupError.code = 'P2002';
+        mockPrisma.illustration.create.mockRejectedValue(dupError);
 
         const res = await request(app)
           .post('/api/v1/admin/illustrations')
@@ -502,9 +508,9 @@ describe('HU10 - Admin Design', () => {
 
     describe('given illustration does not exist', () => {
       it('should return 404 NOT_FOUND', async () => {
-        mockPrisma.illustration.update.mockRejectedValue(
-          new Error('Record to update not found')
-        );
+        const notFoundError = new Error('Record to update not found');
+        notFoundError.code = 'P2025';
+        mockPrisma.illustration.update.mockRejectedValue(notFoundError);
 
         const res = await request(app)
           .put('/api/v1/admin/illustrations/999')
@@ -518,9 +524,9 @@ describe('HU10 - Admin Design', () => {
 
     describe('given duplicate title on update', () => {
       it('should return 400 DUPLICATE_ERROR', async () => {
-        mockPrisma.illustration.update.mockRejectedValue(
-          new Error('Unique constraint failed on the fields: (`title`)')
-        );
+        const dupError = new Error('Unique constraint failed');
+        dupError.code = 'P2002';
+        mockPrisma.illustration.update.mockRejectedValue(dupError);
 
         const res = await request(app)
           .put('/api/v1/admin/illustrations/1')
@@ -565,9 +571,9 @@ describe('HU10 - Admin Design', () => {
 
     describe('given illustration does not exist', () => {
       it('should return 404 NOT_FOUND', async () => {
-        mockPrisma.illustration.delete.mockRejectedValue(
-          new Error('Record to delete does not exist')
-        );
+        const notFoundError = new Error('Record to delete does not exist');
+        notFoundError.code = 'P2025';
+        mockPrisma.illustration.delete.mockRejectedValue(notFoundError);
 
         const res = await request(app)
           .delete('/api/v1/admin/illustrations/999')

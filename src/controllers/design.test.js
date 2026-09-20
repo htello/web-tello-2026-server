@@ -10,7 +10,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { mockPrisma } from '../../tests/helpers/prisma-mock.js';
 
 vi.mock('../services/upload.js', () => ({
-  uploadToCloudinary: vi.fn(),
+  resolveImageUrl: vi.fn(),
   ALLOWED_SECTIONS: ['pintura', 'ilustracion', 'diseno', 'general'],
 }));
 
@@ -19,7 +19,7 @@ vi.mock('../services/logger.js', () => ({
 }));
 
 const { create, update, remove } = await import('./design.js');
-const { uploadToCloudinary } = await import('../services/upload.js');
+const { resolveImageUrl } = await import('../services/upload.js');
 const logger = (await import('../services/logger.js')).default;
 
 describe('HU09 - Admin Diseño', () => {
@@ -32,6 +32,7 @@ describe('HU09 - Admin Diseño', () => {
       json: vi.fn(),
     };
     vi.clearAllMocks();
+    resolveImageUrl.mockImplementation(async (_file, imageUrl) => imageUrl);
   });
 
   describe('create', () => {
@@ -76,7 +77,7 @@ describe('HU09 - Admin Diseño', () => {
 
     describe('given a file upload', () => {
       it('should upload to Cloudinary and use returned url', async () => {
-        uploadToCloudinary.mockResolvedValue({ url: 'https://cloudinary.com/d.jpg' });
+        resolveImageUrl.mockResolvedValue('https://cloudinary.com/d.jpg');
         mockPrisma.designProject.create.mockResolvedValue({
           id: 2,
           title: 'Con archivo',
@@ -89,7 +90,7 @@ describe('HU09 - Admin Diseño', () => {
 
         await create(req, res);
 
-        expect(uploadToCloudinary).toHaveBeenCalledWith(req.file, 'diseno');
+        expect(resolveImageUrl).toHaveBeenCalledWith(req.file, undefined, 'diseno');
         expect(mockPrisma.designProject.create).toHaveBeenCalledWith(
           expect.objectContaining({
             data: expect.objectContaining({ imageUrl: 'https://cloudinary.com/d.jpg' }),
@@ -115,9 +116,9 @@ describe('HU09 - Admin Diseño', () => {
 
     describe('given duplicate title', () => {
       it('should return 400 DUPLICATE_ERROR', async () => {
-        mockPrisma.designProject.create.mockRejectedValue(
-          new Error('Unique constraint failed on the fields: (`title`)')
-        );
+        const dupError = new Error('Unique constraint failed');
+        dupError.code = 'P2002';
+        mockPrisma.designProject.create.mockRejectedValue(dupError);
         req.body = {
           title: 'Proyecto',
           imageUrl: 'https://example.com/d.jpg',
@@ -194,7 +195,7 @@ describe('HU09 - Admin Diseño', () => {
       });
 
       it('should upload new image when file is present', async () => {
-        uploadToCloudinary.mockResolvedValue({ url: 'https://cloudinary.com/nuevo.jpg' });
+        resolveImageUrl.mockResolvedValue('https://cloudinary.com/nuevo.jpg');
         mockPrisma.designProject.update.mockResolvedValue({
           id: 1,
           title: 'Actualizada',
@@ -208,7 +209,7 @@ describe('HU09 - Admin Diseño', () => {
 
         await update(req, res);
 
-        expect(uploadToCloudinary).toHaveBeenCalledWith(req.file, 'diseno');
+        expect(resolveImageUrl).toHaveBeenCalledWith(req.file, undefined, 'diseno');
         expect(mockPrisma.designProject.update).toHaveBeenCalledWith({
           where: { id: 1 },
           data: { title: 'Actualizada', imageUrl: 'https://cloudinary.com/nuevo.jpg' },
@@ -237,9 +238,9 @@ describe('HU09 - Admin Diseño', () => {
 
     describe('given duplicate title on update', () => {
       it('should return 400 DUPLICATE_ERROR', async () => {
-        mockPrisma.designProject.update.mockRejectedValue(
-          new Error('Unique constraint failed on the fields: (`title`)')
-        );
+        const dupError = new Error('Unique constraint failed');
+        dupError.code = 'P2002';
+        mockPrisma.designProject.update.mockRejectedValue(dupError);
         req.params = { id: '1' };
         req.body = { title: 'Proyecto' };
 

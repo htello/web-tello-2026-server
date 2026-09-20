@@ -123,9 +123,9 @@ describe('HU07 - Admin Exhibitions', () => {
 
     describe('given exhibition does not exist', () => {
       it('should return 404 NOT_FOUND', async () => {
-        mockPrisma.exhibition.update.mockRejectedValue(
-          new Error('Record to update not found')
-        );
+        const notFoundError = new Error('Record to update not found');
+        notFoundError.code = 'P2025';
+        mockPrisma.exhibition.update.mockRejectedValue(notFoundError);
 
         const res = await request(app)
           .put('/api/v1/admin/exhibitions/999')
@@ -170,9 +170,9 @@ describe('HU07 - Admin Exhibitions', () => {
 
     describe('given exhibition does not exist', () => {
       it('should return 404 NOT_FOUND', async () => {
-        mockPrisma.exhibition.delete.mockRejectedValue(
-          new Error('Record to delete does not exist')
-        );
+        const notFoundError = new Error('Record to delete does not exist');
+        notFoundError.code = 'P2025';
+        mockPrisma.exhibition.delete.mockRejectedValue(notFoundError);
 
         const res = await request(app)
           .delete('/api/v1/admin/exhibitions/999')
