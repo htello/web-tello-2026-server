@@ -184,7 +184,9 @@ const paintingUpdateSchema = Joi.object({
     .max(2100)
     .optional()
     .allow(null),
-}).min(1);
+}).min(1).messages({
+  'object.min': 'Debe enviar al menos un campo para actualizar',
+});
 
 /**
  * Schema de validación para exposiciones
@@ -234,7 +236,9 @@ const exhibitionUpdateSchema = Joi.object({
   description: Joi.string()
     .optional()
     .allow('', null),
-}).min(1);
+}).min(1).messages({
+  'object.min': 'Debe enviar al menos un campo para actualizar',
+});
 
 /**
  * Schema de validación para proyectos de diseño
@@ -304,7 +308,9 @@ const designUpdateSchema = Joi.object({
   description: Joi.string()
     .optional()
     .allow('', null),
-}).min(1);
+}).min(1).messages({
+  'object.min': 'Debe enviar al menos un campo para actualizar',
+});
 
 /**
  * Schema de validación para ilustraciones
@@ -349,7 +355,9 @@ const illustrationUpdateSchema = Joi.object({
   description: Joi.string()
     .optional()
     .allow('', null),
-}).min(1);
+}).min(1).messages({
+  'object.min': 'Debe enviar al menos un campo para actualizar',
+});
 
 /**
  * Schema de validación para biografía

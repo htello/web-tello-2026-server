@@ -392,7 +392,7 @@
                     { "key": "technique", "value": "Oleo sobre lienzo", "type": "text" },
                     { "key": "year", "value": "2024", "type": "text" },
                     { "key": "collectionId", "value": "1", "type": "text" },
-                    { "key": "image", "type": "file" }
+                    { "key": "imageUrl", "value": "https://res.cloudinary.com/demo/image/upload/sample.jpg", "type": "text" }
                   ]
                 },
                 "url": {
@@ -419,7 +419,7 @@
                     { "key": "dimensions", "value": "100x80 cm", "type": "text" },
                     { "key": "technique", "value": "Acrilico", "type": "text" },
                     { "key": "year", "value": "2025", "type": "text" },
-                    { "key": "image", "type": "file" }
+                    { "key": "imageUrl", "value": "https://res.cloudinary.com/demo/image/upload/sample.jpg", "type": "text" }
                   ]
                 },
                 "url": {
@@ -728,7 +728,7 @@
                     { "key": "description", "value": "Descripcion del proyecto", "type": "text" },
                     { "key": "category", "value": "diseno-grafico", "type": "text" },
                     { "key": "subcategory", "value": "IMAGEN_CORPORATIVA", "type": "text" },
-                    { "key": "image", "type": "file" }
+                    { "key": "imageUrl", "value": "https://res.cloudinary.com/demo/image/upload/sample.jpg", "type": "text" }
                   ]
                 },
                 "url": {
@@ -753,7 +753,7 @@
                   "formdata": [
                     { "key": "title", "value": "Proyecto Actualizado", "type": "text" },
                     { "key": "description", "value": "Nueva descripcion", "type": "text" },
-                    { "key": "image", "type": "file" }
+                    { "key": "imageUrl", "value": "https://res.cloudinary.com/demo/image/upload/sample.jpg", "type": "text" }
                   ]
                 },
                 "url": {
@@ -822,7 +822,7 @@
                   "formdata": [
                     { "key": "title", "value": "Nueva Ilustracion", "type": "text" },
                     { "key": "description", "value": "Descripcion de la ilustracion", "type": "text" },
-                    { "key": "image", "type": "file" }
+                    { "key": "imageUrl", "value": "https://res.cloudinary.com/demo/image/upload/sample.jpg", "type": "text" }
                   ]
                 },
                 "url": {
@@ -847,7 +847,7 @@
                   "formdata": [
                     { "key": "title", "value": "Ilustracion Actualizada", "type": "text" },
                     { "key": "description", "value": "Nueva descripcion", "type": "text" },
-                    { "key": "image", "type": "file" }
+                    { "key": "imageUrl", "value": "https://res.cloudinary.com/demo/image/upload/sample.jpg", "type": "text" }
                   ]
                 },
                 "url": {
