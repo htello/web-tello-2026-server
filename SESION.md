@@ -14,7 +14,7 @@ CONTEXTO Y DOCUMENTACIÓN:
 ESTADO DEL PROYECTO:
 - Rama actual: develop
 - Cobertura de tests: 100% obligatorio (Vitest)
-- Última HU completada y mergeada: HU09 - Galería Ilustración
+- Última HU completada y mergeada: HU11 - Leer Biografía
 
 ESTADO DE LAS HUS POR FASE:
 ✅ Fase 0: Setup del Proyecto
@@ -24,7 +24,7 @@ ESTADO DE LAS HUS POR FASE:
 ✅ Extras: Skill endpoint-tester + Enum DesignSubcategory (typo CARTELERIA corregido) + Fixes Prisma + Sync OpenAPI/docs + Test de consistencia
 ✅ Fase 4: Galería Pública (HU01 → HU02 → HU03 → HU04 → HU05) - COMPLETADA
 ✅ Fase 5: Diseño e Ilustración (HU08 → HU09) - COMPLETADA
-⏳ Fase 6: Resto Backend (HU11 → HU13 → HU14 → HU15) - Pendiente
+⏳ Fase 6: Resto Backend (HU11 → HU13 → HU14 → HU15) - En curso (HU11 completada; restan HU13 → HU14 → HU15)
 ⏳ Fase 7: Frontend-only (HU17 → HU18) - Pendiente
 
 REGLAS DE SESIÓN (ESTRICTAS):
