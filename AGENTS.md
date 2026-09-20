@@ -19,12 +19,15 @@
 1. **Aprobación de código**: Proponer el código completo en la conversación antes de escribirlo en los archivos.
 2. **Uso estricto de ramas**: Antes de empezar cualquier HU, solicitar al usuario o verificar que se esté en la rama `hu/XX-nombre` (creada desde `develop`). No escribir nada directamente en `develop`.
 3. **Confirmación de Git**:
-   - **NO son confirmaciones de commit/push:** "ok", "vale", "perfecto", "bien", "sigue".
-   - **SÍ son confirmaciones de commit/push:** "haz commit", "commit", "push", "sube", "guarda".
+   - **NO son confirmaciones:** "ok", "vale", "perfecto", "bien", "sigue".
+   - **SÍ son confirmaciones:** "haz commit", "commit", "push", "sube", "guarda", "mergea", "haz merge".
 4. **Flujo de parada**: Cambios → Tests + Lint + Coverage 100% → **DETENERSE Y ESPERAR CONFIRMACIÓN DEL USUARIO**.
 5. **Inspección de archivos y SESION.md**:
    - **NO leas el repositorio entero por iniciativa propia.** Lee únicamente los archivos especificados por el usuario o directamente involucrados en la tarea actual.
-   - **NUNCA leas ni escanees `SESION.md`** salvo que el usuario pida explícitamente *"actualiza SESION.md"* o *"lee SESION.md"*.
+   - **NUNCA leas ni escanees `SESION.md`** por iniciativa propia durante el desarrollo. Solo debe abrirse y editarse en el paso final tras la confirmación de la HU o si el usuario pide explícitamente *"actualiza SESION.md"* o *"lee SESION.md"*.
+6. **Bloqueo de Commit por Fallo de Calidad**:
+   - NUNCA realizar o proponer un `git commit` o `git merge` si `pnpm test`, `pnpm run lint` o `pnpm run test:coverage` fallan.
+   - Si algún test o regla de ESLint falla, el agente DEBE detenerse, informar explícitamente al usuario de los errores y solucionar las fallas antes de proceder. No se permite forzar commits con errores pendientes.
 
 ## Skills del Proyecto
 
@@ -110,15 +113,20 @@ server/
 
 1. **Verificar rama**: Estar en `hu/XX-nombre` antes de escribir tests o código.
 2. **TDD**: Escribir test (RED) → Implementar código (GREEN) → Refactorizar.
-3. **Verificación de calidad**: Ejecutar `pnpm test && pnpm run lint && pnpm run test:coverage`.
-4. **Documentación**: Actualizar `CHANGELOG.md` en la sección `[Unreleased]`.
-5. **PAUSA OBLIGATORIA**: Presentar resultados al usuario y solicitar confirmación explícita para Git.
-6. **Git (Solo tras confirmación del usuario)**:
-* `git add . && git commit -m "feat(hu-XX): descripcion"`
-* `git push origin hu/XX-nombre`
-* Merge a `develop` y limpieza de rama si el usuario lo requiere.
-
-
+3. **Verificación de calidad (OBLIGATORIA)**: Ejecutar `pnpm test && pnpm run lint && pnpm run test:coverage`. Si algo falla, CORREGIR inmediatamente. NO avanzar si hay tests o reglas de ESLint fallando.
+4. **Documentación de cambios**: Actualizar `CHANGELOG.md` en la sección `[Unreleased]`.
+5. **PAUSA OBLIGATORIA**: Presentar resultados al usuario y solicitar confirmación explícita de finalización de la HU y ejecución del flujo de Git.
+6. **Git, Actualización de Sesión, Merge y Limpieza (Solo tras confirmación de HU finalizada)**:
+    * Re-verificar que tests y lint pasan. Si algo falla, ABORTAR, advertir al usuario y solucionar.
+    * **Actualizar `SESION.md`**: Registrar el resumen de la HU completada y el estado para la siguiente sesión.
+    * Commit y push en la rama de trabajo incluyendo la actualización de `SESION.md`:
+      ```bash
+      git add . && git commit -m "feat(hu-XX): descripcion" && git push origin hu/XX-nombre
+      ```
+    * Merge a `develop` y eliminación automática de la rama local y remota:
+      ```bash
+      git checkout develop && git pull origin develop && git merge --no-ff hu/XX-nombre && git push origin develop && git branch -d hu/XX-nombre && git push origin --delete hu/XX-nombre
+      ```
 
 ## Seguridad (OWASP)
 
