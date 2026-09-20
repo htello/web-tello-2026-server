@@ -11,6 +11,7 @@
 import { Router } from 'express';
 import authRoutes from './auth.js';
 import adminRoutes from './admin.js';
+import { publicRouter as collectionsPublicRoutes } from './collections.js';
 
 const router = Router();
 
@@ -19,6 +20,12 @@ const router = Router();
  * - POST /auth/login → HU20: Login Admin
  */
 router.use('/auth', authRoutes);
+
+/**
+ * Rutas públicas de galería
+ * - GET /collections → HU01: Galería de Colecciones
+ */
+router.use('/collections', collectionsPublicRoutes);
 
 /**
  * Rutas de administración

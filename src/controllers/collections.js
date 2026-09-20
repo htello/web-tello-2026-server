@@ -2,6 +2,43 @@ import prisma from '../lib/prisma.js';
 import logger from '../services/logger.js';
 
 /**
+ * HU01 - Listar colecciones publicadas
+ * Endpoint GET /api/v1/collections
+ *
+ * Retorna únicamente las colecciones publicadas, ordenadas por posición,
+ * incluyendo el conteo de pinturas publicadas de cada una.
+ *
+ * @returns {Object} 200 - { data: [{ id, title, coverImage, paintingsCount, ... }] }
+ * @returns {Object} 500 - Error interno del servidor
+ *
+ * @security Endpoint público (no requiere autenticación)
+ */
+const listPublished = async (req, res) => {
+  try {
+    const collections = await prisma.collection.findMany({
+      where: { isPublished: true },
+      orderBy: { position: 'asc' },
+      include: {
+        _count: { select: { paintings: { where: { isPublished: true } } } },
+      },
+    });
+
+    const data = collections.map(({ _count, ...collection }) => ({
+      ...collection,
+      paintingsCount: _count.paintings,
+    }));
+
+    res.status(200).json({ data });
+  } catch (error) {
+    logger.error('Error al listar colecciones publicadas', { error: error.message });
+    res.status(500).json({
+      error: 'Error interno del servidor',
+      code: 'INTERNAL_ERROR',
+    });
+  }
+};
+
+/**
  * HU06 - Crear colección
  * Endpoint POST /api/v1/admin/collections
  *
@@ -172,4 +209,4 @@ const reorder = async (req, res) => {
   }
 };
 
-export { create, update, remove, reorder };
+export { listPublished, create, update, remove, reorder };
