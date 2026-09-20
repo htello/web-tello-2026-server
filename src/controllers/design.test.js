@@ -18,7 +18,7 @@ vi.mock('../services/logger.js', () => ({
   default: { info: vi.fn(), error: vi.fn(), warn: vi.fn() },
 }));
 
-const { create, update, remove } = await import('./design.js');
+const { create, update, remove, listFiltered } = await import('./design.js');
 const { resolveImageUrl } = await import('../services/upload.js');
 const logger = (await import('../services/logger.js')).default;
 
@@ -26,13 +26,86 @@ describe('HU09 - Admin Diseño', () => {
   let req, res;
 
   beforeEach(() => {
-    req = { params: {}, body: {}, file: null };
+    req = { params: {}, body: {}, query: {}, file: null };
     res = {
       status: vi.fn().mockReturnThis(),
       json: vi.fn(),
     };
     vi.clearAllMocks();
     resolveImageUrl.mockImplementation(async (_file, imageUrl) => imageUrl);
+  });
+
+  describe('listFiltered', () => {
+    describe('given no subcategory', () => {
+      it('should return 200 with all projects', async () => {
+        mockPrisma.designProject.findMany.mockResolvedValue([
+          { id: 1, title: 'Proyecto A', subcategory: 'IMAGEN_CORPORATIVA' },
+          { id: 2, title: 'Proyecto B', subcategory: 'EDITORIAL' },
+        ]);
+        req.query = {};
+
+        await listFiltered(req, res);
+
+        expect(mockPrisma.designProject.findMany).toHaveBeenCalledWith();
+        expect(res.status).toHaveBeenCalledWith(200);
+        expect(res.json).toHaveBeenCalledWith({
+          data: [
+            { id: 1, title: 'Proyecto A', subcategory: 'IMAGEN_CORPORATIVA' },
+            { id: 2, title: 'Proyecto B', subcategory: 'EDITORIAL' },
+          ],
+        });
+      });
+    });
+
+    describe('given a subcategory', () => {
+      it('should return 200 with filtered projects', async () => {
+        mockPrisma.designProject.findMany.mockResolvedValue([
+          { id: 1, title: 'Proyecto A', subcategory: 'IMAGEN_CORPORATIVA' },
+        ]);
+        req.query = { subcategory: 'IMAGEN_CORPORATIVA' };
+
+        await listFiltered(req, res);
+
+        expect(mockPrisma.designProject.findMany).toHaveBeenCalledWith({
+          where: { subcategory: 'IMAGEN_CORPORATIVA' },
+        });
+        expect(res.status).toHaveBeenCalledWith(200);
+        expect(res.json).toHaveBeenCalledWith({
+          data: [{ id: 1, title: 'Proyecto A', subcategory: 'IMAGEN_CORPORATIVA' }],
+        });
+      });
+    });
+
+    describe('given a subcategory with no matches', () => {
+      it('should return 200 with an empty array', async () => {
+        mockPrisma.designProject.findMany.mockResolvedValue([]);
+        req.query = { subcategory: 'INEXISTENTE' };
+
+        await listFiltered(req, res);
+
+        expect(mockPrisma.designProject.findMany).toHaveBeenCalledWith({
+          where: { subcategory: 'INEXISTENTE' },
+        });
+        expect(res.status).toHaveBeenCalledWith(200);
+        expect(res.json).toHaveBeenCalledWith({ data: [] });
+      });
+    });
+
+    describe('given a database error', () => {
+      it('should return 500 INTERNAL_ERROR', async () => {
+        mockPrisma.designProject.findMany.mockRejectedValue(new Error('DB Error'));
+        req.query = {};
+
+        await listFiltered(req, res);
+
+        expect(res.status).toHaveBeenCalledWith(500);
+        expect(res.json).toHaveBeenCalledWith({
+          error: 'Error interno del servidor',
+          code: 'INTERNAL_ERROR',
+        });
+        expect(logger.error).toHaveBeenCalled();
+      });
+    });
   });
 
   describe('create', () => {

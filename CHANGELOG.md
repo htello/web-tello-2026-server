@@ -44,6 +44,11 @@ y este proyecto adherido al [Versionado Semántico](https://semver.org/lang/es/)
   - Ruta pública `publicRouter.get('/')` en `src/routes/exhibitions.js` montada en `src/routes/index.js`
   - Test de integración: `tests/integration/hu-05-exhibitions.test.js` (3 tests)
   - Tests unitarios: `listAll` en `src/controllers/exhibitions.test.js` (3 tests)
+- HU08: Filtrar Diseño (GET /api/v1/design)
+  - Controller: `listFiltered` en `src/controllers/design.js` (filtra por subcategoría opcional)
+  - Ruta pública `publicRouter.get('/')` en `src/routes/design.js` montada en `src/routes/index.js`
+  - Test de integración: `tests/integration/hu-08-design-filter.test.js` (4 tests)
+  - Tests unitarios: `listFiltered` en `src/controllers/design.test.js` (4 tests)
 - Skill `endpoint-tester` para testing de endpoints en 2 fases (exploración + formalización)
 - Test de consistencia `tests/docs/openapi-consistency.test.js` que verifica que todas las rutas implementadas están documentadas en `openapi.yaml` y que el enum `DesignSubcategory` coincide con `prisma/schema.prisma`
 - Enum `DesignSubcategory` para subcategorías de diseño (IMAGEN_CORPORATIVA, PACKAGING_EXPOSITORES, CARTELERIA, EDITORIAL)
