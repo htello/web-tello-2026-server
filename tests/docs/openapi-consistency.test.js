@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import fs from 'node:fs';
 import path from 'node:path';
 import { parse } from 'yaml';
+import { DESIGN_SUBCATEGORIES } from '../../src/lib/constants.js';
 import app from '../../src/app.js';
 import routes from '../../src/routes/index.js';
 import authRoutes from '../../src/routes/auth.js';
@@ -81,14 +82,8 @@ describe('Consistencia OpenAPI vs implementación', () => {
     ).toEqual([]);
   });
 
-  it('mantiene el enum DesignSubcategory sincronizado con Prisma', () => {
-    const schema = readFile('prisma/schema.prisma');
-    const match = schema.match(/enum DesignSubcategory \{([^}]*)\}/);
-    const prismaValues = (match?.[1] ?? '')
-      .trim()
-      .split(/\s+/)
-      .filter(Boolean)
-      .sort();
+  it('mantiene las subcategorías de diseño sincronizadas entre OpenAPI y constants.js', () => {
+    const prismaValues = [...DESIGN_SUBCATEGORIES].sort();
 
     const enumSources = [
       spec.components?.schemas?.DesignProject?.properties?.subcategory?.enum,

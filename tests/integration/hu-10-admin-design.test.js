@@ -42,8 +42,7 @@ describe('HU10 - Admin Design', () => {
           title: 'Nuevo Diseño',
           description: 'Descripcion',
           imageUrl: 'https://res.cloudinary.com/test/design.jpg',
-          category: 'diseno-grafico',
-          subcategory: 'IMAGEN_CORPORATIVA',
+          subcategory: 'imagen-corporativa',
           createdAt: new Date(),
         });
 
@@ -53,8 +52,7 @@ describe('HU10 - Admin Design', () => {
           .send({
             title: 'Nuevo Diseño',
             imageUrl: 'https://res.cloudinary.com/test/design.jpg',
-            category: 'diseno-grafico',
-            subcategory: 'IMAGEN_CORPORATIVA',
+            subcategory: 'imagen-corporativa',
             description: 'Descripcion',
           });
 
@@ -78,8 +76,7 @@ describe('HU10 - Admin Design', () => {
           id: 1,
           title: 'Diseño Upload',
           imageUrl: 'https://res.cloudinary.com/test/uploaded.jpg',
-          category: 'diseno-grafico',
-          subcategory: 'CARTELERIA',
+          subcategory: 'carteleria',
           createdAt: new Date(),
         });
 
@@ -87,8 +84,7 @@ describe('HU10 - Admin Design', () => {
           .post('/api/v1/admin/design')
           .set('Authorization', `Bearer ${adminToken}`)
           .field('title', 'Diseño Upload')
-          .field('category', 'diseno-grafico')
-          .field('subcategory', 'CARTELERIA')
+          .field('subcategory', 'carteleria')
           .attach('image', Buffer.from('fake-image-data'), 'test.jpg');
 
         expect(res.status).toBe(201);
@@ -101,7 +97,7 @@ describe('HU10 - Admin Design', () => {
       it('should return 401', async () => {
         const res = await request(app)
           .post('/api/v1/admin/design')
-          .send({ title: 'Test', imageUrl: 'https://test.com/img.jpg', category: 'cat', subcategory: 'IMAGEN_CORPORATIVA' });
+          .send({ title: 'Test', imageUrl: 'https://test.com/img.jpg', subcategory: 'imagen-corporativa' });
 
         expect(res.status).toBe(401);
       });
@@ -112,19 +108,7 @@ describe('HU10 - Admin Design', () => {
         const res = await request(app)
           .post('/api/v1/admin/design')
           .set('Authorization', `Bearer ${adminToken}`)
-          .send({ imageUrl: 'https://test.com/img.jpg', category: 'cat', subcategory: 'IMAGEN_CORPORATIVA' });
-
-        expect(res.status).toBe(400);
-        expect(res.body).toHaveProperty('code', 'VALIDATION_ERROR');
-      });
-    });
-
-    describe('given missing category', () => {
-      it('should return 400 VALIDATION_ERROR', async () => {
-        const res = await request(app)
-          .post('/api/v1/admin/design')
-          .set('Authorization', `Bearer ${adminToken}`)
-          .send({ title: 'Test', imageUrl: 'https://test.com/img.jpg', subcategory: 'IMAGEN_CORPORATIVA' });
+          .send({ imageUrl: 'https://test.com/img.jpg', subcategory: 'imagen-corporativa' });
 
         expect(res.status).toBe(400);
         expect(res.body).toHaveProperty('code', 'VALIDATION_ERROR');
@@ -136,7 +120,7 @@ describe('HU10 - Admin Design', () => {
         const res = await request(app)
           .post('/api/v1/admin/design')
           .set('Authorization', `Bearer ${adminToken}`)
-          .send({ title: 'Test', imageUrl: 'https://test.com/img.jpg', category: 'cat', subcategory: 'invalid' });
+          .send({ title: 'Test', imageUrl: 'https://test.com/img.jpg', subcategory: 'invalid' });
 
         expect(res.status).toBe(400);
         expect(res.body).toHaveProperty('code', 'VALIDATION_ERROR');
@@ -148,7 +132,7 @@ describe('HU10 - Admin Design', () => {
         const res = await request(app)
           .post('/api/v1/admin/design')
           .set('Authorization', `Bearer ${adminToken}`)
-          .send({ title: 'Test', category: 'cat', subcategory: 'IMAGEN_CORPORATIVA' });
+          .send({ title: 'Test', subcategory: 'imagen-corporativa' });
 
         expect(res.status).toBe(400);
         expect(res.body).toHaveProperty('code', 'VALIDATION_ERROR');
@@ -167,8 +151,7 @@ describe('HU10 - Admin Design', () => {
           .send({
             title: 'Existente',
             imageUrl: 'https://test.com/img.jpg',
-            category: 'cat',
-            subcategory: 'IMAGEN_CORPORATIVA',
+            subcategory: 'imagen-corporativa',
           });
 
         expect(res.status).toBe(400);
@@ -188,8 +171,7 @@ describe('HU10 - Admin Design', () => {
           .send({
             title: 'Test',
             imageUrl: 'https://test.com/img.jpg',
-            category: 'cat',
-            subcategory: 'IMAGEN_CORPORATIVA',
+            subcategory: 'imagen-corporativa',
           });
 
         expect(res.status).toBe(500);
@@ -205,7 +187,6 @@ describe('HU10 - Admin Design', () => {
           id: 1,
           title: 'Actualizado',
           imageUrl: 'https://test.com/img.jpg',
-          category: 'cat',
           subcategory: 'sub',
           updatedAt: new Date(),
         });
@@ -234,7 +215,6 @@ describe('HU10 - Admin Design', () => {
           id: 1,
           title: 'Test',
           imageUrl: 'https://res.cloudinary.com/test/uploaded_new.jpg',
-          category: 'cat',
           subcategory: 'sub',
           updatedAt: new Date(),
         });

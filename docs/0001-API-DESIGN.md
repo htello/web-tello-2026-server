@@ -294,12 +294,12 @@
 | Método | Endpoint | Descripción | Auth |
 |--------|----------|-------------|------|
 | `GET` | `/api/v1/design` | Listar proyectos de diseño | No |
-| `GET` | `/api/v1/design?subcategory=PACKAGING_EXPOSITORES` | Filtrar por subcategoría | No |
+| `GET` | `/api/v1/design?subcategory=packaging-expositores` | Filtrar por subcategoría | No |
 | `POST` | `/api/v1/admin/design` | Crear proyecto de diseño | Admin |
 | `PUT` | `/api/v1/admin/design/:id` | Editar proyecto de diseño | Admin |
 | `DELETE` | `/api/v1/admin/design/:id` | Eliminar proyecto de diseño | Admin |
 
-**Subcategorías válidas:** `IMAGEN_CORPORATIVA`, `PACKAGING_EXPOSITORES`, `CARTELERIA`, `EDITORIAL`
+**Subcategorías válidas:** `imagen-corporativa`, `packaging-expositores`, `carteleria`, `editorial`
 
 **GET /api/v1/design**
 ```json
@@ -309,8 +309,7 @@
     {
       "id": 1,
       "title": "Branding Café Aroma",
-      "category": "imagen-corporativa",
-      "subcategory": "IMAGEN_CORPORATIVA",
+      "subcategory": "imagen-corporativa",
       "imageUrl": "...",
       "description": "Proyecto de identidad visual"
     }
@@ -566,7 +565,6 @@ model DesignProject {
   title       String
   description String?
   imageUrl    String
-  category    String
   subcategory String
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
