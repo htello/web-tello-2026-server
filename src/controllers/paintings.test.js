@@ -1,0 +1,455 @@
+/**
+ * @fileoverview Tests unitarios del controller de pinturas.
+ *
+ * Cubre HU06 - Admin Pinturas: create, update, remove, feature, publish, reorder.
+ *
+ * @module controllers/paintings.test
+ */
+
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { mockPrisma } from '../../tests/helpers/prisma-mock.js';
+
+vi.mock('../services/upload.js', () => ({
+  uploadToCloudinary: vi.fn(),
+  ALLOWED_SECTIONS: ['pintura', 'ilustracion', 'diseno', 'general'],
+}));
+
+vi.mock('../services/logger.js', () => ({
+  default: { info: vi.fn(), error: vi.fn(), warn: vi.fn() },
+}));
+
+const { create, update, remove, feature, publish, reorder } = await import('./paintings.js');
+const { uploadToCloudinary } = await import('../services/upload.js');
+const logger = (await import('../services/logger.js')).default;
+
+describe('HU06 - Admin Pinturas', () => {
+  let req, res;
+
+  beforeEach(() => {
+    req = { params: {}, body: {}, file: null };
+    res = {
+      status: vi.fn().mockReturnThis(),
+      json: vi.fn(),
+    };
+    vi.clearAllMocks();
+  });
+
+  describe('create', () => {
+    describe('given valid data with imageUrl', () => {
+      it('should return 201 with created painting', async () => {
+        mockPrisma.collection.findUnique.mockResolvedValue({ id: 1 });
+        mockPrisma.painting.create.mockResolvedValue({
+          id: 1,
+          title: 'Atardecer',
+          imageUrl: 'https://example.com/painting.jpg',
+          collectionId: 1,
+        });
+        req.body = {
+          title: 'Atardecer',
+          imageUrl: 'https://example.com/painting.jpg',
+          collectionId: 1,
+          dimensions: '80x60 cm',
+          technique: 'Óleo sobre lienzo',
+          year: 2024,
+        };
+
+        await create(req, res);
+
+        expect(mockPrisma.collection.findUnique).toHaveBeenCalledWith({ where: { id: 1 } });
+        expect(mockPrisma.painting.create).toHaveBeenCalledWith({
+          data: {
+            title: 'Atardecer',
+            imageUrl: 'https://example.com/painting.jpg',
+            collectionId: 1,
+            dimensions: '80x60 cm',
+            technique: 'Óleo sobre lienzo',
+            year: 2024,
+          },
+        });
+        expect(res.status).toHaveBeenCalledWith(201);
+        expect(res.json).toHaveBeenCalledWith(
+          expect.objectContaining({
+            data: expect.objectContaining({ id: 1, title: 'Atardecer' }),
+          })
+        );
+        expect(logger.info).toHaveBeenCalled();
+      });
+    });
+
+    describe('given a file upload', () => {
+      it('should upload to Cloudinary and use returned url', async () => {
+        uploadToCloudinary.mockResolvedValue({ url: 'https://cloudinary.com/p.jpg' });
+        mockPrisma.collection.findUnique.mockResolvedValue({ id: 1 });
+        mockPrisma.painting.create.mockResolvedValue({
+          id: 2,
+          title: 'Con archivo',
+          imageUrl: 'https://cloudinary.com/p.jpg',
+          collectionId: 1,
+        });
+        req.file = { originalname: 'p.jpg', mimetype: 'image/jpeg', buffer: Buffer.from('x') };
+        req.body = { title: 'Con archivo', collectionId: 1 };
+
+        await create(req, res);
+
+        expect(uploadToCloudinary).toHaveBeenCalledWith(req.file, 'pintura');
+        expect(mockPrisma.painting.create).toHaveBeenCalledWith(
+          expect.objectContaining({
+            data: expect.objectContaining({ imageUrl: 'https://cloudinary.com/p.jpg' }),
+          })
+        );
+        expect(res.status).toHaveBeenCalledWith(201);
+      });
+    });
+
+    describe('given no image file and no imageUrl', () => {
+      it('should return 400 VALIDATION_ERROR', async () => {
+        req.body = { title: 'Sin imagen', collectionId: 1 };
+
+        await create(req, res);
+
+        expect(res.status).toHaveBeenCalledWith(400);
+        expect(res.json).toHaveBeenCalledWith({
+          error: 'La imagen es obligatoria (archivo o URL)',
+          code: 'VALIDATION_ERROR',
+        });
+      });
+    });
+
+    describe('given non-existent collection', () => {
+      it('should return 404 NOT_FOUND', async () => {
+        mockPrisma.collection.findUnique.mockResolvedValue(null);
+        req.body = {
+          title: 'Pintura',
+          imageUrl: 'https://example.com/p.jpg',
+          collectionId: 999,
+        };
+
+        await create(req, res);
+
+        expect(res.status).toHaveBeenCalledWith(404);
+        expect(res.json).toHaveBeenCalledWith({
+          error: 'La colección no existe',
+          code: 'NOT_FOUND',
+        });
+      });
+    });
+
+    describe('given duplicate title in collection', () => {
+      it('should return 400 DUPLICATE_ERROR', async () => {
+        mockPrisma.collection.findUnique.mockResolvedValue({ id: 1 });
+        mockPrisma.painting.create.mockRejectedValue(
+          new Error('Unique constraint failed on the fields: (`title`, `collectionId`)')
+        );
+        req.body = { title: 'Atardecer', imageUrl: 'https://example.com/p.jpg', collectionId: 1 };
+
+        await create(req, res);
+
+        expect(res.status).toHaveBeenCalledWith(400);
+        expect(res.json).toHaveBeenCalledWith({
+          error: 'Ya existe una pintura con ese título en esta colección',
+          code: 'DUPLICATE_ERROR',
+        });
+      });
+    });
+
+    describe('given a database error', () => {
+      it('should return 500 INTERNAL_ERROR', async () => {
+        mockPrisma.collection.findUnique.mockResolvedValue({ id: 1 });
+        mockPrisma.painting.create.mockRejectedValue(new Error('DB Error'));
+        req.body = { title: 'Pintura', imageUrl: 'https://example.com/p.jpg', collectionId: 1 };
+
+        await create(req, res);
+
+        expect(res.status).toHaveBeenCalledWith(500);
+        expect(res.json).toHaveBeenCalledWith({
+          error: 'Error interno del servidor',
+          code: 'INTERNAL_ERROR',
+        });
+        expect(logger.error).toHaveBeenCalled();
+      });
+    });
+  });
+
+  describe('update', () => {
+    describe('given valid data', () => {
+      it('should return 200 with updated painting', async () => {
+        mockPrisma.painting.update.mockResolvedValue({
+          id: 1,
+          title: 'Nuevo',
+          imageUrl: 'https://example.com/p.jpg',
+          collectionId: 1,
+        });
+        req.params = { id: '1' };
+        req.body = { title: 'Nuevo' };
+
+        await update(req, res);
+
+        expect(mockPrisma.painting.update).toHaveBeenCalledWith({
+          where: { id: 1 },
+          data: { title: 'Nuevo' },
+        });
+        expect(res.status).toHaveBeenCalledWith(200);
+        expect(logger.info).toHaveBeenCalled();
+      });
+
+      it('should upload new image when file is present', async () => {
+        uploadToCloudinary.mockResolvedValue({ url: 'https://cloudinary.com/nuevo.jpg' });
+        mockPrisma.painting.update.mockResolvedValue({
+          id: 1,
+          title: 'Actualizada',
+          imageUrl: 'https://cloudinary.com/nuevo.jpg',
+          collectionId: 1,
+        });
+        req.params = { id: '1' };
+        req.file = { originalname: 'n.jpg', mimetype: 'image/jpeg', buffer: Buffer.from('x') };
+        req.body = { title: 'Actualizada' };
+
+        await update(req, res);
+
+        expect(uploadToCloudinary).toHaveBeenCalledWith(req.file, 'pintura');
+        expect(mockPrisma.painting.update).toHaveBeenCalledWith({
+          where: { id: 1 },
+          data: { title: 'Actualizada', imageUrl: 'https://cloudinary.com/nuevo.jpg' },
+        });
+        expect(res.status).toHaveBeenCalledWith(200);
+      });
+    });
+
+    describe('given painting does not exist', () => {
+      it('should return 404 NOT_FOUND', async () => {
+        const error = new Error('Record to update not found');
+        error.code = 'P2025';
+        mockPrisma.painting.update.mockRejectedValue(error);
+        req.params = { id: '999' };
+        req.body = { title: 'Test' };
+
+        await update(req, res);
+
+        expect(res.status).toHaveBeenCalledWith(404);
+        expect(res.json).toHaveBeenCalledWith({
+          error: 'Pintura no encontrada',
+          code: 'NOT_FOUND',
+        });
+      });
+    });
+
+    describe('given duplicate title on update', () => {
+      it('should return 400 DUPLICATE_ERROR', async () => {
+        mockPrisma.painting.update.mockRejectedValue(
+          new Error('Unique constraint failed on the fields: (`title`, `collectionId`)')
+        );
+        req.params = { id: '1' };
+        req.body = { title: 'Atardecer' };
+
+        await update(req, res);
+
+        expect(res.status).toHaveBeenCalledWith(400);
+        expect(res.json).toHaveBeenCalledWith({
+          error: 'Ya existe una pintura con ese título en esta colección',
+          code: 'DUPLICATE_ERROR',
+        });
+      });
+    });
+
+    describe('given a database error', () => {
+      it('should return 500 INTERNAL_ERROR', async () => {
+        mockPrisma.painting.update.mockRejectedValue(new Error('DB Error'));
+        req.params = { id: '1' };
+        req.body = { title: 'Test' };
+
+        await update(req, res);
+
+        expect(res.status).toHaveBeenCalledWith(500);
+        expect(res.json).toHaveBeenCalledWith({
+          error: 'Error interno del servidor',
+          code: 'INTERNAL_ERROR',
+        });
+      });
+    });
+  });
+
+  describe('remove', () => {
+    describe('given existing painting', () => {
+      it('should return 200 with success message', async () => {
+        mockPrisma.painting.delete.mockResolvedValue({ id: 1 });
+        req.params = { id: '1' };
+
+        await remove(req, res);
+
+        expect(mockPrisma.painting.delete).toHaveBeenCalledWith({ where: { id: 1 } });
+        expect(res.status).toHaveBeenCalledWith(200);
+        expect(res.json).toHaveBeenCalledWith({
+          data: { message: 'Pintura eliminada correctamente' },
+        });
+        expect(logger.info).toHaveBeenCalled();
+      });
+    });
+
+    describe('given painting does not exist', () => {
+      it('should return 404 NOT_FOUND', async () => {
+        const error = new Error('Record to delete does not exist');
+        error.code = 'P2025';
+        mockPrisma.painting.delete.mockRejectedValue(error);
+        req.params = { id: '999' };
+
+        await remove(req, res);
+
+        expect(res.status).toHaveBeenCalledWith(404);
+        expect(res.json).toHaveBeenCalledWith({
+          error: 'Pintura no encontrada',
+          code: 'NOT_FOUND',
+        });
+      });
+    });
+
+    describe('given a database error', () => {
+      it('should return 500 INTERNAL_ERROR', async () => {
+        mockPrisma.painting.delete.mockRejectedValue(new Error('DB Error'));
+        req.params = { id: '1' };
+
+        await remove(req, res);
+
+        expect(res.status).toHaveBeenCalledWith(500);
+        expect(res.json).toHaveBeenCalledWith({
+          error: 'Error interno del servidor',
+          code: 'INTERNAL_ERROR',
+        });
+      });
+    });
+  });
+
+  describe('feature', () => {
+    describe('given existing painting', () => {
+      it('should toggle isFeatured to true', async () => {
+        mockPrisma.painting.findUnique.mockResolvedValue({ id: 1, isFeatured: false });
+        mockPrisma.painting.update.mockResolvedValue({ id: 1, isFeatured: true });
+        req.params = { id: '1' };
+
+        await feature(req, res);
+
+        expect(mockPrisma.painting.update).toHaveBeenCalledWith({
+          where: { id: 1 },
+          data: { isFeatured: true },
+        });
+        expect(res.status).toHaveBeenCalledWith(200);
+        expect(res.json).toHaveBeenCalledWith({ data: { isFeatured: true } });
+        expect(logger.info).toHaveBeenCalled();
+      });
+    });
+
+    describe('given painting does not exist', () => {
+      it('should return 404 NOT_FOUND', async () => {
+        mockPrisma.painting.findUnique.mockResolvedValue(null);
+        req.params = { id: '999' };
+
+        await feature(req, res);
+
+        expect(res.status).toHaveBeenCalledWith(404);
+        expect(res.json).toHaveBeenCalledWith({
+          error: 'Pintura no encontrada',
+          code: 'NOT_FOUND',
+        });
+      });
+    });
+
+    describe('given a database error', () => {
+      it('should return 500 INTERNAL_ERROR', async () => {
+        mockPrisma.painting.findUnique.mockResolvedValue({ id: 1, isFeatured: false });
+        mockPrisma.painting.update.mockRejectedValue(new Error('DB Error'));
+        req.params = { id: '1' };
+
+        await feature(req, res);
+
+        expect(res.status).toHaveBeenCalledWith(500);
+        expect(res.json).toHaveBeenCalledWith({
+          error: 'Error interno del servidor',
+          code: 'INTERNAL_ERROR',
+        });
+      });
+    });
+  });
+
+  describe('publish', () => {
+    describe('given existing painting', () => {
+      it('should toggle isPublished', async () => {
+        mockPrisma.painting.findUnique.mockResolvedValue({ id: 1, isPublished: true });
+        mockPrisma.painting.update.mockResolvedValue({ id: 1, isPublished: false });
+        req.params = { id: '1' };
+
+        await publish(req, res);
+
+        expect(mockPrisma.painting.update).toHaveBeenCalledWith({
+          where: { id: 1 },
+          data: { isPublished: false },
+        });
+        expect(res.status).toHaveBeenCalledWith(200);
+        expect(res.json).toHaveBeenCalledWith({ data: { isPublished: false } });
+        expect(logger.info).toHaveBeenCalled();
+      });
+    });
+
+    describe('given painting does not exist', () => {
+      it('should return 404 NOT_FOUND', async () => {
+        mockPrisma.painting.findUnique.mockResolvedValue(null);
+        req.params = { id: '999' };
+
+        await publish(req, res);
+
+        expect(res.status).toHaveBeenCalledWith(404);
+        expect(res.json).toHaveBeenCalledWith({
+          error: 'Pintura no encontrada',
+          code: 'NOT_FOUND',
+        });
+      });
+    });
+
+    describe('given a database error', () => {
+      it('should return 500 INTERNAL_ERROR', async () => {
+        mockPrisma.painting.findUnique.mockResolvedValue({ id: 1, isPublished: true });
+        mockPrisma.painting.update.mockRejectedValue(new Error('DB Error'));
+        req.params = { id: '1' };
+
+        await publish(req, res);
+
+        expect(res.status).toHaveBeenCalledWith(500);
+        expect(res.json).toHaveBeenCalledWith({
+          error: 'Error interno del servidor',
+          code: 'INTERNAL_ERROR',
+        });
+      });
+    });
+  });
+
+  describe('reorder', () => {
+    describe('given orderedIds', () => {
+      it('should return 200 with success message', async () => {
+        mockPrisma.painting.update.mockResolvedValue({ id: 2, position: 0 });
+        req.body = { orderedIds: [2, 1], collectionId: 1 };
+
+        await reorder(req, res);
+
+        expect(mockPrisma.$transaction).toHaveBeenCalledWith(expect.any(Array));
+        expect(res.status).toHaveBeenCalledWith(200);
+        expect(res.json).toHaveBeenCalledWith({
+          data: { message: 'Orden actualizado correctamente' },
+        });
+        expect(logger.info).toHaveBeenCalled();
+      });
+    });
+
+    describe('given a database error', () => {
+      it('should return 500 INTERNAL_ERROR', async () => {
+        mockPrisma.painting.update.mockRejectedValue(new Error('DB Error'));
+        req.body = { orderedIds: [1, 2], collectionId: 1 };
+
+        await reorder(req, res);
+
+        expect(res.status).toHaveBeenCalledWith(500);
+        expect(res.json).toHaveBeenCalledWith({
+          error: 'Error interno del servidor',
+          code: 'INTERNAL_ERROR',
+        });
+      });
+    });
+  });
+});

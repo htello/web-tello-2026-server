@@ -22,12 +22,17 @@
    - **NO son confirmaciones:** "ok", "vale", "perfecto", "bien", "sigue".
    - **SÍ son confirmaciones:** "haz commit", "commit", "push", "sube", "guarda", "mergea", "haz merge".
 4. **Flujo de parada**: Cambios → Tests + Lint + Coverage 100% → **DETENERSE Y ESPERAR CONFIRMACIÓN DEL USUARIO**.
-5. **Inspección de archivos y SESION.md**:
-   - **NO leas el repositorio entero por iniciativa propia.** Lee únicamente los archivos especificados por el usuario o directamente involucrados en la tarea actual.
-   - **NUNCA leas ni escanees `SESION.md`** por iniciativa propia durante el desarrollo. Solo debe abrirse y editarse en el paso final tras la confirmación de la HU o si el usuario pide explícitamente *"actualiza SESION.md"* o *"lee SESION.md"*.
+5. **Inspección de archivos y Eficiencia de Tokens**:
+   - **NUNCA leas el repositorio entero.** Lee únicamente las líneas o archivos estrictamente necesarios para la tarea actual.
+   - **NUNCA leas ni escanees `SESION.md`** por iniciativa propia. Solo se edita al finalizar la HU tras confirmación.
+   - Lee únicamente las secciones o archivos directamente afectados por la tarea.
 6. **Bloqueo de Commit por Fallo de Calidad**:
    - NUNCA realizar o proponer un `git commit` o `git merge` si `pnpm test`, `pnpm run lint` o `pnpm run test:coverage` fallan.
    - Si algún test o regla de ESLint falla, el agente DEBE detenerse, informar explícitamente al usuario de los errores y solucionar las fallas antes de proceder. No se permite forzar commits con errores pendientes.
+7. **Respuestas Concisas (Ahorro de Tokens)**:
+   - Eliminar saludos, intros ("Aquí tienes..."), rodeos y explicaciones teóricas no solicitadas.
+   - Presentar directamente el código, comandos o resultados.
+   - Proponer cambios específicos o funciones modificadas en lugar de reimprimir archivos enteros innecesariamente durante la fase de discusión.
 
 ## Skills del Proyecto
 

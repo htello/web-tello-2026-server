@@ -13,6 +13,8 @@ y este proyecto adherido al [Versionado Semántico](https://semver.org/lang/es/)
 - HU10: Test de validación de categoría faltante en POST /admin/design
 
 ### Added
+- Tests unitarios para controllers admin: `design.js`, `illustrations.js`, `exhibitions.js`, `paintings.js`, `collections.js`
+- Test unitario para `src/services/logger.js` (formateo con/sin metadata)
 - HU01: Galería de Colecciones (GET /api/v1/collections)
   - Controller: `listPublished` en `src/controllers/collections.js` (filtra publicadas, ordena por position, cuenta solo pinturas publicadas)
   - Router público `publicRouter` en `src/routes/collections.js`

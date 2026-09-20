@@ -52,4 +52,5 @@ const logger = winston.createLogger({
   ],
 });
 
+export { logFormat };
 export default logger;
