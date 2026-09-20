@@ -4,6 +4,14 @@ import { validate, designSchema, designUpdateSchema } from '../middleware/valida
 import { upload } from '../services/upload.js';
 import * as controller from '../controllers/design.js';
 
+/**
+ * Router público de diseño
+ * - GET / → HU08: Filtrar proyectos de diseño
+ */
+const publicRouter = Router();
+
+publicRouter.get('/', controller.listFiltered);
+
 const router = Router();
 
 router.post(
@@ -31,4 +39,5 @@ router.delete(
   controller.remove
 );
 
+export { publicRouter };
 export default router;

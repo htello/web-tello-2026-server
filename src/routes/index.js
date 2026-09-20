@@ -14,6 +14,7 @@ import adminRoutes from './admin.js';
 import { publicRouter as collectionsPublicRoutes } from './collections.js';
 import { publicRouter as paintingsPublicRoutes } from './paintings.js';
 import { publicRouter as exhibitionsPublicRoutes } from './exhibitions.js';
+import { publicRouter as designPublicRoutes } from './design.js';
 
 const router = Router();
 
@@ -40,6 +41,12 @@ router.use('/paintings', paintingsPublicRoutes);
  * - GET /exhibitions → HU05: Listar exposiciones
  */
 router.use('/exhibitions', exhibitionsPublicRoutes);
+
+/**
+ * Rutas públicas de diseño
+ * - GET /design → HU08: Filtrar proyectos de diseño
+ */
+router.use('/design', designPublicRoutes);
 
 /**
  * Rutas de administración

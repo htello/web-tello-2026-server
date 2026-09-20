@@ -114,4 +114,34 @@ const remove = async (req, res) => {
   }
 };
 
-export { create, update, remove };
+/**
+ * HU08 - Filtrar Diseño
+ * Endpoint GET /api/v1/design
+ *
+ * Lista proyectos de diseño, opcionalmente filtrados por subcategoría.
+ *
+ * @param {string} [req.query.subcategory] - Subcategoría por la que filtrar
+ * @returns {Object} 200 - { data: [{ id, title, category, subcategory, imageUrl, description }] }
+ * @returns {Object} 500 - Error interno del servidor
+ *
+ * @security Endpoint público (no requiere autenticación)
+ */
+const listFiltered = async (req, res) => {
+  try {
+    const { subcategory } = req.query;
+
+    const projects = subcategory
+      ? await prisma.designProject.findMany({ where: { subcategory } })
+      : await prisma.designProject.findMany();
+
+    res.status(200).json({ data: projects });
+  } catch (error) {
+    logger.error('Error al listar proyectos de diseño', { error: error.message });
+    res.status(500).json({
+      error: 'Error interno del servidor',
+      code: 'INTERNAL_ERROR',
+    });
+  }
+};
+
+export { create, update, remove, listFiltered };
