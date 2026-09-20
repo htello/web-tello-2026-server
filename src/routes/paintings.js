@@ -6,10 +6,12 @@ import * as controller from '../controllers/paintings.js';
 
 /**
  * Router público de pinturas
+ * - GET /featured → HU04: Obras destacadas
  * - GET /:id → HU03: Ficha de pintura
  */
 const publicRouter = Router();
 
+publicRouter.get('/featured', controller.getFeatured);
 publicRouter.get('/:id', controller.getById);
 
 const router = Router();
