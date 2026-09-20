@@ -108,4 +108,31 @@ const reorder = async (req, res) => {
   }
 };
 
-export { create, update, remove, reorder };
+/**
+ * HU05 - Listar exposiciones
+ * Endpoint GET /api/v1/exhibitions
+ *
+ * Retorna todas las exposiciones ordenadas por posición.
+ *
+ * @returns {Object} 200 - { data: [{ id, title, date, position, ... }] }
+ * @returns {Object} 500 - Error interno del servidor
+ *
+ * @security Endpoint público (no requiere autenticación)
+ */
+const listAll = async (req, res) => {
+  try {
+    const exhibitions = await prisma.exhibition.findMany({
+      orderBy: { position: 'asc' },
+    });
+
+    res.status(200).json({ data: exhibitions });
+  } catch (error) {
+    logger.error('Error al listar exposiciones', { error: error.message });
+    res.status(500).json({
+      error: 'Error interno del servidor',
+      code: 'INTERNAL_ERROR',
+    });
+  }
+};
+
+export { create, update, remove, reorder, listAll };

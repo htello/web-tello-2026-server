@@ -9,7 +9,7 @@ import adminRoutes from '../../src/routes/admin.js';
 import collectionsRouter, { publicRouter } from '../../src/routes/collections.js';
 import uploadRoutes from '../../src/routes/upload.js';
 import paintingsRoutes, { publicRouter as paintingsPublicRouter } from '../../src/routes/paintings.js';
-import exhibitionsRoutes from '../../src/routes/exhibitions.js';
+import exhibitionsRoutes, { publicRouter as exhibitionsPublicRouter } from '../../src/routes/exhibitions.js';
 import designRoutes from '../../src/routes/design.js';
 import illustrationsRoutes from '../../src/routes/illustrations.js';
 import biographyRoutes from '../../src/routes/biography.js';
@@ -30,6 +30,7 @@ const MOUNTS = new Map([
   [paintingsRoutes, '/paintings'],
   [paintingsPublicRouter, '/paintings'],
   [exhibitionsRoutes, '/exhibitions'],
+  [exhibitionsPublicRouter, '/exhibitions'],
   [designRoutes, '/design'],
   [illustrationsRoutes, '/illustrations'],
   [biographyRoutes, '/biography'],
