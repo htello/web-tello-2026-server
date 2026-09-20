@@ -16,6 +16,7 @@ import { publicRouter as paintingsPublicRoutes } from './paintings.js';
 import { publicRouter as exhibitionsPublicRoutes } from './exhibitions.js';
 import { publicRouter as designPublicRoutes } from './design.js';
 import { publicRouter as illustrationsPublicRoutes } from './illustrations.js';
+import { publicRouter as biographyPublicRoutes } from './biography.js';
 
 const router = Router();
 
@@ -54,6 +55,12 @@ router.use('/design', designPublicRoutes);
  * - GET /illustrations → HU09: Galería de ilustraciones
  */
 router.use('/illustrations', illustrationsPublicRoutes);
+
+/**
+ * Rutas públicas de biografía
+ * - GET /biography → HU11: Leer biografía
+ */
+router.use('/biography', biographyPublicRoutes);
 
 /**
  * Rutas de administración
