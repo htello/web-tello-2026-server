@@ -18,7 +18,7 @@ vi.mock('../services/logger.js', () => ({
   default: { info: vi.fn(), error: vi.fn(), warn: vi.fn() },
 }));
 
-const { create, update, remove } = await import('./illustrations.js');
+const { create, update, remove, listAll } = await import('./illustrations.js');
 const { resolveImageUrl } = await import('../services/upload.js');
 const logger = (await import('../services/logger.js')).default;
 
@@ -33,6 +33,54 @@ describe('HU08 - Admin Ilustraciones', () => {
     };
     vi.clearAllMocks();
     resolveImageUrl.mockImplementation(async (_file, imageUrl) => imageUrl);
+  });
+
+  describe('listAll', () => {
+    describe('given illustrations exist', () => {
+      it('should return 200 with all illustrations', async () => {
+        mockPrisma.illustration.findMany.mockResolvedValue([
+          { id: 1, title: 'Bosque Encantado', imageUrl: 'https://example.com/a.jpg' },
+          { id: 2, title: 'Dragón', imageUrl: 'https://example.com/b.jpg' },
+        ]);
+
+        await listAll(req, res);
+
+        expect(mockPrisma.illustration.findMany).toHaveBeenCalledWith();
+        expect(res.status).toHaveBeenCalledWith(200);
+        expect(res.json).toHaveBeenCalledWith({
+          data: [
+            { id: 1, title: 'Bosque Encantado', imageUrl: 'https://example.com/a.jpg' },
+            { id: 2, title: 'Dragón', imageUrl: 'https://example.com/b.jpg' },
+          ],
+        });
+      });
+    });
+
+    describe('given no illustrations', () => {
+      it('should return 200 with an empty array', async () => {
+        mockPrisma.illustration.findMany.mockResolvedValue([]);
+
+        await listAll(req, res);
+
+        expect(res.status).toHaveBeenCalledWith(200);
+        expect(res.json).toHaveBeenCalledWith({ data: [] });
+      });
+    });
+
+    describe('given a database error', () => {
+      it('should return 500 INTERNAL_ERROR', async () => {
+        mockPrisma.illustration.findMany.mockRejectedValue(new Error('DB Error'));
+
+        await listAll(req, res);
+
+        expect(res.status).toHaveBeenCalledWith(500);
+        expect(res.json).toHaveBeenCalledWith({
+          error: 'Error interno del servidor',
+          code: 'INTERNAL_ERROR',
+        });
+        expect(logger.error).toHaveBeenCalled();
+      });
+    });
   });
 
   describe('create', () => {
