@@ -29,6 +29,11 @@ y este proyecto adherido al [Versionado Semántico](https://semver.org/lang/es/)
   - Controller: `getById` en `src/controllers/collections.js` (incluye pinturas ordenadas por position, 404 si no existe)
   - Ruta pública `publicRouter.get('/:id')` en `src/routes/collections.js`
   - Test de integración: `tests/integration/hu-02-collection-detail.test.js` (3 tests)
+- HU03: Ficha de Pintura (GET /api/v1/paintings/:id)
+  - Controller: `getById` en `src/controllers/paintings.js` (incluye colección `{ id, title }`, 404 si no existe)
+  - Ruta pública `publicRouter.get('/:id')` en `src/routes/paintings.js` montada en `src/routes/index.js`
+  - Test de integración: `tests/integration/hu-03-painting-card.test.js` (3 tests)
+  - Tests unitarios: `getById` en `src/controllers/paintings.test.js` (3 tests)
 - Skill `endpoint-tester` para testing de endpoints en 2 fases (exploración + formalización)
 - Test de consistencia `tests/docs/openapi-consistency.test.js` que verifica que todas las rutas implementadas están documentadas en `openapi.yaml` y que el enum `DesignSubcategory` coincide con `prisma/schema.prisma`
 - Enum `DesignSubcategory` para subcategorías de diseño (IMAGEN_CORPORATIVA, PACKAGING_EXPOSITORES, CARTELERIA, EDITORIAL)

@@ -4,6 +4,14 @@ import { validate, paintingSchema, paintingUpdateSchema, reorderSchema } from '.
 import { upload } from '../services/upload.js';
 import * as controller from '../controllers/paintings.js';
 
+/**
+ * Router público de pinturas
+ * - GET /:id → HU03: Ficha de pintura
+ */
+const publicRouter = Router();
+
+publicRouter.get('/:id', controller.getById);
+
 const router = Router();
 
 router.post(
@@ -53,4 +61,5 @@ router.delete(
   controller.remove
 );
 
+export { publicRouter };
 export default router;

@@ -12,6 +12,7 @@ import { Router } from 'express';
 import authRoutes from './auth.js';
 import adminRoutes from './admin.js';
 import { publicRouter as collectionsPublicRoutes } from './collections.js';
+import { publicRouter as paintingsPublicRoutes } from './paintings.js';
 
 const router = Router();
 
@@ -26,6 +27,12 @@ router.use('/auth', authRoutes);
  * - GET /collections → HU01: Galería de Colecciones
  */
 router.use('/collections', collectionsPublicRoutes);
+
+/**
+ * Rutas públicas de pinturas
+ * - GET /paintings/:id → HU03: Ficha de pintura
+ */
+router.use('/paintings', paintingsPublicRoutes);
 
 /**
  * Rutas de administración

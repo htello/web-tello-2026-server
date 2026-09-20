@@ -283,4 +283,43 @@ const reorder = async (req, res) => {
   }
 };
 
-export { create, update, remove, feature, publish, reorder };
+/**
+ * HU03 - Ficha de pintura
+ * Endpoint GET /api/v1/paintings/:id
+ *
+ * Retorna una pintura con su colección asociada.
+ *
+ * @param {string} req.params.id - ID de la pintura
+ * @returns {Object} 200 - { data: { id, title, imageUrl, collection: { id, title } } }
+ * @returns {Object} 404 - Pintura no encontrada
+ * @returns {Object} 500 - Error interno del servidor
+ *
+ * @security Endpoint público (no requiere autenticación)
+ */
+const getById = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const painting = await prisma.painting.findUnique({
+      where: { id: parseId(id) },
+      include: { collection: { select: { id: true, title: true } } },
+    });
+
+    if (!painting) {
+      return res.status(404).json({
+        error: 'Pintura no encontrada',
+        code: 'NOT_FOUND',
+      });
+    }
+
+    res.status(200).json({ data: painting });
+  } catch (error) {
+    logger.error('Error al obtener pintura', { error: error.message });
+    res.status(500).json({
+      error: 'Error interno del servidor',
+      code: 'INTERNAL_ERROR',
+    });
+  }
+};
+
+export { create, update, remove, feature, publish, reorder, getById };
