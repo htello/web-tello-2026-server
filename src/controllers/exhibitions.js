@@ -1,7 +1,30 @@
+/**
+ * @fileoverview Controlador de exposiciones.
+ *
+ * Implementa los handlers públicos (HU05) y de administración
+ * (HU07) para la galería de exposiciones.
+ *
+ * @module controllers/exhibitions
+ * @requires lib/prisma
+ * @requires lib/prisma-utils
+ * @requires lib/http-response
+ * @requires services/logger
+ */
+
 import prisma from '../lib/prisma.js';
 import logger from '../services/logger.js';
 import { parseId, isNotFoundError, reorderByPosition } from '../lib/prisma-utils.js';
+import { sendSuccess, sendNotFound, sendInternalError } from '../lib/http-response.js';
 
+/**
+ * HU07 - Crear exposición
+ * Endpoint POST /api/v1/admin/exhibitions
+ *
+ * @param {Object} req - Request de Express
+ * @param {Object} res - Response de Express
+ * @returns {Promise<Object>} 201 con exposición creada o 500
+ * @security Requiere Bearer token con rol ADMIN
+ */
 const create = async (req, res) => {
   try {
     const { title, date, location, description } = req.body;
@@ -17,16 +40,21 @@ const create = async (req, res) => {
 
     logger.info('Exposición creada', { id: exhibition.id, title: exhibition.title });
 
-    res.status(201).json({ data: exhibition });
+    return sendSuccess(res, exhibition, 201);
   } catch (error) {
-    logger.error('Error al crear exposición', { error: error.message });
-    res.status(500).json({
-      error: 'Error interno del servidor',
-      code: 'INTERNAL_ERROR',
-    });
+    return sendInternalError(res, logger, 'Error al crear exposición', error);
   }
 };
 
+/**
+ * HU07 - Actualizar exposición
+ * Endpoint PUT /api/v1/admin/exhibitions/:id
+ *
+ * @param {Object} req - Request de Express
+ * @param {Object} res - Response de Express
+ * @returns {Promise<Object>} 200 con exposición actualizada, 404 o 500
+ * @security Requiere Bearer token con rol ADMIN
+ */
 const update = async (req, res) => {
   try {
     const { id } = req.params;
@@ -44,22 +72,22 @@ const update = async (req, res) => {
 
     logger.info('Exposición actualizada', { id: exhibition.id });
 
-    res.status(200).json({ data: exhibition });
+    return sendSuccess(res, exhibition);
   } catch (error) {
-    if (isNotFoundError(error)) {
-      return res.status(404).json({
-        error: 'Exposición no encontrada',
-        code: 'NOT_FOUND',
-      });
-    }
-    logger.error('Error al actualizar exposición', { error: error.message });
-    res.status(500).json({
-      error: 'Error interno del servidor',
-      code: 'INTERNAL_ERROR',
-    });
+    if (isNotFoundError(error)) return sendNotFound(res, 'Exposición no encontrada');
+    return sendInternalError(res, logger, 'Error al actualizar exposición', error);
   }
 };
 
+/**
+ * HU07 - Eliminar exposición
+ * Endpoint DELETE /api/v1/admin/exhibitions/:id
+ *
+ * @param {Object} req - Request de Express
+ * @param {Object} res - Response de Express
+ * @returns {Promise<Object>} 200 con confirmación, 404 o 500
+ * @security Requiere Bearer token con rol ADMIN
+ */
 const remove = async (req, res) => {
   try {
     const { id } = req.params;
@@ -70,24 +98,22 @@ const remove = async (req, res) => {
 
     logger.info('Exposición eliminada', { id: parseId(id) });
 
-    res.status(200).json({
-      data: { message: 'Exposición eliminada correctamente' },
-    });
+    return sendSuccess(res, { message: 'Exposición eliminada correctamente' });
   } catch (error) {
-    if (isNotFoundError(error)) {
-      return res.status(404).json({
-        error: 'Exposición no encontrada',
-        code: 'NOT_FOUND',
-      });
-    }
-    logger.error('Error al eliminar exposición', { error: error.message });
-    res.status(500).json({
-      error: 'Error interno del servidor',
-      code: 'INTERNAL_ERROR',
-    });
+    if (isNotFoundError(error)) return sendNotFound(res, 'Exposición no encontrada');
+    return sendInternalError(res, logger, 'Error al eliminar exposición', error);
   }
 };
 
+/**
+ * HU07 - Reordenar exposiciones
+ * Endpoint PUT /api/v1/admin/exhibitions/reorder
+ *
+ * @param {Object} req - Request de Express
+ * @param {Object} res - Response de Express
+ * @returns {Promise<Object>} 200 con confirmación o 500
+ * @security Requiere Bearer token con rol ADMIN
+ */
 const reorder = async (req, res) => {
   try {
     const { orderedIds } = req.body;
@@ -96,15 +122,9 @@ const reorder = async (req, res) => {
 
     logger.info('Exposiciones reordenadas', { count: orderedIds.length });
 
-    res.status(200).json({
-      data: { message: 'Orden actualizado correctamente' },
-    });
+    return sendSuccess(res, { message: 'Orden actualizado correctamente' });
   } catch (error) {
-    logger.error('Error al reordenar exposiciones', { error: error.message });
-    res.status(500).json({
-      error: 'Error interno del servidor',
-      code: 'INTERNAL_ERROR',
-    });
+    return sendInternalError(res, logger, 'Error al reordenar exposiciones', error);
   }
 };
 
@@ -112,11 +132,9 @@ const reorder = async (req, res) => {
  * HU05 - Listar exposiciones
  * Endpoint GET /api/v1/exhibitions
  *
- * Retorna todas las exposiciones ordenadas por posición.
- *
- * @returns {Object} 200 - { data: [{ id, title, date, position, ... }] }
- * @returns {Object} 500 - Error interno del servidor
- *
+ * @param {Object} req - Request de Express
+ * @param {Object} res - Response de Express
+ * @returns {Promise<Object>} 200 con exposiciones o 500
  * @security Endpoint público (no requiere autenticación)
  */
 const listAll = async (req, res) => {
@@ -125,13 +143,9 @@ const listAll = async (req, res) => {
       orderBy: { position: 'asc' },
     });
 
-    res.status(200).json({ data: exhibitions });
+    return sendSuccess(res, exhibitions);
   } catch (error) {
-    logger.error('Error al listar exposiciones', { error: error.message });
-    res.status(500).json({
-      error: 'Error interno del servidor',
-      code: 'INTERNAL_ERROR',
-    });
+    return sendInternalError(res, logger, 'Error al listar exposiciones', error);
   }
 };
 

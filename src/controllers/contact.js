@@ -5,11 +5,13 @@
  *
  * @module controllers/contact
  * @requires services/email
+ * @requires lib/http-response
  * @requires services/logger
  */
 
 import { sendContactEmail } from '../services/email.js';
 import logger from '../services/logger.js';
+import { sendSuccess, sendInternalError } from '../lib/http-response.js';
 
 /**
  * Envía el mensaje de contacto al administrador.
@@ -26,15 +28,9 @@ const send = async (req, res) => {
 
     await sendContactEmail({ name, email, subject, message });
 
-    res.status(201).json({
-      data: { message: 'Mensaje enviado correctamente' },
-    });
+    return sendSuccess(res, { message: 'Mensaje enviado correctamente' }, 201);
   } catch (error) {
-    logger.error('Error al procesar formulario de contacto', { error: error.message });
-    res.status(500).json({
-      error: 'Error interno del servidor',
-      code: 'INTERNAL_ERROR',
-    });
+    return sendInternalError(res, logger, 'Error al procesar formulario de contacto', error);
   }
 };
 

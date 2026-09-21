@@ -7,6 +7,13 @@ y este proyecto adherido al [Versionado Semántico](https://semver.org/lang/es/)
 
 ## [Unreleased]
 
+### Changed
+- Refactor de controladores para eliminar duplicación:
+  - Nuevo `src/lib/http-response.js` con helpers `sendSuccess`, `sendError`, `sendNotFound`, `sendDuplicate` y `sendInternalError`; sustituye los bloques repetidos de respuesta/error en los 9 controladores.
+  - `src/middleware/validate.js`: campos Joi reutilizables extraídos (`emailField`, `passwordField`, `titleField`, `imageUrlField`, `optionalTextField`, `subcategoryField`, `dateField`).
+  - `src/middleware/rateLimiter.js`: añadido `loginLimiter`/`createLoginLimiter`; `src/app.js` lo importa en lugar de definirlo inline.
+  - JSDoc homogeneizado (`@fileoverview`, `@module`, `@param`, `@returns`, `@security`) en los controladores que no lo tenían.
+
 ### Fixed
 - Tests de integración flaky (`hu-06`, `hu-10`, `hu-13`, `hu-16`): fallos intermitentes (404/400/429) en suite completa causados por el `AsyncLocalStorage`/OpenTelemetry de `@sentry/node`, que cruzaba contexto entre requests de supertest. Ahora `src/services/sentry.js` carga el SDK de forma perezosa (`await import` solo si `SENTRY_DSN` está definido), evitando su maquinaria en entornos sin DSN (local, tests, CI).
 - Test unitario de rate limiting (`src/middleware/rateLimiter.test.js`): reemplazado `setTimeout` real por `vi.useFakeTimers()` + `advanceTimersByTime()` para eliminar dependencia de tiempo real.

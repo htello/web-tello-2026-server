@@ -1,8 +1,8 @@
 /**
- * @fileoverview Middleware de rate limiting para el formulario de contacto.
+ * @fileoverview Middlewares de rate limiting.
  *
- * Aplica express-rate-limit con una ventana de 1 minuto y un máximo de
- * 5 peticiones por IP para prevenir el abuso del formulario (OWASP A07).
+ * Centraliza la configuración de express-rate-limit para los endpoints
+ * sensibles: formulario de contacto y login (OWASP A07).
  *
  * @module middleware/rateLimiter
  * @requires express-rate-limit
@@ -26,7 +26,26 @@ const createContactLimiter = (options = {}) => rateLimit({
   ...options,
 });
 
+/**
+ * Crea un limiter de login con la configuración indicada.
+ *
+ * @param {Object} [options] - Opciones adicionales para sobreescribir
+ * @returns {import('express-rate-limit').RateLimitRequestHandler} Middleware de rate limiting
+ */
+const createLoginLimiter = (options = {}) => rateLimit({
+  windowMs: 60 * 1000,
+  max: 10,
+  message: {
+    error: 'Demasiados intentos de inicio de sesión',
+    code: 'RATE_LIMITED',
+  },
+  ...options,
+});
+
 /** Limiter por defecto para POST /api/v1/contact. */
 const contactLimiter = createContactLimiter();
 
-export { contactLimiter, createContactLimiter };
+/** Limiter por defecto para POST /api/v1/auth/login. */
+const loginLimiter = createLoginLimiter();
+
+export { contactLimiter, createContactLimiter, loginLimiter, createLoginLimiter };

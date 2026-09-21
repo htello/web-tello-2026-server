@@ -8,16 +8,16 @@
  * @requires express
  * @requires helmet
  * @requires cors
- * @requires express-rate-limit
+ * @requires middleware/rateLimiter
  */
 
 import { Sentry, isEnabled } from './services/sentry.js';
 import express from 'express';
 import helmet from 'helmet';
 import cors from 'cors';
-import rateLimit from 'express-rate-limit';
 import logger from './services/logger.js';
 import routes from './routes/index.js';
+import { loginLimiter } from './middleware/rateLimiter.js';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -42,12 +42,6 @@ app.use(express.json({ limit: '1mb' }));
  * - Máximo: 10 intentos por ventana
  * - Previene ataques de fuerza bruta (OWASP A07)
  */
-const loginLimiter = rateLimit({
-  windowMs: 60 * 1000,
-  max: 10,
-  message: { error: 'Demasiados intentos de inicio de sesión', code: 'RATE_LIMITED' },
-});
-
 app.use('/api/v1/auth/login', loginLimiter);
 
 /**
