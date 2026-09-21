@@ -60,16 +60,26 @@ const emailField = ({ withEmpty = true } = {}) => Joi.string()
 /**
  * Campo `password` requerido con mínimo 8 caracteres.
  *
+ * @param {Object} [options] - Opciones del campo
+ * @param {boolean} [options.strong=false] - Exige mayúscula y símbolo
  * @returns {Joi.StringSchema} Campo Joi
  */
-const passwordField = () => Joi.string()
-  .min(8)
-  .required()
-  .messages({
+const passwordField = ({ strong = false } = {}) => {
+  const messages = {
     'string.min': 'La contraseña debe tener al menos 8 caracteres',
     'any.required': 'La contraseña es obligatoria',
     'string.empty': 'La contraseña no puede estar vacía',
-  });
+  };
+
+  let field = Joi.string().min(8);
+
+  if (strong) {
+    field = field.pattern(/^(?=.*[A-Z])(?=.*[^a-zA-Z0-9\s]).*$/);
+    messages['string.pattern.base'] = 'La contraseña debe incluir al menos una letra mayúscula y un símbolo';
+  }
+
+  return field.required().messages(messages);
+};
 
 /**
  * Campo `title` requerido u opcional.
@@ -158,7 +168,7 @@ const loginSchema = Joi.object({
  */
 const registerSchema = Joi.object({
   email: emailField(),
-  password: passwordField(),
+  password: passwordField({ strong: true }),
   name: Joi.string()
     .optional()
     .messages({

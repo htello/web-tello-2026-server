@@ -22,7 +22,7 @@ describe('HU22 - Registro de Administradores', () => {
 
   describe('given valid data and admin token', () => {
     it('should return 201 with new user data', async () => {
-      const hashedPassword = await bcrypt.hash('clave123', 12);
+      const hashedPassword = await bcrypt.hash('Clave123!', 12);
       mockPrisma.user.findUnique.mockResolvedValue(null);
       mockPrisma.user.create.mockResolvedValue({
         id: 2,
@@ -35,7 +35,7 @@ describe('HU22 - Registro de Administradores', () => {
       const res = await request(app)
         .post('/api/v1/admin/users/register')
         .set('Authorization', `Bearer ${adminToken}`)
-        .send({ email: 'nuevo-admin@test.com', password: 'clave123', name: 'Nuevo Admin' });
+        .send({ email: 'nuevo-admin@test.com', password: 'Clave123!', name: 'Nuevo Admin' });
 
       expect(res.status).toBe(201);
       expect(res.body.data).toHaveProperty('id', 2);
@@ -56,7 +56,7 @@ describe('HU22 - Registro de Administradores', () => {
       const res = await request(app)
         .post('/api/v1/admin/users/register')
         .set('Authorization', `Bearer ${adminToken}`)
-        .send({ email: 'existing@test.com', password: 'clave123' });
+        .send({ email: 'existing@test.com', password: 'Clave123!' });
 
       expect(res.status).toBe(400);
       expect(res.body).toHaveProperty('error', 'El email ya está registrado');
@@ -68,7 +68,7 @@ describe('HU22 - Registro de Administradores', () => {
     it('should return 401', async () => {
       const res = await request(app)
         .post('/api/v1/admin/users/register')
-        .send({ email: 'nuevo-admin@test.com', password: 'clave123' });
+        .send({ email: 'nuevo-admin@test.com', password: 'Clave123!' });
 
       expect(res.status).toBe(401);
       expect(res.body).toHaveProperty('code', 'UNAUTHORIZED');
@@ -86,7 +86,7 @@ describe('HU22 - Registro de Administradores', () => {
       const res = await request(app)
         .post('/api/v1/admin/users/register')
         .set('Authorization', `Bearer ${userToken}`)
-        .send({ email: 'nuevo-admin@test.com', password: 'clave123' });
+        .send({ email: 'nuevo-admin@test.com', password: 'Clave123!' });
 
       expect(res.status).toBe(403);
       expect(res.body).toHaveProperty('code', 'FORBIDDEN');
@@ -98,7 +98,7 @@ describe('HU22 - Registro de Administradores', () => {
       const res = await request(app)
         .post('/api/v1/admin/users/register')
         .set('Authorization', `Bearer ${adminToken}`)
-        .send({ password: 'clave123' });
+        .send({ password: 'Clave123!' });
 
       expect(res.status).toBe(400);
       expect(res.body).toHaveProperty('code', 'VALIDATION_ERROR');
@@ -117,6 +117,30 @@ describe('HU22 - Registro de Administradores', () => {
     });
   });
 
+  describe('given password without uppercase', () => {
+    it('should return 400 with validation error', async () => {
+      const res = await request(app)
+        .post('/api/v1/admin/users/register')
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send({ email: 'nuevo-admin@test.com', password: 'clave123!' });
+
+      expect(res.status).toBe(400);
+      expect(res.body).toHaveProperty('code', 'VALIDATION_ERROR');
+    });
+  });
+
+  describe('given password without symbol', () => {
+    it('should return 400 with validation error', async () => {
+      const res = await request(app)
+        .post('/api/v1/admin/users/register')
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send({ email: 'nuevo-admin@test.com', password: 'Clave123' });
+
+      expect(res.status).toBe(400);
+      expect(res.body).toHaveProperty('code', 'VALIDATION_ERROR');
+    });
+  });
+
   describe('given database error', () => {
     it('should return 500 with internal server error', async () => {
       mockPrisma.user.findUnique.mockRejectedValue(new Error('Database connection failed'));
@@ -124,7 +148,7 @@ describe('HU22 - Registro de Administradores', () => {
       const res = await request(app)
         .post('/api/v1/admin/users/register')
         .set('Authorization', `Bearer ${adminToken}`)
-        .send({ email: 'nuevo-admin@test.com', password: 'clave123' });
+        .send({ email: 'nuevo-admin@test.com', password: 'Clave123!' });
 
       expect(res.status).toBe(500);
       expect(res.body).toHaveProperty('error', 'Error interno del servidor');

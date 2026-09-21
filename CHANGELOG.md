@@ -13,6 +13,7 @@ y este proyecto adherido al [Versionado Semántico](https://semver.org/lang/es/)
   - `src/middleware/validate.js`: campos Joi reutilizables extraídos (`emailField`, `passwordField`, `titleField`, `imageUrlField`, `optionalTextField`, `subcategoryField`, `dateField`).
   - `src/middleware/rateLimiter.js`: añadido `loginLimiter`/`createLoginLimiter`; `src/app.js` lo importa en lugar de definirlo inline.
   - JSDoc homogeneizado (`@fileoverview`, `@module`, `@param`, `@returns`, `@security`) en los controladores que no lo tenían.
+- Registro de administradores: la contraseña ahora debe incluir al menos una letra mayúscula y un símbolo (además del mínimo de 8 caracteres). Solo se aplica al registro (`registerSchema`); el login mantiene únicamente el mínimo de 8. Sincronizado `docs/openapi.yaml` (`RegisterRequest.password`).
 
 ### Fixed
 - Tests de integración flaky (`hu-06`, `hu-10`, `hu-13`, `hu-16`): fallos intermitentes (404/400/429) en suite completa causados por el `AsyncLocalStorage`/OpenTelemetry de `@sentry/node`, que cruzaba contexto entre requests de supertest. Ahora `src/services/sentry.js` carga el SDK de forma perezosa (`await import` solo si `SENTRY_DSN` está definido), evitando su maquinaria en entornos sin DSN (local, tests, CI).
