@@ -214,6 +214,9 @@ const reorder = async (req, res) => {
 
     return sendSuccess(res, { message: 'Orden actualizado correctamente' });
   } catch (error) {
+    if (isNotFoundError(error)) {
+      return sendError(res, 400, 'VALIDATION_ERROR', 'Uno o más IDs no existen');
+    }
     return sendInternalError(res, logger, 'Error al reordenar pinturas', error);
   }
 };

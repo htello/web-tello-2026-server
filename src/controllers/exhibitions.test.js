@@ -119,6 +119,36 @@ describe('HU07 - Admin Exposiciones', () => {
       });
     });
 
+    describe('given valid data with position', () => {
+      it('should persist position', async () => {
+        mockPrisma.exhibition.create.mockResolvedValue({
+          id: 1,
+          title: 'Exposición 2024',
+          date: new Date('2024-06-01'),
+          location: null,
+          description: null,
+          position: 5,
+        });
+        req.body = {
+          title: 'Exposición 2024',
+          date: '2024-06-01',
+          position: 5,
+        };
+
+        await create(req, res);
+
+        expect(mockPrisma.exhibition.create).toHaveBeenCalledWith({
+          data: {
+            title: 'Exposición 2024',
+            date: new Date('2024-06-01'),
+            location: null,
+            description: null,
+            position: 5,
+          },
+        });
+      });
+    });
+
     describe('given a database error', () => {
       it('should return 500 INTERNAL_ERROR', async () => {
         mockPrisma.exhibition.create.mockRejectedValue(new Error('DB Error'));
@@ -194,6 +224,25 @@ describe('HU07 - Admin Exposiciones', () => {
             location: 'Barcelona',
             description: 'Descripción',
           },
+        });
+        expect(res.status).toHaveBeenCalledWith(200);
+      });
+
+      it('should persist position when provided', async () => {
+        mockPrisma.exhibition.update.mockResolvedValue({
+          id: 1,
+          title: 'Nuevo',
+          date: new Date('2024-06-01'),
+          position: 3,
+        });
+        req.params = { id: '1' };
+        req.body = { position: 3 };
+
+        await update(req, res);
+
+        expect(mockPrisma.exhibition.update).toHaveBeenCalledWith({
+          where: { id: 1 },
+          data: { position: 3 },
         });
         expect(res.status).toHaveBeenCalledWith(200);
       });
@@ -298,6 +347,23 @@ describe('HU07 - Admin Exposiciones', () => {
           data: { message: 'Orden actualizado correctamente' },
         });
         expect(logger.info).toHaveBeenCalled();
+      });
+    });
+
+    describe('given a non-existent id', () => {
+      it('should return 400 VALIDATION_ERROR', async () => {
+        const notFoundError = new Error('Record to update not found');
+        notFoundError.code = 'P2025';
+        mockPrisma.exhibition.update.mockRejectedValue(notFoundError);
+        req.body = { orderedIds: [999] };
+
+        await reorder(req, res);
+
+        expect(res.status).toHaveBeenCalledWith(400);
+        expect(res.json).toHaveBeenCalledWith({
+          error: 'Uno o más IDs no existen',
+          code: 'VALIDATION_ERROR',
+        });
       });
     });
 

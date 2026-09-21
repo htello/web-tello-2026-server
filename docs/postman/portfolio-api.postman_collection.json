@@ -44,7 +44,12 @@
                 "exec": [
                   "const response = pm.response.json();",
                   "if (response.data && response.data.token) {",
-                  "  pm.environment.set('authToken', response.data.token);",
+                  "  const token = response.data.token;",
+                  "  if (pm.environment.get('authToken') !== undefined) {",
+                  "    pm.environment.set('authToken', token);",
+                  "  } else {",
+                  "    pm.collectionVariables.set('authToken', token);",
+                  "  }",
                   "  console.log('Token guardado en authToken');",
                   "}"
                 ],
@@ -87,7 +92,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"email\": \"nuevo@test.com\",\n  \"password\": \"clave1234\",\n  \"name\": \"Nuevo Usuario\"\n}"
+              "raw": "{\n  \"email\": \"nuevo@test.com\",\n  \"password\": \"Clave123!\",\n  \"name\": \"Nuevo Usuario\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/admin/users/register",
@@ -923,6 +928,10 @@
               "request": {
                 "method": "PUT",
                 "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
                   {
                     "key": "Authorization",
                     "value": "Bearer {{authToken}}"

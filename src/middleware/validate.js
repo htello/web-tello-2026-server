@@ -184,6 +184,20 @@ const collectionSchema = Joi.object({
   title: titleField({ required: true }),
   description: optionalTextField(),
   coverImage: imageUrlField(),
+  position: Joi.number()
+    .integer()
+    .min(0)
+    .optional()
+    .messages({
+      'number.base': 'La posición debe ser un número',
+      'number.integer': 'La posición debe ser un número entero',
+      'number.min': 'La posición no puede ser negativa',
+    }),
+  isPublished: Joi.boolean()
+    .optional()
+    .messages({
+      'boolean.base': 'isPublished debe ser un booleano',
+    }),
 });
 
 /**
@@ -247,6 +261,15 @@ const exhibitionSchema = Joi.object({
   date: dateField({ required: true }),
   location: optionalTextField(),
   description: optionalTextField(),
+  position: Joi.number()
+    .integer()
+    .min(0)
+    .optional()
+    .messages({
+      'number.base': 'La posición debe ser un número',
+      'number.integer': 'La posición debe ser un número entero',
+      'number.min': 'La posición no puede ser negativa',
+    }),
 });
 
 /**
@@ -258,6 +281,15 @@ const exhibitionUpdateSchema = Joi.object({
   date: dateField(),
   location: optionalTextField(),
   description: optionalTextField(),
+  position: Joi.number()
+    .integer()
+    .min(0)
+    .optional()
+    .messages({
+      'number.base': 'La posición debe ser un número',
+      'number.integer': 'La posición debe ser un número entero',
+      'number.min': 'La posición no puede ser negativa',
+    }),
 }).min(1).messages({
   'object.min': 'Debe enviar al menos un campo para actualizar',
 });

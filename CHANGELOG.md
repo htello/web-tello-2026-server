@@ -18,6 +18,10 @@ y este proyecto adherido al [Versionado Semántico](https://semver.org/lang/es/)
 ### Fixed
 - Tests de integración flaky (`hu-06`, `hu-10`, `hu-13`, `hu-16`): fallos intermitentes (404/400/429) en suite completa causados por el `AsyncLocalStorage`/OpenTelemetry de `@sentry/node`, que cruzaba contexto entre requests de supertest. Ahora `src/services/sentry.js` carga el SDK de forma perezosa (`await import` solo si `SENTRY_DSN` está definido), evitando su maquinaria en entornos sin DSN (local, tests, CI).
 - Test unitario de rate limiting (`src/middleware/rateLimiter.test.js`): reemplazado `setTimeout` real por `vi.useFakeTimers()` + `advanceTimersByTime()` para eliminar dependencia de tiempo real.
+- `POST/PUT /admin/collections` ignoraban `position` e `isPublished` (el schema Joi con `stripUnknown` los descartaba y el controller no los persistía), por lo que las colecciones creadas a mano quedaban sin publicar. Ahora `collectionSchema` los valida y `create`/`update` los persisten.
+- `POST/PUT /admin/exhibitions` ignoraban `position`. Ahora `exhibitionSchema`/`exhibitionUpdateSchema` lo validan y `create`/`update` lo persisten.
+- `PUT /admin/{collections,paintings,exhibitions}/reorder` devolvían `500` cuando `orderedIds` contenía un ID inexistente; ahora devuelven `400 VALIDATION_ERROR` ("Uno o más IDs no existen").
+- Colección Postman: script de login ahora guarda el token en `environment` o `collection` según exista; `PUT /admin/biography` incluye `Content-Type: application/json`; contraseña de ejemplo de registro ajustada a la política de complejidad.
 
 ## [0.3.0] - 2026-09-21
 

@@ -203,6 +203,32 @@ describe('HU01 - Galería de Colecciones', () => {
         });
       });
 
+      describe('given valid data with position and isPublished', () => {
+        it('should persist position and isPublished', async () => {
+          mockPrisma.collection.create.mockResolvedValue({
+            id: 1,
+            title: 'Colección Publicada',
+            description: null,
+            coverImage: null,
+            position: 3,
+            isPublished: true,
+          });
+          req.body = { title: 'Colección Publicada', position: 3, isPublished: true };
+
+          await create(req, res);
+
+          expect(mockPrisma.collection.create).toHaveBeenCalledWith({
+            data: {
+              title: 'Colección Publicada',
+              description: null,
+              coverImage: null,
+              position: 3,
+              isPublished: true,
+            },
+          });
+        });
+      });
+
       describe('given duplicate title', () => {
         it('should return 400 DUPLICATE_ERROR', async () => {
           const dupError = new Error('Unique constraint failed');
@@ -263,6 +289,26 @@ describe('HU01 - Galería de Colecciones', () => {
             })
           );
           expect(logger.info).toHaveBeenCalled();
+        });
+      });
+
+      describe('given valid data with position and isPublished', () => {
+        it('should persist position and isPublished', async () => {
+          mockPrisma.collection.update.mockResolvedValue({
+            id: 1,
+            title: 'Colección Actualizada',
+            position: 2,
+            isPublished: false,
+          });
+          req.params = { id: '1' };
+          req.body = { position: 2, isPublished: false };
+
+          await update(req, res);
+
+          expect(mockPrisma.collection.update).toHaveBeenCalledWith({
+            where: { id: 1 },
+            data: { position: 2, isPublished: false },
+          });
         });
       });
 
@@ -383,6 +429,23 @@ describe('HU01 - Galería de Colecciones', () => {
             data: { message: 'Orden actualizado correctamente' },
           });
           expect(logger.info).toHaveBeenCalled();
+        });
+      });
+
+      describe('given a non-existent id', () => {
+        it('should return 400 VALIDATION_ERROR', async () => {
+          const notFoundError = new Error('Record to update not found');
+          notFoundError.code = 'P2025';
+          mockPrisma.collection.update.mockRejectedValue(notFoundError);
+          req.body = { orderedIds: [999] };
+
+          await reorder(req, res);
+
+          expect(res.status).toHaveBeenCalledWith(400);
+          expect(res.json).toHaveBeenCalledWith({
+            error: 'Uno o más IDs no existen',
+            code: 'VALIDATION_ERROR',
+          });
         });
       });
 

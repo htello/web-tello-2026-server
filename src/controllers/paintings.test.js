@@ -556,6 +556,23 @@ describe('HU06 - Admin Pinturas', () => {
       });
     });
 
+    describe('given a non-existent id', () => {
+      it('should return 400 VALIDATION_ERROR', async () => {
+        const notFoundError = new Error('Record to update not found');
+        notFoundError.code = 'P2025';
+        mockPrisma.painting.update.mockRejectedValue(notFoundError);
+        req.body = { orderedIds: [999], collectionId: 1 };
+
+        await reorder(req, res);
+
+        expect(res.status).toHaveBeenCalledWith(400);
+        expect(res.json).toHaveBeenCalledWith({
+          error: 'Uno o más IDs no existen',
+          code: 'VALIDATION_ERROR',
+        });
+      });
+    });
+
     describe('given a database error', () => {
       it('should return 500 INTERNAL_ERROR', async () => {
         mockPrisma.painting.update.mockRejectedValue(new Error('DB Error'));

@@ -14,7 +14,7 @@
 import prisma from '../lib/prisma.js';
 import logger from '../services/logger.js';
 import { parseId, isNotFoundError, isDuplicateError, reorderByPosition } from '../lib/prisma-utils.js';
-import { sendSuccess, sendNotFound, sendDuplicate, sendInternalError } from '../lib/http-response.js';
+import { sendSuccess, sendError, sendNotFound, sendDuplicate, sendInternalError } from '../lib/http-response.js';
 
 /**
  * HU01 - Listar colecciones publicadas
@@ -57,13 +57,15 @@ const listPublished = async (req, res) => {
  */
 const create = async (req, res) => {
   try {
-    const { title, description, coverImage } = req.body;
+    const { title, description, coverImage, position, isPublished } = req.body;
 
     const collection = await prisma.collection.create({
       data: {
         title,
         description: description || null,
         coverImage: coverImage || null,
+        ...(position !== undefined && { position }),
+        ...(isPublished !== undefined && { isPublished }),
       },
     });
 
@@ -90,7 +92,7 @@ const create = async (req, res) => {
 const update = async (req, res) => {
   try {
     const { id } = req.params;
-    const { title, description, coverImage } = req.body;
+    const { title, description, coverImage, position, isPublished } = req.body;
 
     const collection = await prisma.collection.update({
       where: { id: parseId(id) },
@@ -98,6 +100,8 @@ const update = async (req, res) => {
         ...(title !== undefined && { title }),
         ...(description !== undefined && { description }),
         ...(coverImage !== undefined && { coverImage }),
+        ...(position !== undefined && { position }),
+        ...(isPublished !== undefined && { isPublished }),
       },
     });
 
@@ -156,6 +160,9 @@ const reorder = async (req, res) => {
 
     return sendSuccess(res, { message: 'Orden actualizado correctamente' });
   } catch (error) {
+    if (isNotFoundError(error)) {
+      return sendError(res, 400, 'VALIDATION_ERROR', 'Uno o más IDs no existen');
+    }
     return sendInternalError(res, logger, 'Error al reordenar colecciones', error);
   }
 };
