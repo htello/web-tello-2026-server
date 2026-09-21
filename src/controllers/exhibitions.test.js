@@ -39,6 +39,7 @@ describe('HU07 - Admin Exposiciones', () => {
         await listAll(req, res);
 
         expect(mockPrisma.exhibition.findMany).toHaveBeenCalledWith({
+          where: { isPublished: true },
           orderBy: { position: 'asc' },
         });
         expect(res.status).toHaveBeenCalledWith(200);
@@ -149,6 +150,34 @@ describe('HU07 - Admin Exposiciones', () => {
       });
     });
 
+    describe('given valid data with isPublished', () => {
+      it('should persist isPublished', async () => {
+        mockPrisma.exhibition.create.mockResolvedValue({
+          id: 1,
+          title: 'Exposición 2024',
+          date: new Date('2024-06-01'),
+          isPublished: false,
+        });
+        req.body = {
+          title: 'Exposición 2024',
+          date: '2024-06-01',
+          isPublished: false,
+        };
+
+        await create(req, res);
+
+        expect(mockPrisma.exhibition.create).toHaveBeenCalledWith({
+          data: {
+            title: 'Exposición 2024',
+            date: new Date('2024-06-01'),
+            location: null,
+            description: null,
+            isPublished: false,
+          },
+        });
+      });
+    });
+
     describe('given a database error', () => {
       it('should return 500 INTERNAL_ERROR', async () => {
         mockPrisma.exhibition.create.mockRejectedValue(new Error('DB Error'));
@@ -243,6 +272,25 @@ describe('HU07 - Admin Exposiciones', () => {
         expect(mockPrisma.exhibition.update).toHaveBeenCalledWith({
           where: { id: 1 },
           data: { position: 3 },
+        });
+        expect(res.status).toHaveBeenCalledWith(200);
+      });
+
+      it('should persist isPublished when provided', async () => {
+        mockPrisma.exhibition.update.mockResolvedValue({
+          id: 1,
+          title: 'Nuevo',
+          date: new Date('2024-06-01'),
+          isPublished: false,
+        });
+        req.params = { id: '1' };
+        req.body = { isPublished: false };
+
+        await update(req, res);
+
+        expect(mockPrisma.exhibition.update).toHaveBeenCalledWith({
+          where: { id: 1 },
+          data: { isPublished: false },
         });
         expect(res.status).toHaveBeenCalledWith(200);
       });

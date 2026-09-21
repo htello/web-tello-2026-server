@@ -29,7 +29,7 @@ import { sendSuccess, sendError, sendNotFound, sendDuplicate, sendInternalError 
  */
 const create = async (req, res) => {
   try {
-    const { title, description, imageUrl } = req.body;
+    const { title, description, imageUrl, isPublished, isFeatured } = req.body;
 
     const finalImageUrl = await resolveImageUrl(req.file, imageUrl, 'ilustracion');
 
@@ -42,6 +42,8 @@ const create = async (req, res) => {
         title,
         description: description || null,
         imageUrl: finalImageUrl,
+        ...(isPublished !== undefined && { isPublished }),
+        ...(isFeatured !== undefined && { isFeatured }),
       },
     });
 
@@ -68,7 +70,7 @@ const create = async (req, res) => {
 const update = async (req, res) => {
   try {
     const { id } = req.params;
-    const { title, description, imageUrl } = req.body;
+    const { title, description, imageUrl, isPublished, isFeatured } = req.body;
 
     const finalImageUrl = await resolveImageUrl(req.file, imageUrl, 'ilustracion');
 
@@ -78,6 +80,8 @@ const update = async (req, res) => {
         ...(title !== undefined && { title }),
         ...(description !== undefined && { description }),
         ...(finalImageUrl !== undefined && { imageUrl: finalImageUrl }),
+        ...(isPublished !== undefined && { isPublished }),
+        ...(isFeatured !== undefined && { isFeatured }),
       },
     });
 
@@ -128,7 +132,9 @@ const remove = async (req, res) => {
  */
 const listAll = async (req, res) => {
   try {
-    const illustrations = await prisma.illustration.findMany();
+    const illustrations = await prisma.illustration.findMany({
+      where: { isPublished: true },
+    });
 
     return sendSuccess(res, illustrations);
   } catch (error) {
@@ -136,4 +142,25 @@ const listAll = async (req, res) => {
   }
 };
 
-export { create, update, remove, listAll };
+/**
+ * Listar ilustraciones destacadas y publicadas.
+ * Endpoint GET /api/v1/illustrations/featured
+ *
+ * @param {Object} req - Request de Express
+ * @param {Object} res - Response de Express
+ * @returns {Promise<Object>} 200 con ilustraciones destacadas o 500
+ * @security Endpoint público (no requiere autenticación)
+ */
+const listFeatured = async (req, res) => {
+  try {
+    const illustrations = await prisma.illustration.findMany({
+      where: { isFeatured: true, isPublished: true },
+    });
+
+    return sendSuccess(res, illustrations);
+  } catch (error) {
+    return sendInternalError(res, logger, 'Error al listar ilustraciones destacadas', error);
+  }
+};
+
+export { create, update, remove, listAll, listFeatured };

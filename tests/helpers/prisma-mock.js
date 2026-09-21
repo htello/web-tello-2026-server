@@ -7,6 +7,7 @@ const createPrismaMock = () => ({
     create: vi.fn(),
     update: vi.fn(),
     delete: vi.fn(),
+    count: vi.fn(),
   },
   collection: {
     findUnique: vi.fn(),

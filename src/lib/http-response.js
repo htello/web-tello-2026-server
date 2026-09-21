@@ -18,6 +18,17 @@
 const sendSuccess = (res, data, status = 200) => res.status(status).json({ data });
 
 /**
+ * Envía una respuesta paginada con la estructura `{ data, meta }`.
+ *
+ * @param {Object} res - Response de Express
+ * @param {*} data - Payload de la respuesta
+ * @param {Object} meta - Metadatos de paginación (total, page, limit, pages)
+ * @param {number} [status=200] - Código de estado HTTP
+ * @returns {Object} Respuesta JSON de Express
+ */
+const sendPaginated = (res, data, meta, status = 200) => res.status(status).json({ data, meta });
+
+/**
  * Envía una respuesta de error con la estructura `{ error, code }`.
  *
  * @param {Object} res - Response de Express
@@ -60,4 +71,4 @@ const sendInternalError = (res, logger, context, error) => {
   return sendError(res, 500, 'INTERNAL_ERROR', 'Error interno del servidor');
 };
 
-export { sendSuccess, sendError, sendNotFound, sendDuplicate, sendInternalError };
+export { sendSuccess, sendPaginated, sendError, sendNotFound, sendDuplicate, sendInternalError };

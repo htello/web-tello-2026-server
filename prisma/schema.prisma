@@ -59,6 +59,7 @@ model Exhibition {
   location    String?
   description String?
   position    Int      @default(0)
+  isPublished Boolean  @default(true)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 }
@@ -69,6 +70,8 @@ model DesignProject {
   description String?
   imageUrl    String
   subcategory String
+  isPublished Boolean  @default(true)
+  isFeatured  Boolean  @default(false)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 }
@@ -78,6 +81,8 @@ model Illustration {
   title       String
   description String?
   imageUrl    String
+  isPublished Boolean  @default(true)
+  isFeatured  Boolean  @default(false)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 }

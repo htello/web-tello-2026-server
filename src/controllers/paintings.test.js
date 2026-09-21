@@ -18,7 +18,7 @@ vi.mock('../services/logger.js', () => ({
   default: { info: vi.fn(), error: vi.fn(), warn: vi.fn() },
 }));
 
-const { create, update, remove, feature, publish, reorder, getById, getFeatured } = await import('./paintings.js');
+const { create, update, remove, reorder, getById, getFeatured, listPublished } = await import('./paintings.js');
 const { resolveImageUrl } = await import('../services/upload.js');
 const logger = (await import('../services/logger.js')).default;
 
@@ -74,6 +74,42 @@ describe('HU06 - Admin Pinturas', () => {
           })
         );
         expect(logger.info).toHaveBeenCalled();
+      });
+    });
+
+    describe('given valid data with isPublished and isFeatured', () => {
+      it('should persist isPublished and isFeatured', async () => {
+        mockPrisma.collection.findUnique.mockResolvedValue({ id: 1 });
+        mockPrisma.painting.create.mockResolvedValue({
+          id: 1,
+          title: 'Atardecer',
+          imageUrl: 'https://example.com/painting.jpg',
+          collectionId: 1,
+          isPublished: false,
+          isFeatured: true,
+        });
+        req.body = {
+          title: 'Atardecer',
+          imageUrl: 'https://example.com/painting.jpg',
+          collectionId: 1,
+          isPublished: false,
+          isFeatured: true,
+        };
+
+        await create(req, res);
+
+        expect(mockPrisma.painting.create).toHaveBeenCalledWith({
+          data: {
+            title: 'Atardecer',
+            imageUrl: 'https://example.com/painting.jpg',
+            collectionId: 1,
+            dimensions: null,
+            technique: null,
+            year: null,
+            isPublished: false,
+            isFeatured: true,
+          },
+        });
       });
     });
 
@@ -216,6 +252,22 @@ describe('HU06 - Admin Pinturas', () => {
       });
     });
 
+    describe('given isPublished and isFeatured', () => {
+      it('should persist isPublished and isFeatured', async () => {
+        mockPrisma.painting.update.mockResolvedValue({ id: 1, isPublished: true, isFeatured: false });
+        req.params = { id: '1' };
+        req.body = { isPublished: true, isFeatured: false };
+
+        await update(req, res);
+
+        expect(mockPrisma.painting.update).toHaveBeenCalledWith({
+          where: { id: 1 },
+          data: { isPublished: true, isFeatured: false },
+        });
+        expect(res.status).toHaveBeenCalledWith(200);
+      });
+    });
+
     describe('given painting does not exist', () => {
       it('should return 404 NOT_FOUND', async () => {
         const error = new Error('Record to update not found');
@@ -309,108 +361,6 @@ describe('HU06 - Admin Pinturas', () => {
         req.params = { id: '1' };
 
         await remove(req, res);
-
-        expect(res.status).toHaveBeenCalledWith(500);
-        expect(res.json).toHaveBeenCalledWith({
-          error: 'Error interno del servidor',
-          code: 'INTERNAL_ERROR',
-        });
-      });
-    });
-  });
-
-  describe('feature', () => {
-    describe('given existing painting', () => {
-      it('should toggle isFeatured to true', async () => {
-        mockPrisma.painting.findUnique.mockResolvedValue({ id: 1, isFeatured: false });
-        mockPrisma.painting.update.mockResolvedValue({ id: 1, isFeatured: true });
-        req.params = { id: '1' };
-
-        await feature(req, res);
-
-        expect(mockPrisma.painting.update).toHaveBeenCalledWith({
-          where: { id: 1 },
-          data: { isFeatured: true },
-        });
-        expect(res.status).toHaveBeenCalledWith(200);
-        expect(res.json).toHaveBeenCalledWith({ data: { isFeatured: true } });
-        expect(logger.info).toHaveBeenCalled();
-      });
-    });
-
-    describe('given painting does not exist', () => {
-      it('should return 404 NOT_FOUND', async () => {
-        mockPrisma.painting.findUnique.mockResolvedValue(null);
-        req.params = { id: '999' };
-
-        await feature(req, res);
-
-        expect(res.status).toHaveBeenCalledWith(404);
-        expect(res.json).toHaveBeenCalledWith({
-          error: 'Pintura no encontrada',
-          code: 'NOT_FOUND',
-        });
-      });
-    });
-
-    describe('given a database error', () => {
-      it('should return 500 INTERNAL_ERROR', async () => {
-        mockPrisma.painting.findUnique.mockResolvedValue({ id: 1, isFeatured: false });
-        mockPrisma.painting.update.mockRejectedValue(new Error('DB Error'));
-        req.params = { id: '1' };
-
-        await feature(req, res);
-
-        expect(res.status).toHaveBeenCalledWith(500);
-        expect(res.json).toHaveBeenCalledWith({
-          error: 'Error interno del servidor',
-          code: 'INTERNAL_ERROR',
-        });
-      });
-    });
-  });
-
-  describe('publish', () => {
-    describe('given existing painting', () => {
-      it('should toggle isPublished', async () => {
-        mockPrisma.painting.findUnique.mockResolvedValue({ id: 1, isPublished: true });
-        mockPrisma.painting.update.mockResolvedValue({ id: 1, isPublished: false });
-        req.params = { id: '1' };
-
-        await publish(req, res);
-
-        expect(mockPrisma.painting.update).toHaveBeenCalledWith({
-          where: { id: 1 },
-          data: { isPublished: false },
-        });
-        expect(res.status).toHaveBeenCalledWith(200);
-        expect(res.json).toHaveBeenCalledWith({ data: { isPublished: false } });
-        expect(logger.info).toHaveBeenCalled();
-      });
-    });
-
-    describe('given painting does not exist', () => {
-      it('should return 404 NOT_FOUND', async () => {
-        mockPrisma.painting.findUnique.mockResolvedValue(null);
-        req.params = { id: '999' };
-
-        await publish(req, res);
-
-        expect(res.status).toHaveBeenCalledWith(404);
-        expect(res.json).toHaveBeenCalledWith({
-          error: 'Pintura no encontrada',
-          code: 'NOT_FOUND',
-        });
-      });
-    });
-
-    describe('given a database error', () => {
-      it('should return 500 INTERNAL_ERROR', async () => {
-        mockPrisma.painting.findUnique.mockResolvedValue({ id: 1, isPublished: true });
-        mockPrisma.painting.update.mockRejectedValue(new Error('DB Error'));
-        req.params = { id: '1' };
-
-        await publish(req, res);
 
         expect(res.status).toHaveBeenCalledWith(500);
         expect(res.json).toHaveBeenCalledWith({
@@ -529,6 +479,65 @@ describe('HU06 - Admin Pinturas', () => {
         mockPrisma.painting.findMany.mockRejectedValue(new Error('DB Error'));
 
         await getFeatured(req, res);
+
+        expect(res.status).toHaveBeenCalledWith(500);
+        expect(res.json).toHaveBeenCalledWith({
+          error: 'Error interno del servidor',
+          code: 'INTERNAL_ERROR',
+        });
+      });
+    });
+  });
+
+  describe('listPublished', () => {
+    describe('given published paintings', () => {
+      it('should return 200 with an array including collection', async () => {
+        mockPrisma.painting.findMany.mockResolvedValue([
+          {
+            id: 1,
+            title: 'Atardecer',
+            imageUrl: 'https://example.com/1.jpg',
+            collection: { id: 3, title: 'Colección Uno' },
+          },
+        ]);
+
+        await listPublished(req, res);
+
+        expect(mockPrisma.painting.findMany).toHaveBeenCalledWith({
+          where: { isPublished: true },
+          orderBy: { position: 'asc' },
+          include: { collection: { select: { id: true, title: true } } },
+        });
+        expect(res.status).toHaveBeenCalledWith(200);
+        expect(res.json).toHaveBeenCalledWith({
+          data: [
+            {
+              id: 1,
+              title: 'Atardecer',
+              imageUrl: 'https://example.com/1.jpg',
+              collection: { id: 3, title: 'Colección Uno' },
+            },
+          ],
+        });
+      });
+    });
+
+    describe('given no published paintings', () => {
+      it('should return 200 with an empty array', async () => {
+        mockPrisma.painting.findMany.mockResolvedValue([]);
+
+        await listPublished(req, res);
+
+        expect(res.status).toHaveBeenCalledWith(200);
+        expect(res.json).toHaveBeenCalledWith({ data: [] });
+      });
+    });
+
+    describe('given a database error', () => {
+      it('should return 500 INTERNAL_ERROR', async () => {
+        mockPrisma.painting.findMany.mockRejectedValue(new Error('DB Error'));
+
+        await listPublished(req, res);
 
         expect(res.status).toHaveBeenCalledWith(500);
         expect(res.json).toHaveBeenCalledWith({

@@ -31,7 +31,9 @@ describe('HU09 - Galería Ilustración', () => {
         expect(Array.isArray(res.body.data)).toBe(true);
         expect(res.body.data).toHaveLength(2);
         expect(res.body.data[0]).toMatchObject({ id: 1, title: 'Bosque Encantado' });
-        expect(mockPrisma.illustration.findMany).toHaveBeenCalledWith();
+        expect(mockPrisma.illustration.findMany).toHaveBeenCalledWith({
+          where: { isPublished: true },
+        });
       });
     });
 

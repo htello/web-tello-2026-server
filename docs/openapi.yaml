@@ -302,6 +302,8 @@ components:
           type: string
         position:
           type: integer
+        isPublished:
+          type: boolean
 
     ExhibitionRequest:
       type: object
@@ -320,6 +322,8 @@ components:
           type: string
         position:
           type: integer
+        isPublished:
+          type: boolean
 
     DesignProject:
       type: object
@@ -340,6 +344,10 @@ components:
             - packaging-expositores
             - carteleria
             - editorial
+        isPublished:
+          type: boolean
+        isFeatured:
+          type: boolean
 
     DesignRequest:
       type: object
@@ -361,6 +369,10 @@ components:
         image:
           type: string
           format: binary
+        isPublished:
+          type: boolean
+        isFeatured:
+          type: boolean
 
     Illustration:
       type: object
@@ -374,6 +386,10 @@ components:
           format: uri
         description:
           type: string
+        isPublished:
+          type: boolean
+        isFeatured:
+          type: boolean
 
     IllustrationRequest:
       type: object
@@ -387,6 +403,10 @@ components:
         image:
           type: string
           format: binary
+        isPublished:
+          type: boolean
+        isFeatured:
+          type: boolean
 
     Biography:
       type: object
@@ -928,6 +948,24 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
 
+  /paintings:
+    get:
+      tags: [Paintings]
+      summary: Listar pinturas publicadas
+      security: []
+      responses:
+        '200':
+          description: Lista de pinturas publicadas
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/PaintingSummary'
+
   /paintings/featured:
     get:
       tags: [Paintings]
@@ -1067,78 +1105,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/MessageResponse'
-        '401':
-          description: No autenticado
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '404':
-          description: No encontrado
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-
-  /admin/paintings/{id}/feature:
-    put:
-      tags: [Paintings]
-      summary: Marcar/desmarcar como destacada
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: integer
-      responses:
-        '200':
-          description: Estado de destacado actualizado
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  data:
-                    type: object
-                    properties:
-                      isFeatured:
-                        type: boolean
-        '401':
-          description: No autenticado
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '404':
-          description: No encontrado
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-
-  /admin/paintings/{id}/publish:
-    put:
-      tags: [Paintings]
-      summary: Publicar/ocultar pintura
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: integer
-      responses:
-        '200':
-          description: Estado de publicación actualizado
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  data:
-                    type: object
-                    properties:
-                      isPublished:
-                        type: boolean
         '401':
           description: No autenticado
           content:
@@ -1371,6 +1337,24 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
 
+  /design/featured:
+    get:
+      tags: [Design]
+      summary: Listar proyectos de diseño destacados
+      security: []
+      responses:
+        '200':
+          description: Lista de proyectos de diseño destacados
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/DesignProject'
+
   /admin/design:
     post:
       tags: [Design]
@@ -1485,6 +1469,24 @@ paths:
       responses:
         '200':
           description: Lista de ilustraciones
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Illustration'
+
+  /illustrations/featured:
+    get:
+      tags: [Illustrations]
+      summary: Listar ilustraciones destacadas
+      security: []
+      responses:
+        '200':
+          description: Lista de ilustraciones destacadas
           content:
             application/json:
               schema:

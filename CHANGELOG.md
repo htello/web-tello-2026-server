@@ -7,6 +7,20 @@ y este proyecto adherido al [Versionado Semántico](https://semver.org/lang/es/)
 
 ## [Unreleased]
 
+### Added
+- Gestión de usuarios (Admin): `GET /admin/users` (paginación con `meta`), `GET /admin/users/:id`, `PUT /admin/users/:id`, `DELETE /admin/users/:id` y `PUT /admin/users/:id/password`. Nuevo `src/controllers/users.js`, `src/routes/users.js`, schemas `userUpdateSchema`/`passwordResetSchema` y helper `sendPaginated`.
+- `GET /paintings` público: lista todas las pinturas publicadas (ordenadas por posición, incluyendo colección).
+- `GET /design/featured` y `GET /illustrations/featured`: listan proyectos/ilustraciones destacados y publicados para la portada de sección.
+
+### Changed
+- Modelo de publicación/destacado unificado:
+  - `isPublished` añadido a Exhibition, DesignProject e Illustration; `isFeatured` añadido a DesignProject e Illustration (migración `add_publish_featured_flags`).
+  - `create`/`update` de pinturas, exposiciones, diseño e ilustraciones aceptan `isPublished` (y `isFeatured` donde aplica) en el body.
+  - Los listados públicos (`GET /exhibitions`, `GET /design`, `GET /illustrations`) filtran `isPublished: true`.
+
+### Removed
+- Toggles `PUT /admin/paintings/:id/feature` y `PUT /admin/paintings/:id/publish`; la publicación/destacado se gestiona ahora exclusivamente vía campo en el body de `create`/`update`.
+
 ### Changed
 - Refactor de controladores para eliminar duplicación:
   - Nuevo `src/lib/http-response.js` con helpers `sendSuccess`, `sendError`, `sendNotFound`, `sendDuplicate` y `sendInternalError`; sustituye los bloques repetidos de respuesta/error en los 9 controladores.

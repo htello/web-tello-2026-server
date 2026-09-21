@@ -351,6 +351,18 @@
           "name": "Publicas",
           "item": [
             {
+              "name": "GET /paintings",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/paintings",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["paintings"]
+                }
+              }
+            },
+            {
               "name": "GET /paintings/featured",
               "request": {
                 "method": "GET",
@@ -397,7 +409,9 @@
                     { "key": "technique", "value": "Oleo sobre lienzo", "type": "text" },
                     { "key": "year", "value": "2024", "type": "text" },
                     { "key": "collectionId", "value": "1", "type": "text" },
-                    { "key": "imageUrl", "value": "https://res.cloudinary.com/demo/image/upload/sample.jpg", "type": "text" }
+                    { "key": "imageUrl", "value": "https://res.cloudinary.com/demo/image/upload/sample.jpg", "type": "text" },
+                    { "key": "isPublished", "value": "true", "type": "text" },
+                    { "key": "isFeatured", "value": "false", "type": "text" }
                   ]
                 },
                 "url": {
@@ -424,7 +438,9 @@
                     { "key": "dimensions", "value": "100x80 cm", "type": "text" },
                     { "key": "technique", "value": "Acrilico", "type": "text" },
                     { "key": "year", "value": "2025", "type": "text" },
-                    { "key": "imageUrl", "value": "https://res.cloudinary.com/demo/image/upload/sample.jpg", "type": "text" }
+                    { "key": "imageUrl", "value": "https://res.cloudinary.com/demo/image/upload/sample.jpg", "type": "text" },
+                    { "key": "isPublished", "value": "true", "type": "text" },
+                    { "key": "isFeatured", "value": "true", "type": "text" }
                   ]
                 },
                 "url": {
@@ -448,40 +464,6 @@
                   "raw": "{{baseUrl}}/admin/paintings/5",
                   "host": ["{{baseUrl}}"],
                   "path": ["admin", "paintings", "5"]
-                }
-              }
-            },
-            {
-              "name": "PUT /admin/paintings/:id/feature",
-              "request": {
-                "method": "PUT",
-                "header": [
-                  {
-                    "key": "Authorization",
-                    "value": "Bearer {{authToken}}"
-                  }
-                ],
-                "url": {
-                  "raw": "{{baseUrl}}/admin/paintings/1/feature",
-                  "host": ["{{baseUrl}}"],
-                  "path": ["admin", "paintings", "1", "feature"]
-                }
-              }
-            },
-            {
-              "name": "PUT /admin/paintings/:id/publish",
-              "request": {
-                "method": "PUT",
-                "header": [
-                  {
-                    "key": "Authorization",
-                    "value": "Bearer {{authToken}}"
-                  }
-                ],
-                "url": {
-                  "raw": "{{baseUrl}}/admin/paintings/1/publish",
-                  "host": ["{{baseUrl}}"],
-                  "path": ["admin", "paintings", "1", "publish"]
                 }
               }
             },
@@ -553,7 +535,7 @@
                 ],
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"title\": \"Muestra Colectiva 2025\",\n  \"date\": \"2025-06-15\",\n  \"location\": \"Galeria Central, Madrid\",\n  \"description\": \"Exposicion colectiva de arte contemporaneo\",\n  \"position\": 1\n}"
+                  "raw": "{\n  \"title\": \"Muestra Colectiva 2025\",\n  \"date\": \"2025-06-15\",\n  \"location\": \"Galeria Central, Madrid\",\n  \"description\": \"Exposicion colectiva de arte contemporaneo\",\n  \"position\": 1,\n  \"isPublished\": true\n}"
                 },
                 "url": {
                   "raw": "{{baseUrl}}/admin/exhibitions",
@@ -578,7 +560,7 @@
                 ],
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"title\": \"Muestra Actualizada 2025\",\n  \"date\": \"2025-07-20\",\n  \"location\": \"Galeria Norte, Barcelona\",\n  \"description\": \"Nueva descripcion de la exposicion\",\n  \"position\": 2\n}"
+                  "raw": "{\n  \"title\": \"Muestra Actualizada 2025\",\n  \"date\": \"2025-07-20\",\n  \"location\": \"Galeria Norte, Barcelona\",\n  \"description\": \"Nueva descripcion de la exposicion\",\n  \"position\": 2,\n  \"isPublished\": false\n}"
                 },
                 "url": {
                   "raw": "{{baseUrl}}/admin/exhibitions/1",
@@ -639,6 +621,18 @@
         {
           "name": "Publicas",
           "item": [
+            {
+              "name": "GET /design/featured",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/design/featured",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["design", "featured"]
+                }
+              }
+            },
             {
               "name": "GET /design (todas)",
               "request": {
@@ -732,7 +726,9 @@
                     { "key": "title", "value": "Nuevo Proyecto Diseno", "type": "text" },
                     { "key": "description", "value": "Descripcion del proyecto", "type": "text" },
                     { "key": "subcategory", "value": "imagen-corporativa", "type": "text" },
-                    { "key": "imageUrl", "value": "https://res.cloudinary.com/demo/image/upload/sample.jpg", "type": "text" }
+                    { "key": "imageUrl", "value": "https://res.cloudinary.com/demo/image/upload/sample.jpg", "type": "text" },
+                    { "key": "isPublished", "value": "true", "type": "text" },
+                    { "key": "isFeatured", "value": "false", "type": "text" }
                   ]
                 },
                 "url": {
@@ -758,7 +754,9 @@
                     { "key": "title", "value": "Proyecto Actualizado", "type": "text" },
                     { "key": "description", "value": "Nueva descripcion", "type": "text" },
                     { "key": "subcategory", "value": "carteleria", "type": "text" },
-                    { "key": "imageUrl", "value": "https://res.cloudinary.com/demo/image/upload/sample.jpg", "type": "text" }
+                    { "key": "imageUrl", "value": "https://res.cloudinary.com/demo/image/upload/sample.jpg", "type": "text" },
+                    { "key": "isPublished", "value": "true", "type": "text" },
+                    { "key": "isFeatured", "value": "true", "type": "text" }
                   ]
                 },
                 "url": {
@@ -796,6 +794,18 @@
           "name": "Publicas",
           "item": [
             {
+              "name": "GET /illustrations/featured",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/illustrations/featured",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["illustrations", "featured"]
+                }
+              }
+            },
+            {
               "name": "GET /illustrations",
               "request": {
                 "method": "GET",
@@ -827,7 +837,9 @@
                   "formdata": [
                     { "key": "title", "value": "Nueva Ilustracion", "type": "text" },
                     { "key": "description", "value": "Descripcion de la ilustracion", "type": "text" },
-                    { "key": "imageUrl", "value": "https://res.cloudinary.com/demo/image/upload/sample.jpg", "type": "text" }
+                    { "key": "imageUrl", "value": "https://res.cloudinary.com/demo/image/upload/sample.jpg", "type": "text" },
+                    { "key": "isPublished", "value": "true", "type": "text" },
+                    { "key": "isFeatured", "value": "false", "type": "text" }
                   ]
                 },
                 "url": {
@@ -852,7 +864,9 @@
                   "formdata": [
                     { "key": "title", "value": "Ilustracion Actualizada", "type": "text" },
                     { "key": "description", "value": "Nueva descripcion", "type": "text" },
-                    { "key": "imageUrl", "value": "https://res.cloudinary.com/demo/image/upload/sample.jpg", "type": "text" }
+                    { "key": "imageUrl", "value": "https://res.cloudinary.com/demo/image/upload/sample.jpg", "type": "text" },
+                    { "key": "isPublished", "value": "true", "type": "text" },
+                    { "key": "isFeatured", "value": "true", "type": "text" }
                   ]
                 },
                 "url": {

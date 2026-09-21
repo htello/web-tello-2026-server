@@ -10,6 +10,7 @@ import * as controller from '../controllers/design.js';
  */
 const publicRouter = Router();
 
+publicRouter.get('/featured', controller.listFeatured);
 publicRouter.get('/', controller.listFiltered);
 
 const router = Router();

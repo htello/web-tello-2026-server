@@ -27,7 +27,7 @@ import { sendSuccess, sendError, sendNotFound, sendInternalError } from '../lib/
  */
 const create = async (req, res) => {
   try {
-    const { title, date, location, description, position } = req.body;
+    const { title, date, location, description, position, isPublished } = req.body;
 
     const exhibition = await prisma.exhibition.create({
       data: {
@@ -36,6 +36,7 @@ const create = async (req, res) => {
         location: location || null,
         description: description || null,
         ...(position !== undefined && { position }),
+        ...(isPublished !== undefined && { isPublished }),
       },
     });
 
@@ -59,7 +60,7 @@ const create = async (req, res) => {
 const update = async (req, res) => {
   try {
     const { id } = req.params;
-    const { title, date, location, description, position } = req.body;
+    const { title, date, location, description, position, isPublished } = req.body;
 
     const exhibition = await prisma.exhibition.update({
       where: { id: parseId(id) },
@@ -69,6 +70,7 @@ const update = async (req, res) => {
         ...(location !== undefined && { location }),
         ...(description !== undefined && { description }),
         ...(position !== undefined && { position }),
+        ...(isPublished !== undefined && { isPublished }),
       },
     });
 
@@ -145,6 +147,7 @@ const reorder = async (req, res) => {
 const listAll = async (req, res) => {
   try {
     const exhibitions = await prisma.exhibition.findMany({
+      where: { isPublished: true },
       orderBy: { position: 'asc' },
     });
 

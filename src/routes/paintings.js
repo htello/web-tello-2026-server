@@ -11,6 +11,7 @@ import * as controller from '../controllers/paintings.js';
  */
 const publicRouter = Router();
 
+publicRouter.get('/', controller.listPublished);
 publicRouter.get('/featured', controller.getFeatured);
 publicRouter.get('/:id', controller.getById);
 
@@ -31,20 +32,6 @@ router.put(
   requireAdmin,
   validate(reorderSchema),
   controller.reorder
-);
-
-router.put(
-  '/:id/feature',
-  authenticate,
-  requireAdmin,
-  controller.feature
-);
-
-router.put(
-  '/:id/publish',
-  authenticate,
-  requireAdmin,
-  controller.publish
 );
 
 router.put(

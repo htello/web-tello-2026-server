@@ -18,7 +18,7 @@ vi.mock('../services/logger.js', () => ({
   default: { info: vi.fn(), error: vi.fn(), warn: vi.fn() },
 }));
 
-const { create, update, remove, listAll } = await import('./illustrations.js');
+const { create, update, remove, listAll, listFeatured } = await import('./illustrations.js');
 const { resolveImageUrl } = await import('../services/upload.js');
 const logger = (await import('../services/logger.js')).default;
 
@@ -45,7 +45,9 @@ describe('HU08 - Admin Ilustraciones', () => {
 
         await listAll(req, res);
 
-        expect(mockPrisma.illustration.findMany).toHaveBeenCalledWith();
+        expect(mockPrisma.illustration.findMany).toHaveBeenCalledWith({
+          where: { isPublished: true },
+        });
         expect(res.status).toHaveBeenCalledWith(200);
         expect(res.json).toHaveBeenCalledWith({
           data: [
@@ -83,6 +85,40 @@ describe('HU08 - Admin Ilustraciones', () => {
     });
   });
 
+  describe('listFeatured', () => {
+    describe('given featured published illustrations', () => {
+      it('should return 200 with featured illustrations', async () => {
+        mockPrisma.illustration.findMany.mockResolvedValue([
+          { id: 1, title: 'Bosque', isFeatured: true },
+        ]);
+
+        await listFeatured(req, res);
+
+        expect(mockPrisma.illustration.findMany).toHaveBeenCalledWith({
+          where: { isFeatured: true, isPublished: true },
+        });
+        expect(res.status).toHaveBeenCalledWith(200);
+        expect(res.json).toHaveBeenCalledWith({
+          data: [{ id: 1, title: 'Bosque', isFeatured: true }],
+        });
+      });
+    });
+
+    describe('given a database error', () => {
+      it('should return 500 INTERNAL_ERROR', async () => {
+        mockPrisma.illustration.findMany.mockRejectedValue(new Error('DB Error'));
+
+        await listFeatured(req, res);
+
+        expect(res.status).toHaveBeenCalledWith(500);
+        expect(res.json).toHaveBeenCalledWith({
+          error: 'Error interno del servidor',
+          code: 'INTERNAL_ERROR',
+        });
+      });
+    });
+  });
+
   describe('create', () => {
     describe('given valid data with imageUrl', () => {
       it('should return 201 with created illustration', async () => {
@@ -114,6 +150,36 @@ describe('HU08 - Admin Ilustraciones', () => {
           })
         );
         expect(logger.info).toHaveBeenCalled();
+      });
+    });
+
+    describe('given valid data with isPublished and isFeatured', () => {
+      it('should persist isPublished and isFeatured', async () => {
+        mockPrisma.illustration.create.mockResolvedValue({
+          id: 1,
+          title: 'Ilustración',
+          imageUrl: 'https://example.com/i.jpg',
+          isPublished: false,
+          isFeatured: true,
+        });
+        req.body = {
+          title: 'Ilustración',
+          imageUrl: 'https://example.com/i.jpg',
+          isPublished: false,
+          isFeatured: true,
+        };
+
+        await create(req, res);
+
+        expect(mockPrisma.illustration.create).toHaveBeenCalledWith({
+          data: {
+            title: 'Ilustración',
+            description: null,
+            imageUrl: 'https://example.com/i.jpg',
+            isPublished: false,
+            isFeatured: true,
+          },
+        });
       });
     });
 
@@ -235,6 +301,27 @@ describe('HU08 - Admin Ilustraciones', () => {
         expect(mockPrisma.illustration.update).toHaveBeenCalledWith({
           where: { id: 1 },
           data: { title: 'Actualizada', imageUrl: 'https://cloudinary.com/nuevo.jpg' },
+        });
+        expect(res.status).toHaveBeenCalledWith(200);
+      });
+    });
+
+    describe('given isPublished and isFeatured', () => {
+      it('should persist isPublished and isFeatured', async () => {
+        mockPrisma.illustration.update.mockResolvedValue({
+          id: 1,
+          title: 'Nuevo',
+          isPublished: true,
+          isFeatured: false,
+        });
+        req.params = { id: '1' };
+        req.body = { isPublished: true, isFeatured: false };
+
+        await update(req, res);
+
+        expect(mockPrisma.illustration.update).toHaveBeenCalledWith({
+          where: { id: 1 },
+          data: { isPublished: true, isFeatured: false },
         });
         expect(res.status).toHaveBeenCalledWith(200);
       });
