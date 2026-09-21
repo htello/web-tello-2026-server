@@ -20,6 +20,16 @@ y este proyecto adherido al [Versionado Semántico](https://semver.org/lang/es/)
 - Sincronizado `docs/openapi.yaml`, `docs/0001-API-DESIGN.md` y colección Postman con la lógica actual (enum `DesignSubcategory` en SCREAMING_SNAKE_CASE y `/admin/biography` como GET + PUT JSON)
 
 ### Added
+- HU13: Formulario de Contacto (POST /api/v1/contact)
+  - Controller: `send` en `src/controllers/contact.js` (envía email y retorna 201)
+  - Ruta pública `POST /` con `contactLimiter` + `validate(contactSchema)` en `src/routes/contact.js`
+  - Test de integración: `tests/integration/hu-13-contact-form.test.js` (6 tests)
+- HU14: Servicio de Email
+  - `sendContactEmail` en `src/services/email.js` (Nodemailer SMTP, HTML escapado contra inyección)
+  - Test unitario: `src/services/email.test.js` (3 tests)
+- HU15: Rate Limiting (Anti-Spam)
+  - `contactLimiter` (5 req/min) en `src/middleware/rateLimiter.js`
+  - Test unitario: `src/middleware/rateLimiter.test.js` (3 tests)
 - Tests unitarios para controllers admin: `design.js`, `illustrations.js`, `exhibitions.js`, `paintings.js`, `collections.js`
 - Test unitario para `src/controllers/biography.js` (get y createOrUpdate con/sin imageUrl)
 - Test unitario para `src/lib/prisma-utils.js`
