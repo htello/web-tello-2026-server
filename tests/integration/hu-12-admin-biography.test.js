@@ -18,44 +18,48 @@ describe('HU12 - Admin Biography', () => {
     );
   });
 
-  describe('GET /admin/biography', () => {
-    describe('given admin token and biography exists', () => {
-      it('should return 200 with biography', async () => {
-        mockPrisma.biography.findFirst.mockResolvedValue({
+  describe('POST /admin/biography', () => {
+    describe('given admin token and no existing biography', () => {
+      it('should return 201 with created biography', async () => {
+        mockPrisma.biography.findFirst.mockResolvedValue(null);
+        mockPrisma.biography.create.mockResolvedValue({
           id: 1,
-          content: 'Mi biografía',
+          content: 'Nueva biografía',
+          imageUrl: null,
           createdAt: new Date(),
-          updatedAt: new Date(),
         });
 
         const res = await request(app)
-          .get('/api/v1/admin/biography')
-          .set('Authorization', `Bearer ${adminToken}`);
+          .post('/api/v1/admin/biography')
+          .set('Authorization', `Bearer ${adminToken}`)
+          .send({ content: 'Nueva biografía' });
 
-        expect(res.status).toBe(200);
-        expect(res.body.data).toHaveProperty('content', 'Mi biografía');
+        expect(res.status).toBe(201);
+        expect(res.body.data).toHaveProperty('content', 'Nueva biografía');
+      });
+    });
+
+    describe('given admin token and existing biography', () => {
+      it('should return 400 VALIDATION_ERROR', async () => {
+        mockPrisma.biography.findFirst.mockResolvedValue({ id: 1 });
+
+        const res = await request(app)
+          .post('/api/v1/admin/biography')
+          .set('Authorization', `Bearer ${adminToken}`)
+          .send({ content: 'Nueva biografía' });
+
+        expect(res.status).toBe(400);
+        expect(res.body).toHaveProperty('code', 'VALIDATION_ERROR');
       });
     });
 
     describe('given no token', () => {
       it('should return 401', async () => {
         const res = await request(app)
-          .get('/api/v1/admin/biography');
+          .post('/api/v1/admin/biography')
+          .send({ content: 'Nueva biografía' });
 
         expect(res.status).toBe(401);
-      });
-    });
-
-    describe('given biography does not exist', () => {
-      it('should return 404 NOT_FOUND', async () => {
-        mockPrisma.biography.findFirst.mockResolvedValue(null);
-
-        const res = await request(app)
-          .get('/api/v1/admin/biography')
-          .set('Authorization', `Bearer ${adminToken}`);
-
-        expect(res.status).toBe(404);
-        expect(res.body).toHaveProperty('code', 'NOT_FOUND');
       });
     });
 
@@ -66,8 +70,9 @@ describe('HU12 - Admin Biography', () => {
         );
 
         const res = await request(app)
-          .get('/api/v1/admin/biography')
-          .set('Authorization', `Bearer ${adminToken}`);
+          .post('/api/v1/admin/biography')
+          .set('Authorization', `Bearer ${adminToken}`)
+          .send({ content: 'Nueva biografía' });
 
         expect(res.status).toBe(500);
         expect(res.body).toHaveProperty('code', 'INTERNAL_ERROR');
@@ -96,21 +101,16 @@ describe('HU12 - Admin Biography', () => {
     });
 
     describe('given admin token and no existing biography', () => {
-      it('should return 200 with created biography', async () => {
+      it('should return 404 NOT_FOUND', async () => {
         mockPrisma.biography.findFirst.mockResolvedValue(null);
-        mockPrisma.biography.create.mockResolvedValue({
-          id: 1,
-          content: 'Nueva biografía',
-          createdAt: new Date(),
-        });
 
         const res = await request(app)
           .put('/api/v1/admin/biography')
           .set('Authorization', `Bearer ${adminToken}`)
           .send({ content: 'Nueva biografía' });
 
-        expect(res.status).toBe(200);
-        expect(res.body.data).toHaveProperty('content', 'Nueva biografía');
+        expect(res.status).toBe(404);
+        expect(res.body).toHaveProperty('code', 'NOT_FOUND');
       });
     });
 
@@ -130,23 +130,6 @@ describe('HU12 - Admin Biography', () => {
       it('should return 500 INTERNAL_ERROR', async () => {
         mockPrisma.biography.findFirst.mockResolvedValue({ id: 1 });
         mockPrisma.biography.update.mockRejectedValue(
-          new Error('Database connection failed')
-        );
-
-        const res = await request(app)
-          .put('/api/v1/admin/biography')
-          .set('Authorization', `Bearer ${adminToken}`)
-          .send({ content: 'Contenido de prueba para la biografía' });
-
-        expect(res.status).toBe(500);
-        expect(res.body).toHaveProperty('code', 'INTERNAL_ERROR');
-      });
-    });
-
-    describe('given database error on create', () => {
-      it('should return 500 INTERNAL_ERROR', async () => {
-        mockPrisma.biography.findFirst.mockResolvedValue(null);
-        mockPrisma.biography.create.mockRejectedValue(
           new Error('Database connection failed')
         );
 

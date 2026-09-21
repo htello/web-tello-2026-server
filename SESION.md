@@ -15,6 +15,7 @@ ESTADO DEL PROYECTO:
 - Rama actual: develop
 - Cobertura de tests: 100% obligatorio (Vitest)
 - Última HU completada y mergeada: HU13/HU14/HU15 - Formulario de Contacto + Email + Rate Limiting
+- Última rama mergeada: fix/postman-manual-testing (pruebas manuales de endpoints + correcciones + features faltantes)
 
 ESTADO DE LAS HUS POR FASE:
 ✅ Fase 0: Setup del Proyecto
@@ -26,6 +27,14 @@ ESTADO DE LAS HUS POR FASE:
 ✅ Fase 5: Diseño e Ilustración (HU08 → HU09) - COMPLETADA
 ✅ Fase 6: Resto Backend (HU11 → HU13 → HU14 → HU15) - COMPLETADA
 ⏳ Fase 7: Frontend-only (HU17 → HU18) - Pendiente de frontend (fuera de alcance del backend; no existe repositorio frontend aún)
+
+CAMBIO DE rama fix/postman-manual-testing (mergeado a develop):
+- Gestión de usuarios admin (GET/PUT/DELETE /admin/users, reset password).
+- GET /paintings público; GET /design/featured y /illustrations/featured.
+- Modelo unificado isPublished (5 entidades) + isFeatured (pinturas/diseño/ilustraciones); filtrado de publicados en listados públicos.
+- Biografía: POST /admin/biography (crear + subir imagen); PUT solo actualiza; quitado GET /admin/biography.
+- Fix: create/update persistían position/isPublished; reorder devolvía 500 con IDs inexistentes (ahora 400).
+- Eliminados toggles PUT /admin/paintings/:id/feature y /publish.
 
 REGLAS DE SESIÓN (ESTRICTAS):
 1. Verificar siempre la rama antes de trabajar (`hu/XX-nombre`). NUNCA escribir código directo en `develop`.

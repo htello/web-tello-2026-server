@@ -921,15 +921,22 @@
           "name": "Admin",
           "item": [
             {
-              "name": "GET /admin/biography",
+              "name": "POST /admin/biography",
               "request": {
-                "method": "GET",
+                "method": "POST",
                 "header": [
                   {
                     "key": "Authorization",
                     "value": "Bearer {{authToken}}"
                   }
                 ],
+                "body": {
+                  "mode": "formdata",
+                  "formdata": [
+                    { "key": "content", "value": "Biografia del artista Antonio Tello. Con mas de 10 anos de experiencia en el mundo del arte y el diseno.", "type": "text" },
+                    { "key": "image", "type": "file", "src": "" }
+                  ]
+                },
                 "url": {
                   "raw": "{{baseUrl}}/admin/biography",
                   "host": ["{{baseUrl}}"],
@@ -943,20 +950,16 @@
                 "method": "PUT",
                 "header": [
                   {
-                    "key": "Content-Type",
-                    "value": "application/json"
-                  },
-                  {
                     "key": "Authorization",
                     "value": "Bearer {{authToken}}"
                   }
                 ],
                 "body": {
-                  "mode": "raw",
-                  "raw": "{\n  \"content\": \"Biografia actualizada del artista Antonio Tello. Con mas de 10 anos de experiencia en el mundo del arte y el diseno.\",\n  \"imageUrl\": \"https://res.cloudinary.com/.../portrait.jpg\"\n}",
-                  "options": {
-                    "raw": { "language": "json" }
-                  }
+                  "mode": "formdata",
+                  "formdata": [
+                    { "key": "content", "value": "Biografia actualizada del artista Antonio Tello.", "type": "text" },
+                    { "key": "image", "type": "file", "src": "" }
+                  ]
                 },
                 "url": {
                   "raw": "{{baseUrl}}/admin/biography",

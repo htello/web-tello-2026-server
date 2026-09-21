@@ -12,7 +12,8 @@
 
 import prisma from '../lib/prisma.js';
 import logger from '../services/logger.js';
-import { sendSuccess, sendNotFound, sendInternalError } from '../lib/http-response.js';
+import { resolveImageUrl } from '../services/upload.js';
+import { sendSuccess, sendError, sendNotFound, sendInternalError } from '../lib/http-response.js';
 
 /**
  * HU11 - Leer biografía
@@ -38,38 +39,75 @@ const get = async (req, res) => {
 };
 
 /**
- * HU12 - Crear o actualizar biografía
- * Endpoint PUT /api/v1/admin/biography
+ * HU12 - Crear biografía
+ * Endpoint POST /api/v1/admin/biography
  *
  * @param {Object} req - Request de Express
+ * @param {Object} req.file - Archivo de imagen (multipart, opcional)
+ * @param {Object} req.body - content (requerido) e imageUrl (opcional)
  * @param {Object} res - Response de Express
- * @returns {Promise<Object>} 200 con biografía guardada o 500
+ * @returns {Promise<Object>} 201 con biografía creada, 400 o 500
  * @security Requiere Bearer token con rol ADMIN
  */
-const createOrUpdate = async (req, res) => {
+const create = async (req, res) => {
   try {
     const { content, imageUrl } = req.body;
 
     const existing = await prisma.biography.findFirst();
-
-    let biography;
     if (existing) {
-      biography = await prisma.biography.update({
-        where: { id: existing.id },
-        data: { content, imageUrl: imageUrl || null },
-      });
-      logger.info('Biografía actualizada', { id: biography.id });
-    } else {
-      biography = await prisma.biography.create({
-        data: { content, imageUrl: imageUrl || null },
-      });
-      logger.info('Biografía creada', { id: biography.id });
+      return sendError(res, 400, 'VALIDATION_ERROR', 'Ya existe una biografía');
     }
 
-    return sendSuccess(res, biography);
+    const finalImageUrl = await resolveImageUrl(req.file, imageUrl, 'general');
+
+    const biography = await prisma.biography.create({
+      data: { content, imageUrl: finalImageUrl || null },
+    });
+
+    logger.info('Biografía creada', { id: biography.id });
+
+    return sendSuccess(res, biography, 201);
   } catch (error) {
-    return sendInternalError(res, logger, 'Error al guardar biografía', error);
+    return sendInternalError(res, logger, 'Error al crear biografía', error);
   }
 };
 
-export { get, createOrUpdate };
+/**
+ * HU12 - Actualizar biografía
+ * Endpoint PUT /api/v1/admin/biography
+ *
+ * @param {Object} req - Request de Express
+ * @param {Object} req.file - Archivo de imagen (multipart, opcional)
+ * @param {Object} req.body - content (requerido) e imageUrl (opcional)
+ * @param {Object} res - Response de Express
+ * @returns {Promise<Object>} 200 con biografía actualizada, 404 o 500
+ * @security Requiere Bearer token con rol ADMIN
+ */
+const update = async (req, res) => {
+  try {
+    const { content, imageUrl } = req.body;
+
+    const existing = await prisma.biography.findFirst();
+    if (!existing) return sendNotFound(res, 'Biografía no encontrada');
+
+    const finalImageUrl = await resolveImageUrl(req.file, imageUrl, 'general');
+
+    const data = { content };
+    if (finalImageUrl) {
+      data.imageUrl = finalImageUrl;
+    }
+
+    const biography = await prisma.biography.update({
+      where: { id: existing.id },
+      data,
+    });
+
+    logger.info('Biografía actualizada', { id: biography.id });
+
+    return sendSuccess(res, biography);
+  } catch (error) {
+    return sendInternalError(res, logger, 'Error al actualizar biografía', error);
+  }
+};
+
+export { get, create, update };

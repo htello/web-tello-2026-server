@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { authenticate, requireAdmin } from '../middleware/auth.js';
 import { validate, biographySchema } from '../middleware/validate.js';
+import { upload } from '../services/upload.js';
 import * as controller from '../controllers/biography.js';
 
 /**
@@ -13,19 +14,22 @@ publicRouter.get('/', controller.get);
 
 const router = Router();
 
-router.get(
+router.post(
   '/',
   authenticate,
   requireAdmin,
-  controller.get
+  upload.single('image'),
+  validate(biographySchema),
+  controller.create
 );
 
 router.put(
   '/',
   authenticate,
   requireAdmin,
+  upload.single('image'),
   validate(biographySchema),
-  controller.createOrUpdate
+  controller.update
 );
 
 export { publicRouter };

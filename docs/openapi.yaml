@@ -432,6 +432,9 @@ components:
         imageUrl:
           type: string
           format: uri
+        image:
+          type: string
+          format: binary
 
     ContactRequest:
       type: object
@@ -1620,12 +1623,18 @@ paths:
                     $ref: '#/components/schemas/Biography'
 
   /admin/biography:
-    get:
+    post:
       tags: [Biography]
-      summary: Obtener biografía (admin)
+      summary: Crear biografía
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/BiographyRequest'
       responses:
-        '200':
-          description: Biografía
+        '201':
+          description: Biografía creada
           content:
             application/json:
               schema:
@@ -1633,30 +1642,30 @@ paths:
                 properties:
                   data:
                     $ref: '#/components/schemas/Biography'
+        '400':
+          description: Solicitud inválida o biografía ya existente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
         '401':
           description: No autenticado
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
-        '404':
-          description: Biografía no encontrada
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
     put:
       tags: [Biography]
-      summary: Crear o actualizar biografía
+      summary: Actualizar biografía
       requestBody:
         required: true
         content:
-          application/json:
+          multipart/form-data:
             schema:
               $ref: '#/components/schemas/BiographyRequest'
       responses:
         '200':
-          description: Biografía guardada
+          description: Biografía actualizada
           content:
             application/json:
               schema:
@@ -1672,6 +1681,12 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
         '401':
           description: No autenticado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Biografía no encontrada
           content:
             application/json:
               schema:
