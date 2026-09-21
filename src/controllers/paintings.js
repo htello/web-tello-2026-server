@@ -29,7 +29,7 @@ import { sendSuccess, sendError, sendNotFound, sendDuplicate, sendInternalError 
  */
 const create = async (req, res) => {
   try {
-    const { title, imageUrl, collectionId, dimensions, technique, year } = req.body;
+    const { title, imageUrl, collectionId, dimensions, technique, year, isPublished, isFeatured } = req.body;
 
     const finalImageUrl = await resolveImageUrl(req.file, imageUrl, 'pintura');
 
@@ -53,6 +53,8 @@ const create = async (req, res) => {
         dimensions: dimensions || null,
         technique: technique || null,
         year: year || null,
+        ...(isPublished !== undefined && { isPublished }),
+        ...(isFeatured !== undefined && { isFeatured }),
       },
     });
 
@@ -79,7 +81,7 @@ const create = async (req, res) => {
 const update = async (req, res) => {
   try {
     const { id } = req.params;
-    const { title, imageUrl, collectionId, dimensions, technique, year } = req.body;
+    const { title, imageUrl, collectionId, dimensions, technique, year, isPublished, isFeatured } = req.body;
 
     const finalImageUrl = await resolveImageUrl(req.file, imageUrl, 'pintura');
 
@@ -92,6 +94,8 @@ const update = async (req, res) => {
         ...(dimensions !== undefined && { dimensions }),
         ...(technique !== undefined && { technique }),
         ...(year !== undefined && { year }),
+        ...(isPublished !== undefined && { isPublished }),
+        ...(isFeatured !== undefined && { isFeatured }),
       },
     });
 
@@ -132,70 +136,6 @@ const remove = async (req, res) => {
 };
 
 /**
- * HU06 - Toggle destacada
- * Endpoint PUT /api/v1/admin/paintings/:id/feature
- *
- * @param {Object} req - Request de Express
- * @param {Object} res - Response de Express
- * @returns {Promise<Object>} 200 con estado actualizado, 404 o 500
- * @security Requiere Bearer token con rol ADMIN
- */
-const feature = async (req, res) => {
-  try {
-    const { id } = req.params;
-
-    const painting = await prisma.painting.findUnique({
-      where: { id: parseId(id) },
-    });
-
-    if (!painting) return sendNotFound(res, 'Pintura no encontrada');
-
-    const updated = await prisma.painting.update({
-      where: { id: parseId(id) },
-      data: { isFeatured: !painting.isFeatured },
-    });
-
-    logger.info('Pintura feature actualizada', { id: updated.id, isFeatured: updated.isFeatured });
-
-    return sendSuccess(res, { isFeatured: updated.isFeatured });
-  } catch (error) {
-    return sendInternalError(res, logger, 'Error al actualizar feature', error);
-  }
-};
-
-/**
- * HU06 - Toggle publicación
- * Endpoint PUT /api/v1/admin/paintings/:id/publish
- *
- * @param {Object} req - Request de Express
- * @param {Object} res - Response de Express
- * @returns {Promise<Object>} 200 con estado actualizado, 404 o 500
- * @security Requiere Bearer token con rol ADMIN
- */
-const publish = async (req, res) => {
-  try {
-    const { id } = req.params;
-
-    const painting = await prisma.painting.findUnique({
-      where: { id: parseId(id) },
-    });
-
-    if (!painting) return sendNotFound(res, 'Pintura no encontrada');
-
-    const updated = await prisma.painting.update({
-      where: { id: parseId(id) },
-      data: { isPublished: !painting.isPublished },
-    });
-
-    logger.info('Pintura publish actualizada', { id: updated.id, isPublished: updated.isPublished });
-
-    return sendSuccess(res, { isPublished: updated.isPublished });
-  } catch (error) {
-    return sendInternalError(res, logger, 'Error al actualizar publish', error);
-  }
-};
-
-/**
  * HU06 - Reordenar pinturas dentro de colección
  * Endpoint PUT /api/v1/admin/paintings/reorder
  *
@@ -214,6 +154,9 @@ const reorder = async (req, res) => {
 
     return sendSuccess(res, { message: 'Orden actualizado correctamente' });
   } catch (error) {
+    if (isNotFoundError(error)) {
+      return sendError(res, 400, 'VALIDATION_ERROR', 'Uno o más IDs no existen');
+    }
     return sendInternalError(res, logger, 'Error al reordenar pinturas', error);
   }
 };
@@ -266,4 +209,27 @@ const getFeatured = async (req, res) => {
   }
 };
 
-export { create, update, remove, feature, publish, reorder, getById, getFeatured };
+/**
+ * Listar todas las pinturas publicadas
+ * Endpoint GET /api/v1/paintings
+ *
+ * @param {Object} req - Request de Express
+ * @param {Object} res - Response de Express
+ * @returns {Promise<Object>} 200 con pinturas publicadas o 500
+ * @security Endpoint público (no requiere autenticación)
+ */
+const listPublished = async (req, res) => {
+  try {
+    const paintings = await prisma.painting.findMany({
+      where: { isPublished: true },
+      orderBy: { position: 'asc' },
+      include: { collection: { select: { id: true, title: true } } },
+    });
+
+    return sendSuccess(res, paintings);
+  } catch (error) {
+    return sendInternalError(res, logger, 'Error al listar pinturas', error);
+  }
+};
+
+export { create, update, remove, reorder, getById, getFeatured, listPublished };

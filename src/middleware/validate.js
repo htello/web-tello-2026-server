@@ -119,6 +119,17 @@ const imageUrlField = ({ withMessage = false } = {}) => {
 const optionalTextField = () => Joi.string().optional().allow('', null);
 
 /**
+ * Campo booleano opcional (isPublished, isFeatured).
+ *
+ * @returns {Joi.BooleanSchema} Campo Joi
+ */
+const booleanField = () => Joi.boolean()
+  .optional()
+  .messages({
+    'boolean.base': 'El valor debe ser booleano',
+  });
+
+/**
  * Campo `subcategory` requerido u opcional, validado contra constantes.
  *
  * @param {Object} [options] - Opciones del campo
@@ -177,6 +188,41 @@ const registerSchema = Joi.object({
 });
 
 /**
+ * Schema de validación para actualizar usuario (campos opcionales)
+ * @type {Joi.ObjectSchema}
+ */
+const userUpdateSchema = Joi.object({
+  email: Joi.string()
+    .email()
+    .optional()
+    .messages({
+      'string.email': 'El email debe ser válido',
+    }),
+  name: Joi.string()
+    .optional()
+    .allow('', null)
+    .messages({
+      'string.base': 'El nombre debe ser una cadena de texto',
+    }),
+  role: Joi.string()
+    .valid('ADMIN', 'USER')
+    .optional()
+    .messages({
+      'any.only': 'El rol debe ser ADMIN o USER',
+    }),
+}).min(1).messages({
+  'object.min': 'Debe enviar al menos un campo para actualizar',
+});
+
+/**
+ * Schema de validación para resetear contraseña de usuario
+ * @type {Joi.ObjectSchema}
+ */
+const passwordResetSchema = Joi.object({
+  password: passwordField(),
+});
+
+/**
  * Schema de validación para colecciones
  * @type {Joi.ObjectSchema}
  */
@@ -184,6 +230,20 @@ const collectionSchema = Joi.object({
   title: titleField({ required: true }),
   description: optionalTextField(),
   coverImage: imageUrlField(),
+  position: Joi.number()
+    .integer()
+    .min(0)
+    .optional()
+    .messages({
+      'number.base': 'La posición debe ser un número',
+      'number.integer': 'La posición debe ser un número entero',
+      'number.min': 'La posición no puede ser negativa',
+    }),
+  isPublished: Joi.boolean()
+    .optional()
+    .messages({
+      'boolean.base': 'isPublished debe ser un booleano',
+    }),
 });
 
 /**
@@ -210,6 +270,8 @@ const paintingSchema = Joi.object({
     .max(2100)
     .optional()
     .allow(null),
+  isPublished: booleanField(),
+  isFeatured: booleanField(),
 });
 
 /**
@@ -234,6 +296,8 @@ const paintingUpdateSchema = Joi.object({
     .max(2100)
     .optional()
     .allow(null),
+  isPublished: booleanField(),
+  isFeatured: booleanField(),
 }).min(1).messages({
   'object.min': 'Debe enviar al menos un campo para actualizar',
 });
@@ -247,6 +311,16 @@ const exhibitionSchema = Joi.object({
   date: dateField({ required: true }),
   location: optionalTextField(),
   description: optionalTextField(),
+  position: Joi.number()
+    .integer()
+    .min(0)
+    .optional()
+    .messages({
+      'number.base': 'La posición debe ser un número',
+      'number.integer': 'La posición debe ser un número entero',
+      'number.min': 'La posición no puede ser negativa',
+    }),
+  isPublished: booleanField(),
 });
 
 /**
@@ -258,6 +332,16 @@ const exhibitionUpdateSchema = Joi.object({
   date: dateField(),
   location: optionalTextField(),
   description: optionalTextField(),
+  position: Joi.number()
+    .integer()
+    .min(0)
+    .optional()
+    .messages({
+      'number.base': 'La posición debe ser un número',
+      'number.integer': 'La posición debe ser un número entero',
+      'number.min': 'La posición no puede ser negativa',
+    }),
+  isPublished: booleanField(),
 }).min(1).messages({
   'object.min': 'Debe enviar al menos un campo para actualizar',
 });
@@ -271,6 +355,8 @@ const designSchema = Joi.object({
   subcategory: subcategoryField({ required: true }),
   imageUrl: imageUrlField({ withMessage: true }),
   description: optionalTextField(),
+  isPublished: booleanField(),
+  isFeatured: booleanField(),
 });
 
 /**
@@ -282,6 +368,8 @@ const designUpdateSchema = Joi.object({
   subcategory: subcategoryField(),
   imageUrl: imageUrlField({ withMessage: true }),
   description: optionalTextField(),
+  isPublished: booleanField(),
+  isFeatured: booleanField(),
 }).min(1).messages({
   'object.min': 'Debe enviar al menos un campo para actualizar',
 });
@@ -294,6 +382,8 @@ const illustrationSchema = Joi.object({
   title: titleField({ required: true }),
   imageUrl: imageUrlField({ withMessage: true }),
   description: optionalTextField(),
+  isPublished: booleanField(),
+  isFeatured: booleanField(),
 });
 
 /**
@@ -304,6 +394,8 @@ const illustrationUpdateSchema = Joi.object({
   title: titleField(),
   imageUrl: imageUrlField({ withMessage: true }),
   description: optionalTextField(),
+  isPublished: booleanField(),
+  isFeatured: booleanField(),
 }).min(1).messages({
   'object.min': 'Debe enviar al menos un campo para actualizar',
 });
@@ -371,6 +463,8 @@ export {
   validate,
   loginSchema,
   registerSchema,
+  userUpdateSchema,
+  passwordResetSchema,
   collectionSchema,
   paintingSchema,
   paintingUpdateSchema,

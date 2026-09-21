@@ -14,7 +14,7 @@
 import prisma from '../lib/prisma.js';
 import logger from '../services/logger.js';
 import { parseId, isNotFoundError, reorderByPosition } from '../lib/prisma-utils.js';
-import { sendSuccess, sendNotFound, sendInternalError } from '../lib/http-response.js';
+import { sendSuccess, sendError, sendNotFound, sendInternalError } from '../lib/http-response.js';
 
 /**
  * HU07 - Crear exposición
@@ -27,7 +27,7 @@ import { sendSuccess, sendNotFound, sendInternalError } from '../lib/http-respon
  */
 const create = async (req, res) => {
   try {
-    const { title, date, location, description } = req.body;
+    const { title, date, location, description, position, isPublished } = req.body;
 
     const exhibition = await prisma.exhibition.create({
       data: {
@@ -35,6 +35,8 @@ const create = async (req, res) => {
         date: new Date(date),
         location: location || null,
         description: description || null,
+        ...(position !== undefined && { position }),
+        ...(isPublished !== undefined && { isPublished }),
       },
     });
 
@@ -58,7 +60,7 @@ const create = async (req, res) => {
 const update = async (req, res) => {
   try {
     const { id } = req.params;
-    const { title, date, location, description } = req.body;
+    const { title, date, location, description, position, isPublished } = req.body;
 
     const exhibition = await prisma.exhibition.update({
       where: { id: parseId(id) },
@@ -67,6 +69,8 @@ const update = async (req, res) => {
         ...(date !== undefined && { date: new Date(date) }),
         ...(location !== undefined && { location }),
         ...(description !== undefined && { description }),
+        ...(position !== undefined && { position }),
+        ...(isPublished !== undefined && { isPublished }),
       },
     });
 
@@ -124,6 +128,9 @@ const reorder = async (req, res) => {
 
     return sendSuccess(res, { message: 'Orden actualizado correctamente' });
   } catch (error) {
+    if (isNotFoundError(error)) {
+      return sendError(res, 400, 'VALIDATION_ERROR', 'Uno o más IDs no existen');
+    }
     return sendInternalError(res, logger, 'Error al reordenar exposiciones', error);
   }
 };
@@ -140,6 +147,7 @@ const reorder = async (req, res) => {
 const listAll = async (req, res) => {
   try {
     const exhibitions = await prisma.exhibition.findMany({
+      where: { isPublished: true },
       orderBy: { position: 'asc' },
     });
 

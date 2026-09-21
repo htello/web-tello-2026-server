@@ -30,7 +30,9 @@ describe('HU08 - Filtrar Diseño', () => {
         expect(res.status).toBe(200);
         expect(Array.isArray(res.body.data)).toBe(true);
         expect(res.body.data).toHaveLength(2);
-        expect(mockPrisma.designProject.findMany).toHaveBeenCalledWith();
+        expect(mockPrisma.designProject.findMany).toHaveBeenCalledWith({
+          where: { isPublished: true },
+        });
       });
     });
 
@@ -50,7 +52,7 @@ describe('HU08 - Filtrar Diseño', () => {
           subcategory: 'imagen-corporativa',
         });
         expect(mockPrisma.designProject.findMany).toHaveBeenCalledWith({
-          where: { subcategory: 'imagen-corporativa' },
+          where: { subcategory: 'imagen-corporativa', isPublished: true },
         });
       });
     });

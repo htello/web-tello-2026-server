@@ -256,6 +256,7 @@ const main = async () => {
         description: 'Proyecto de identidad visual para café artesanal',
         imageUrl: 'https://res.cloudinary.com/demo/image/upload/design1.jpg',
         subcategory: 'imagen-corporativa',
+        isFeatured: true,
       },
     }),
     prisma.designProject.create({
@@ -292,6 +293,7 @@ const main = async () => {
         title: 'Bosque Encantado',
         description: 'Ilustración digital de un bosque mágico',
         imageUrl: 'https://res.cloudinary.com/demo/image/upload/illust1.jpg',
+        isFeatured: true,
       },
     }),
     prisma.illustration.create({

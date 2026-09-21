@@ -7,6 +7,23 @@ y este proyecto adherido al [Versionado Semántico](https://semver.org/lang/es/)
 
 ## [Unreleased]
 
+### Added
+- Gestión de usuarios (Admin): `GET /admin/users` (paginación con `meta`), `GET /admin/users/:id`, `PUT /admin/users/:id`, `DELETE /admin/users/:id` y `PUT /admin/users/:id/password`. Nuevo `src/controllers/users.js`, `src/routes/users.js`, schemas `userUpdateSchema`/`passwordResetSchema` y helper `sendPaginated`.
+- `GET /paintings` público: lista todas las pinturas publicadas (ordenadas por posición, incluyendo colección).
+- `GET /design/featured` y `GET /illustrations/featured`: listan proyectos/ilustraciones destacados y publicados para la portada de sección.
+- `POST /admin/biography`: crea la biografía con subida de imagen (multipart, campo `image`); devuelve 400 si ya existe una.
+
+### Changed
+- Modelo de publicación/destacado unificado:
+  - `isPublished` añadido a Exhibition, DesignProject e Illustration; `isFeatured` añadido a DesignProject e Illustration (migración `add_publish_featured_flags`).
+  - `create`/`update` de pinturas, exposiciones, diseño e ilustraciones aceptan `isPublished` (y `isFeatured` donde aplica) en el body.
+  - Los listados públicos (`GET /exhibitions`, `GET /design`, `GET /illustrations`) filtran `isPublished: true`.
+- Biografía: `PUT /admin/biography` ahora es solo actualización (404 si no existe) y acepta imagen (multipart); si no se envía imagen, preserva la existente.
+
+### Removed
+- Toggles `PUT /admin/paintings/:id/feature` y `PUT /admin/paintings/:id/publish`; la publicación/destacado se gestiona ahora exclusivamente vía campo en el body de `create`/`update`.
+- `GET /admin/biography` (redundante con el público `GET /biography`).
+
 ### Changed
 - Refactor de controladores para eliminar duplicación:
   - Nuevo `src/lib/http-response.js` con helpers `sendSuccess`, `sendError`, `sendNotFound`, `sendDuplicate` y `sendInternalError`; sustituye los bloques repetidos de respuesta/error en los 9 controladores.
@@ -18,6 +35,10 @@ y este proyecto adherido al [Versionado Semántico](https://semver.org/lang/es/)
 ### Fixed
 - Tests de integración flaky (`hu-06`, `hu-10`, `hu-13`, `hu-16`): fallos intermitentes (404/400/429) en suite completa causados por el `AsyncLocalStorage`/OpenTelemetry de `@sentry/node`, que cruzaba contexto entre requests de supertest. Ahora `src/services/sentry.js` carga el SDK de forma perezosa (`await import` solo si `SENTRY_DSN` está definido), evitando su maquinaria en entornos sin DSN (local, tests, CI).
 - Test unitario de rate limiting (`src/middleware/rateLimiter.test.js`): reemplazado `setTimeout` real por `vi.useFakeTimers()` + `advanceTimersByTime()` para eliminar dependencia de tiempo real.
+- `POST/PUT /admin/collections` ignoraban `position` e `isPublished` (el schema Joi con `stripUnknown` los descartaba y el controller no los persistía), por lo que las colecciones creadas a mano quedaban sin publicar. Ahora `collectionSchema` los valida y `create`/`update` los persisten.
+- `POST/PUT /admin/exhibitions` ignoraban `position`. Ahora `exhibitionSchema`/`exhibitionUpdateSchema` lo validan y `create`/`update` lo persisten.
+- `PUT /admin/{collections,paintings,exhibitions}/reorder` devolvían `500` cuando `orderedIds` contenía un ID inexistente; ahora devuelven `400 VALIDATION_ERROR` ("Uno o más IDs no existen").
+- Colección Postman: script de login ahora guarda el token en `environment` o `collection` según exista; `PUT /admin/biography` incluye `Content-Type: application/json`; contraseña de ejemplo de registro ajustada a la política de complejidad.
 
 ## [0.3.0] - 2026-09-21
 

@@ -31,7 +31,7 @@ import { DESIGN_SUBCATEGORIES } from '../lib/constants.js';
  */
 const create = async (req, res) => {
   try {
-    const { title, description, imageUrl, subcategory } = req.body;
+    const { title, description, imageUrl, subcategory, isPublished, isFeatured } = req.body;
 
     const finalImageUrl = await resolveImageUrl(req.file, imageUrl, 'diseno');
 
@@ -45,6 +45,8 @@ const create = async (req, res) => {
         description: description || null,
         imageUrl: finalImageUrl,
         subcategory,
+        ...(isPublished !== undefined && { isPublished }),
+        ...(isFeatured !== undefined && { isFeatured }),
       },
     });
 
@@ -71,7 +73,7 @@ const create = async (req, res) => {
 const update = async (req, res) => {
   try {
     const { id } = req.params;
-    const { title, description, imageUrl, subcategory } = req.body;
+    const { title, description, imageUrl, subcategory, isPublished, isFeatured } = req.body;
 
     const finalImageUrl = await resolveImageUrl(req.file, imageUrl, 'diseno');
 
@@ -82,6 +84,8 @@ const update = async (req, res) => {
         ...(description !== undefined && { description }),
         ...(finalImageUrl !== undefined && { imageUrl: finalImageUrl }),
         ...(subcategory !== undefined && { subcategory }),
+        ...(isPublished !== undefined && { isPublished }),
+        ...(isFeatured !== undefined && { isFeatured }),
       },
     });
 
@@ -139,8 +143,8 @@ const listFiltered = async (req, res) => {
     }
 
     const projects = subcategory
-      ? await prisma.designProject.findMany({ where: { subcategory } })
-      : await prisma.designProject.findMany();
+      ? await prisma.designProject.findMany({ where: { subcategory, isPublished: true } })
+      : await prisma.designProject.findMany({ where: { isPublished: true } });
 
     return sendSuccess(res, projects);
   } catch (error) {
@@ -148,4 +152,25 @@ const listFiltered = async (req, res) => {
   }
 };
 
-export { create, update, remove, listFiltered };
+/**
+ * Listar proyectos de diseño destacados y publicados.
+ * Endpoint GET /api/v1/design/featured
+ *
+ * @param {Object} req - Request de Express
+ * @param {Object} res - Response de Express
+ * @returns {Promise<Object>} 200 con proyectos destacados o 500
+ * @security Endpoint público (no requiere autenticación)
+ */
+const listFeatured = async (req, res) => {
+  try {
+    const projects = await prisma.designProject.findMany({
+      where: { isFeatured: true, isPublished: true },
+    });
+
+    return sendSuccess(res, projects);
+  } catch (error) {
+    return sendInternalError(res, logger, 'Error al listar proyectos de diseño destacados', error);
+  }
+};
+
+export { create, update, remove, listFiltered, listFeatured };

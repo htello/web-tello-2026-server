@@ -18,7 +18,7 @@ vi.mock('../services/logger.js', () => ({
   default: { info: vi.fn(), error: vi.fn(), warn: vi.fn() },
 }));
 
-const { create, update, remove, listFiltered } = await import('./design.js');
+const { create, update, remove, listFiltered, listFeatured } = await import('./design.js');
 const { resolveImageUrl } = await import('../services/upload.js');
 const logger = (await import('../services/logger.js')).default;
 
@@ -46,7 +46,9 @@ describe('HU09 - Admin Diseño', () => {
 
         await listFiltered(req, res);
 
-        expect(mockPrisma.designProject.findMany).toHaveBeenCalledWith();
+        expect(mockPrisma.designProject.findMany).toHaveBeenCalledWith({
+          where: { isPublished: true },
+        });
         expect(res.status).toHaveBeenCalledWith(200);
         expect(res.json).toHaveBeenCalledWith({
           data: [
@@ -67,7 +69,7 @@ describe('HU09 - Admin Diseño', () => {
         await listFiltered(req, res);
 
         expect(mockPrisma.designProject.findMany).toHaveBeenCalledWith({
-          where: { subcategory: 'imagen-corporativa' },
+          where: { subcategory: 'imagen-corporativa', isPublished: true },
         });
         expect(res.status).toHaveBeenCalledWith(200);
         expect(res.json).toHaveBeenCalledWith({
@@ -84,7 +86,7 @@ describe('HU09 - Admin Diseño', () => {
         await listFiltered(req, res);
 
         expect(mockPrisma.designProject.findMany).toHaveBeenCalledWith({
-          where: { subcategory: 'packaging-expositores' },
+          where: { subcategory: 'packaging-expositores', isPublished: true },
         });
         expect(res.status).toHaveBeenCalledWith(200);
         expect(res.json).toHaveBeenCalledWith({ data: [] });
@@ -123,6 +125,40 @@ describe('HU09 - Admin Diseño', () => {
     });
   });
 
+  describe('listFeatured', () => {
+    describe('given featured published projects', () => {
+      it('should return 200 with featured projects', async () => {
+        mockPrisma.designProject.findMany.mockResolvedValue([
+          { id: 1, title: 'Proyecto A', isFeatured: true },
+        ]);
+
+        await listFeatured(req, res);
+
+        expect(mockPrisma.designProject.findMany).toHaveBeenCalledWith({
+          where: { isFeatured: true, isPublished: true },
+        });
+        expect(res.status).toHaveBeenCalledWith(200);
+        expect(res.json).toHaveBeenCalledWith({
+          data: [{ id: 1, title: 'Proyecto A', isFeatured: true }],
+        });
+      });
+    });
+
+    describe('given a database error', () => {
+      it('should return 500 INTERNAL_ERROR', async () => {
+        mockPrisma.designProject.findMany.mockRejectedValue(new Error('DB Error'));
+
+        await listFeatured(req, res);
+
+        expect(res.status).toHaveBeenCalledWith(500);
+        expect(res.json).toHaveBeenCalledWith({
+          error: 'Error interno del servidor',
+          code: 'INTERNAL_ERROR',
+        });
+      });
+    });
+  });
+
   describe('create', () => {
     describe('given valid data with imageUrl', () => {
       it('should return 201 with created project', async () => {
@@ -157,6 +193,39 @@ describe('HU09 - Admin Diseño', () => {
           })
         );
         expect(logger.info).toHaveBeenCalled();
+      });
+    });
+
+    describe('given valid data with isPublished and isFeatured', () => {
+      it('should persist isPublished and isFeatured', async () => {
+        mockPrisma.designProject.create.mockResolvedValue({
+          id: 1,
+          title: 'Proyecto',
+          imageUrl: 'https://example.com/d.jpg',
+          subcategory: 'imagen-corporativa',
+          isPublished: false,
+          isFeatured: true,
+        });
+        req.body = {
+          title: 'Proyecto',
+          imageUrl: 'https://example.com/d.jpg',
+          subcategory: 'imagen-corporativa',
+          isPublished: false,
+          isFeatured: true,
+        };
+
+        await create(req, res);
+
+        expect(mockPrisma.designProject.create).toHaveBeenCalledWith({
+          data: {
+            title: 'Proyecto',
+            description: null,
+            imageUrl: 'https://example.com/d.jpg',
+            subcategory: 'imagen-corporativa',
+            isPublished: false,
+            isFeatured: true,
+          },
+        });
       });
     });
 
@@ -291,6 +360,27 @@ describe('HU09 - Admin Diseño', () => {
         expect(mockPrisma.designProject.update).toHaveBeenCalledWith({
           where: { id: 1 },
           data: { title: 'Actualizada', imageUrl: 'https://cloudinary.com/nuevo.jpg' },
+        });
+        expect(res.status).toHaveBeenCalledWith(200);
+      });
+    });
+
+    describe('given isPublished and isFeatured', () => {
+      it('should persist isPublished and isFeatured', async () => {
+        mockPrisma.designProject.update.mockResolvedValue({
+          id: 1,
+          title: 'Nuevo',
+          isPublished: true,
+          isFeatured: false,
+        });
+        req.params = { id: '1' };
+        req.body = { isPublished: true, isFeatured: false };
+
+        await update(req, res);
+
+        expect(mockPrisma.designProject.update).toHaveBeenCalledWith({
+          where: { id: 1 },
+          data: { isPublished: true, isFeatured: false },
         });
         expect(res.status).toHaveBeenCalledWith(200);
       });

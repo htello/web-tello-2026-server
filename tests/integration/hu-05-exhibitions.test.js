@@ -31,6 +31,7 @@ describe('HU05 - Exposiciones', () => {
         expect(Array.isArray(res.body.data)).toBe(true);
         expect(res.body.data[0]).toMatchObject({ id: 1, title: 'Expo Uno' });
         expect(mockPrisma.exhibition.findMany).toHaveBeenCalledWith({
+          where: { isPublished: true },
           orderBy: { position: 'asc' },
         });
       });

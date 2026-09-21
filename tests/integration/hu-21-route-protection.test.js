@@ -48,7 +48,7 @@ describe('HU21 - Protección de Rutas', () => {
   describe('given protected route that does not exist', () => {
     it('should return 404 (route not found)', async () => {
       const res = await request(app)
-        .get('/api/v1/admin/users');
+        .get('/api/v1/admin/does-not-exist');
 
       expect(res.status).toBe(404);
     });
