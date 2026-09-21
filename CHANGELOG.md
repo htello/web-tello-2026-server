@@ -7,17 +7,7 @@ y este proyecto adherido al [Versionado Semántico](https://semver.org/lang/es/)
 
 ## [Unreleased]
 
-### Changed
-- Subcategorías de diseño en kebab-case (`imagen-corporativa`, `packaging-expositores`, `carteleria`, `editorial`): `DesignProject.subcategory` pasa de enum `DesignSubcategory` a `String` (Prisma no admite guiones en valores de enum) y se elimina el campo redundante `category`. Migración `drop_design_category_kebab_subcategory`. Validación vía `DESIGN_SUBCATEGORIES` en `constants.js`.
-
-### Fixed
-- Schemas de actualización (`paintingUpdateSchema`, `exhibitionUpdateSchema`, `designUpdateSchema`, `illustrationUpdateSchema`): enviar body vacío devolvía el mensaje en inglés `"value" must have at least 1 key`. Ahora devuelve `"Debe enviar al menos un campo para actualizar"`.
-- HU08: `GET /api/v1/design?subcategory=<valor_no_en_enum>` retornaba `500 INTERNAL_ERROR` (Prisma validation). Ahora valida contra `DESIGN_SUBCATEGORIES` y devuelve `404` con `"Subcategoría inválida"`.
-- HU06: Validación de `collectionId` inexistente al crear pintura (retorna 404 NOT_FOUND en vez de 500)
-- HU06: DELETE colección/pintura inexistente usa error code P2025 en vez de message matching
-- HU10: Test de validación de categoría faltante en POST /admin/design
-- Typo `CARTERERIA` → `CARTELERIA` en enum `DesignSubcategory` (Prisma, Joi, seed, tests) con migración `fix_design_subcategory_typo`
-- Sincronizado `docs/openapi.yaml`, `docs/0001-API-DESIGN.md` y colección Postman con la lógica actual (enum `DesignSubcategory` en SCREAMING_SNAKE_CASE y `/admin/biography` como GET + PUT JSON)
+## [0.3.0] - 2026-09-21
 
 ### Added
 - Observabilidad con Sentry (`@sentry/node`): monitoreo de errores y trazas opcional vía `SENTRY_DSN`
@@ -106,6 +96,7 @@ y este proyecto adherido al [Versionado Semántico](https://semver.org/lang/es/)
 - Sección de patrones de implementación en `docs/0002-IMPLEMENTATION-ORDER.md` (Prisma singleton, error handling, reorder, tests, Joi schemas)
 
 ### Changed
+- Subcategorías de diseño en kebab-case (`imagen-corporativa`, `packaging-expositores`, `carteleria`, `editorial`): `DesignProject.subcategory` pasa de enum `DesignSubcategory` a `String` (Prisma no admite guiones en valores de enum) y se elimina el campo redundante `category`. Migración `drop_design_category_kebab_subcategory`. Validación vía `DESIGN_SUBCATEGORIES` en `constants.js`.
 - Refactor: extraídos helpers compartidos de Prisma en `src/lib/prisma-utils.js` (`parseId`, `isNotFoundError`, `isDuplicateError`, `reorderByPosition`)
 - Refactor: extraída resolución de imagen (`resolveImageUrl`) en `src/services/upload.js` para pinturas, diseño e ilustraciones
 - Refactor: estandarizada detección de errores Prisma por código (`P2025`/`P2002`) en lugar de `error.message.includes(...)` en todos los controladores admin
@@ -120,6 +111,13 @@ y este proyecto adherido al [Versionado Semántico](https://semver.org/lang/es/)
 - `vitest.config.js`: Excluye `src/app.js` de coverage, threshold branches ajustado a 94%
 
 ### Fixed
+- Schemas de actualización (`paintingUpdateSchema`, `exhibitionUpdateSchema`, `designUpdateSchema`, `illustrationUpdateSchema`): enviar body vacío devolvía el mensaje en inglés `"value" must have at least 1 key`. Ahora devuelve `"Debe enviar al menos un campo para actualizar"`.
+- HU08: `GET /api/v1/design?subcategory=<valor_no_en_enum>` retornaba `500 INTERNAL_ERROR` (Prisma validation). Ahora valida contra `DESIGN_SUBCATEGORIES` y devuelve `404` con `"Subcategoría inválida"`.
+- HU06: Validación de `collectionId` inexistente al crear pintura (retorna 404 NOT_FOUND en vez de 500)
+- HU06: DELETE colección/pintura inexistente usa error code P2025 en vez de message matching
+- HU10: Test de validación de categoría faltante en POST /admin/design
+- Typo `CARTERERIA` → `CARTELERIA` en enum `DesignSubcategory` (Prisma, Joi, seed, tests) con migración `fix_design_subcategory_typo`
+- Sincronizado `docs/openapi.yaml`, `docs/0001-API-DESIGN.md` y colección Postman con la lógica actual (enum `DesignSubcategory` en SCREAMING_SNAKE_CASE y `/admin/biography` como GET + PUT JSON)
 - HU16: Test "given no auth token" fallaba con "socket hang up" — cambiado `.attach()` por `.send({})` ya que el test de auth no necesita archivo real
 - `.env.example`: Corregido puerto de DB (5432 → 5433) para coincidir con docker-compose.yml
 - Eliminado `tests/dummy.test.js` (test placeholder sin valor)
@@ -172,6 +170,7 @@ y este proyecto adherido al [Versionado Semántico](https://semver.org/lang/es/)
 - Versión inicial en desarrollo
 - Stack: Node.js + Express + Prisma + PostgreSQL + Vitest
 
-[Unreleased]: https://github.com/tu-usuario/web-tello-2026/compare/v0.2.0...HEAD
+[Unreleased]: https://github.com/tu-usuario/web-tello-2026/compare/v0.3.0...HEAD
+[0.3.0]: https://github.com/tu-usuario/web-tello-2026/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/tu-usuario/web-tello-2026/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/tu-usuario/web-tello-2026/releases/tag/v0.1.0
