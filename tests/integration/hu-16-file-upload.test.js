@@ -22,8 +22,7 @@ describe('HU16 - Upload de Archivos', () => {
 
   beforeEach(() => {
     mockPrisma.user.findUnique.mockReset();
-    uploadToCloudinary.mockReset();
-    mockUploadFile.mockReset();
+    uploadToCloudinary.mockClear();
     mockUploadFile.mockImplementation((req, res, next) => next());
     adminToken = jwt.sign(
       { id: 1, email: 'admin@test.com', role: 'ADMIN' },

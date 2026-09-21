@@ -6,7 +6,7 @@
  * @module middleware/rateLimiter.test
  */
 
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import express from 'express';
 import request from 'supertest';
 
@@ -18,6 +18,10 @@ beforeEach(async () => {
   ({ contactLimiter, createContactLimiter } = await import('./rateLimiter.js'));
 });
 
+afterEach(() => {
+  vi.useRealTimers();
+});
+
 const createApp = (limiter) => {
   const app = express();
   app.use(limiter);
@@ -25,6 +29,24 @@ const createApp = (limiter) => {
     res.status(201).json({ data: { ok: true } });
   });
   return app;
+};
+
+const invoke = async (limiter) => {
+  const req = {
+    ip: '10.0.0.1',
+    headers: {},
+    app: { get: () => false },
+  };
+  const res = {
+    status: vi.fn().mockReturnThis(),
+    send: vi.fn(),
+    json: vi.fn(),
+    setHeader: vi.fn(),
+    headersSent: false,
+  };
+  const next = vi.fn();
+  await limiter(req, res, next);
+  return { res, next };
 };
 
 describe('HU15 - Rate Limiting', () => {
@@ -54,19 +76,21 @@ describe('HU15 - Rate Limiting', () => {
   });
 
   it('should allow requests again after the window elapses', async () => {
-    const limiter = createContactLimiter({ windowMs: 50, max: 5 });
-    const app = createApp(limiter);
+    vi.useFakeTimers();
+    const limiter = createContactLimiter();
 
     for (let i = 0; i < 5; i += 1) {
-      await request(app).post('/contact').send({});
+      const { next } = await invoke(limiter);
+      expect(next).toHaveBeenCalled();
     }
 
-    const blocked = await request(app).post('/contact').send({});
-    expect(blocked.status).toBe(429);
+    const blocked = await invoke(limiter);
+    expect(blocked.res.status).toHaveBeenCalledWith(429);
+    expect(blocked.next).not.toHaveBeenCalled();
 
-    await new Promise((resolve) => setTimeout(resolve, 80));
+    vi.advanceTimersByTime(60_000);
 
-    const allowed = await request(app).post('/contact').send({});
-    expect(allowed.status).toBe(201);
+    const allowed = await invoke(limiter);
+    expect(allowed.next).toHaveBeenCalled();
   });
 });

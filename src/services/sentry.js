@@ -12,8 +12,6 @@
  * @requires @sentry/node
  */
 
-import * as Sentry from '@sentry/node';
-
 /**
  * DSN de Sentry. Define si el monitoreo está activo.
  * @type {string|undefined}
@@ -38,7 +36,16 @@ const RELEASE = process.env.SENTRY_RELEASE;
  */
 const isEnabled = Boolean(SENTRY_DSN);
 
+/**
+ * Namespace del SDK de Sentry. Solo se carga de forma perezosa cuando
+ * el monitoreo está habilitado, para no introducir la maquinaria de
+ * OpenTelemetry/AsyncLocalStorage en entornos sin DSN (local, tests, CI).
+ * @type {import('@sentry/node') | null}
+ */
+let Sentry = null;
+
 if (isEnabled) {
+  Sentry = await import('@sentry/node');
   Sentry.init({
     dsn: SENTRY_DSN,
     environment: ENVIRONMENT,

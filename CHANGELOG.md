@@ -7,6 +7,10 @@ y este proyecto adherido al [Versionado Semántico](https://semver.org/lang/es/)
 
 ## [Unreleased]
 
+### Fixed
+- Tests de integración flaky (`hu-06`, `hu-10`, `hu-13`, `hu-16`): fallos intermitentes (404/400/429) en suite completa causados por el `AsyncLocalStorage`/OpenTelemetry de `@sentry/node`, que cruzaba contexto entre requests de supertest. Ahora `src/services/sentry.js` carga el SDK de forma perezosa (`await import` solo si `SENTRY_DSN` está definido), evitando su maquinaria en entornos sin DSN (local, tests, CI).
+- Test unitario de rate limiting (`src/middleware/rateLimiter.test.js`): reemplazado `setTimeout` real por `vi.useFakeTimers()` + `advanceTimersByTime()` para eliminar dependencia de tiempo real.
+
 ## [0.3.0] - 2026-09-21
 
 ### Added
