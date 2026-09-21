@@ -25,7 +25,7 @@ ESTADO DE LAS HUS POR FASE:
 ✅ Fase 4: Galería Pública (HU01 → HU02 → HU03 → HU04 → HU05) - COMPLETADA
 ✅ Fase 5: Diseño e Ilustración (HU08 → HU09) - COMPLETADA
 ✅ Fase 6: Resto Backend (HU11 → HU13 → HU14 → HU15) - COMPLETADA
-⏳ Fase 7: Frontend-only (HU17 → HU18) - Pendiente
+⏳ Fase 7: Frontend-only (HU17 → HU18) - Pendiente de frontend (fuera de alcance del backend; no existe repositorio frontend aún)
 
 REGLAS DE SESIÓN (ESTRICTAS):
 1. Verificar siempre la rama antes de trabajar (`hu/XX-nombre`). NUNCA escribir código directo en `develop`.

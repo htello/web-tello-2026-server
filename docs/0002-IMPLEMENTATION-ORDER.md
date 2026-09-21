@@ -941,6 +941,11 @@ HU11 → HU13 → HU14 → HU15
 
 Sin endpoint backend. Se resuelven en el frontend.
 
+> **Nota (estado):** Fuera de alcance del backend. HU17 (anti-descarga) y HU18 (SEO
+> meta tags) son exclusivamente frontend (CSS/JS, Open Graph, meta description,
+> JSON-LD). No requieren ni deben implementarse en este repositorio; se abordan
+> cuando exista un repositorio frontend. El backend queda completo en la Fase 6.
+
 ```
 HU17 → HU18
 ```
