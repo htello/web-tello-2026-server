@@ -115,7 +115,7 @@ describe('HU20 - Auth Controller', () => {
   describe('register', () => {
     describe('given valid data and unique email', () => {
       it('should return 201 with user data and role ADMIN', async () => {
-        const hashedPassword = await bcrypt.hash('clave123', 12);
+        const hashedPassword = await bcrypt.hash('Clave123!', 12);
         const createdUser = {
           id: 2,
           email: 'nuevo-admin@test.com',
@@ -126,7 +126,7 @@ describe('HU20 - Auth Controller', () => {
 
         mockPrisma.user.findUnique.mockResolvedValue(null);
         mockPrisma.user.create.mockResolvedValue(createdUser);
-        req.body = { email: 'nuevo-admin@test.com', password: 'clave123', name: 'Nuevo Admin' };
+        req.body = { email: 'nuevo-admin@test.com', password: 'Clave123!', name: 'Nuevo Admin' };
 
         await register(req, res);
 

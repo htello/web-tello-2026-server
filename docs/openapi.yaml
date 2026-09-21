@@ -95,6 +95,8 @@ components:
         password:
           type: string
           minLength: 8
+          pattern: '^(?=.*[A-Z])(?=.*[^a-zA-Z0-9\s]).*$'
+          description: Mínimo 8 caracteres, al menos una mayúscula y un símbolo
         name:
           type: string
 
