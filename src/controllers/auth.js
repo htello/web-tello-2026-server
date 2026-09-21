@@ -1,27 +1,33 @@
+/**
+ * @fileoverview Controlador de autenticación.
+ *
+ * Implementa los handlers de login (HU20) y registro de
+ * administradores (HU22).
+ *
+ * @module controllers/auth
+ * @requires bcrypt
+ * @requires jsonwebtoken
+ * @requires lib/prisma
+ * @requires lib/constants
+ * @requires lib/http-response
+ * @requires services/logger
+ */
+
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import prisma from '../lib/prisma.js';
 import logger from '../services/logger.js';
 import { JWT_SECRET, JWT_EXPIRATION, BCRYPT_ROUNDS } from '../lib/constants.js';
+import { sendSuccess, sendError, sendInternalError } from '../lib/http-response.js';
 
 /**
  * HU20 - Login Admin
  * Endpoint POST /api/v1/auth/login
  *
- * Autentica al administrador con email y password.
- * Retorna JWT token y datos del usuario.
- *
- * @param {Object} req.body.email - Email del usuario
- * @param {Object} req.body.password - Contraseña (mínimo 8 caracteres)
- * @returns {Object} 200 - { data: { token, user } }
- * @returns {Object} 401 - { error, code: 'UNAUTHORIZED' }
- * @returns {Object} 500 - { error, code: 'INTERNAL_ERROR' }
- *
- * @security Bearer token requerido para rutas admin
- * @example Request
- * { "email": "admin@test.com", "password": "admin123" }
- * @example Response 200
- * { "data": { "token": "eyJ...", "user": { "id": 1, "email": "admin@test.com", "role": "ADMIN" } } }
+ * @param {Object} req - Request de Express
+ * @param {Object} res - Response de Express
+ * @returns {Promise<Object>} 200 con token, 401 o 500
+ * @security Endpoint público protegido por rate limiting
  */
 const login = async (req, res) => {
   try {
@@ -29,18 +35,12 @@ const login = async (req, res) => {
 
     const user = await prisma.user.findUnique({ where: { email } });
     if (!user) {
-      return res.status(401).json({
-        error: 'Credenciales inválidas',
-        code: 'UNAUTHORIZED',
-      });
+      return sendError(res, 401, 'UNAUTHORIZED', 'Credenciales inválidas');
     }
 
     const isValidPassword = await bcrypt.compare(password, user.password);
     if (!isValidPassword) {
-      return res.status(401).json({
-        error: 'Credenciales inválidas',
-        code: 'UNAUTHORIZED',
-      });
+      return sendError(res, 401, 'UNAUTHORIZED', 'Credenciales inválidas');
     }
 
     const token = jwt.sign(
@@ -51,23 +51,17 @@ const login = async (req, res) => {
 
     logger.info('Login exitoso', { userId: user.id, email: user.email });
 
-    res.status(200).json({
-      data: {
-        token,
-        user: {
-          id: user.id,
-          email: user.email,
-          name: user.name,
-          role: user.role,
-        },
+    return sendSuccess(res, {
+      token,
+      user: {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        role: user.role,
       },
     });
   } catch (error) {
-    logger.error('Error en login', { error: error.message });
-    res.status(500).json({
-      error: 'Error interno del servidor',
-      code: 'INTERNAL_ERROR',
-    });
+    return sendInternalError(res, logger, 'Error en login', error);
   }
 };
 
@@ -75,16 +69,9 @@ const login = async (req, res) => {
  * HU22 - Registro de Administradores
  * Endpoint POST /api/v1/admin/users/register
  *
- * Registra un nuevo usuario con rol ADMIN.
- * Requiere JWT válido de un administrador autenticado.
- *
- * @param {Object} req.body.email - Email del nuevo usuario
- * @param {Object} req.body.password - Contraseña (mínimo 8 caracteres)
- * @param {Object} [req.body.name] - Nombre del usuario (opcional)
- * @returns {Object} 201 - { data: { id, email, name, role } }
- * @returns {Object} 400 - Email ya registrado
- * @returns {Object} 500 - Error interno del servidor
- *
+ * @param {Object} req - Request de Express
+ * @param {Object} res - Response de Express
+ * @returns {Promise<Object>} 201 con usuario creado, 400 o 500
  * @security Requiere Bearer token con rol ADMIN
  */
 const register = async (req, res) => {
@@ -93,10 +80,7 @@ const register = async (req, res) => {
 
     const existingUser = await prisma.user.findUnique({ where: { email } });
     if (existingUser) {
-      return res.status(400).json({
-        error: 'El email ya está registrado',
-        code: 'VALIDATION_ERROR',
-      });
+      return sendError(res, 400, 'VALIDATION_ERROR', 'El email ya está registrado');
     }
 
     const hashedPassword = await bcrypt.hash(password, BCRYPT_ROUNDS);
@@ -112,20 +96,14 @@ const register = async (req, res) => {
 
     logger.info('Admin registrado', { id: newUser.id, email: newUser.email });
 
-    res.status(201).json({
-      data: {
-        id: newUser.id,
-        email: newUser.email,
-        name: newUser.name,
-        role: newUser.role,
-      },
-    });
+    return sendSuccess(res, {
+      id: newUser.id,
+      email: newUser.email,
+      name: newUser.name,
+      role: newUser.role,
+    }, 201);
   } catch (error) {
-    logger.error('Error en registro', { error: error.message });
-    res.status(500).json({
-      error: 'Error interno del servidor',
-      code: 'INTERNAL_ERROR',
-    });
+    return sendInternalError(res, logger, 'Error en registro', error);
   }
 };
 

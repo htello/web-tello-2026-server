@@ -1,8 +1,32 @@
+/**
+ * @fileoverview Controlador de ilustraciones.
+ *
+ * Implementa los handlers públicos (HU09) y de administración
+ * (HU10) para la galería de ilustraciones.
+ *
+ * @module controllers/illustrations
+ * @requires lib/prisma
+ * @requires lib/prisma-utils
+ * @requires lib/http-response
+ * @requires services/upload
+ * @requires services/logger
+ */
+
 import prisma from '../lib/prisma.js';
 import logger from '../services/logger.js';
 import { resolveImageUrl } from '../services/upload.js';
 import { parseId, isNotFoundError, isDuplicateError } from '../lib/prisma-utils.js';
+import { sendSuccess, sendError, sendNotFound, sendDuplicate, sendInternalError } from '../lib/http-response.js';
 
+/**
+ * HU10 - Crear ilustración
+ * Endpoint POST /api/v1/admin/illustrations
+ *
+ * @param {Object} req - Request de Express
+ * @param {Object} res - Response de Express
+ * @returns {Promise<Object>} 201 con ilustración creada, 400 o 500
+ * @security Requiere Bearer token con rol ADMIN
+ */
 const create = async (req, res) => {
   try {
     const { title, description, imageUrl } = req.body;
@@ -10,10 +34,7 @@ const create = async (req, res) => {
     const finalImageUrl = await resolveImageUrl(req.file, imageUrl, 'ilustracion');
 
     if (!finalImageUrl) {
-      return res.status(400).json({
-        error: 'La imagen es obligatoria (archivo o URL)',
-        code: 'VALIDATION_ERROR',
-      });
+      return sendError(res, 400, 'VALIDATION_ERROR', 'La imagen es obligatoria (archivo o URL)');
     }
 
     const illustration = await prisma.illustration.create({
@@ -26,22 +47,24 @@ const create = async (req, res) => {
 
     logger.info('Ilustración creada', { id: illustration.id, title: illustration.title });
 
-    res.status(201).json({ data: illustration });
+    return sendSuccess(res, illustration, 201);
   } catch (error) {
     if (isDuplicateError(error)) {
-      return res.status(400).json({
-        error: 'Ya existe una ilustración con ese título',
-        code: 'DUPLICATE_ERROR',
-      });
+      return sendDuplicate(res, 'Ya existe una ilustración con ese título');
     }
-    logger.error('Error al crear ilustración', { error: error.message });
-    res.status(500).json({
-      error: 'Error interno del servidor',
-      code: 'INTERNAL_ERROR',
-    });
+    return sendInternalError(res, logger, 'Error al crear ilustración', error);
   }
 };
 
+/**
+ * HU10 - Actualizar ilustración
+ * Endpoint PUT /api/v1/admin/illustrations/:id
+ *
+ * @param {Object} req - Request de Express
+ * @param {Object} res - Response de Express
+ * @returns {Promise<Object>} 200 con ilustración actualizada, 404, 400 o 500
+ * @security Requiere Bearer token con rol ADMIN
+ */
 const update = async (req, res) => {
   try {
     const { id } = req.params;
@@ -60,28 +83,23 @@ const update = async (req, res) => {
 
     logger.info('Ilustración actualizada', { id: illustration.id });
 
-    res.status(200).json({ data: illustration });
+    return sendSuccess(res, illustration);
   } catch (error) {
-    if (isNotFoundError(error)) {
-      return res.status(404).json({
-        error: 'Ilustración no encontrada',
-        code: 'NOT_FOUND',
-      });
-    }
-    if (isDuplicateError(error)) {
-      return res.status(400).json({
-        error: 'Ya existe una ilustración con ese título',
-        code: 'DUPLICATE_ERROR',
-      });
-    }
-    logger.error('Error al actualizar ilustración', { error: error.message });
-    res.status(500).json({
-      error: 'Error interno del servidor',
-      code: 'INTERNAL_ERROR',
-    });
+    if (isNotFoundError(error)) return sendNotFound(res, 'Ilustración no encontrada');
+    if (isDuplicateError(error)) return sendDuplicate(res, 'Ya existe una ilustración con ese título');
+    return sendInternalError(res, logger, 'Error al actualizar ilustración', error);
   }
 };
 
+/**
+ * HU10 - Eliminar ilustración
+ * Endpoint DELETE /api/v1/admin/illustrations/:id
+ *
+ * @param {Object} req - Request de Express
+ * @param {Object} res - Response de Express
+ * @returns {Promise<Object>} 200 con confirmación, 404 o 500
+ * @security Requiere Bearer token con rol ADMIN
+ */
 const remove = async (req, res) => {
   try {
     const { id } = req.params;
@@ -92,21 +110,10 @@ const remove = async (req, res) => {
 
     logger.info('Ilustración eliminada', { id: parseId(id) });
 
-    res.status(200).json({
-      data: { message: 'Ilustración eliminada correctamente' },
-    });
+    return sendSuccess(res, { message: 'Ilustración eliminada correctamente' });
   } catch (error) {
-    if (isNotFoundError(error)) {
-      return res.status(404).json({
-        error: 'Ilustración no encontrada',
-        code: 'NOT_FOUND',
-      });
-    }
-    logger.error('Error al eliminar ilustración', { error: error.message });
-    res.status(500).json({
-      error: 'Error interno del servidor',
-      code: 'INTERNAL_ERROR',
-    });
+    if (isNotFoundError(error)) return sendNotFound(res, 'Ilustración no encontrada');
+    return sendInternalError(res, logger, 'Error al eliminar ilustración', error);
   }
 };
 
@@ -114,24 +121,18 @@ const remove = async (req, res) => {
  * HU09 - Galería Ilustración
  * Endpoint GET /api/v1/illustrations
  *
- * Retorna todas las ilustraciones.
- *
- * @returns {Object} 200 - { data: [{ id, title, imageUrl, description }] }
- * @returns {Object} 500 - Error interno del servidor
- *
+ * @param {Object} req - Request de Express
+ * @param {Object} res - Response de Express
+ * @returns {Promise<Object>} 200 con ilustraciones o 500
  * @security Endpoint público (no requiere autenticación)
  */
 const listAll = async (req, res) => {
   try {
     const illustrations = await prisma.illustration.findMany();
 
-    res.status(200).json({ data: illustrations });
+    return sendSuccess(res, illustrations);
   } catch (error) {
-    logger.error('Error al listar ilustraciones', { error: error.message });
-    res.status(500).json({
-      error: 'Error interno del servidor',
-      code: 'INTERNAL_ERROR',
-    });
+    return sendInternalError(res, logger, 'Error al listar ilustraciones', error);
   }
 };
 

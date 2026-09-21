@@ -1,3 +1,15 @@
+/**
+ * @fileoverview Middleware de validación de input y schemas Joi.
+ *
+ * Proporciona un middleware `validate` y los schemas de validación
+ * para todos los endpoints. Los campos reutilizables se centralizan
+ * en helpers para evitar duplicación.
+ *
+ * @module middleware/validate
+ * @requires joi
+ * @requires lib/constants
+ */
+
 import Joi from 'joi';
 import { DESIGN_SUBCATEGORIES } from '../lib/constants.js';
 
@@ -30,56 +42,123 @@ const validate = (schema) => (req, res, next) => {
 };
 
 /**
+ * Campo `email` requerido y con formato válido.
+ *
+ * @param {Object} [options] - Opciones del campo
+ * @param {boolean} [options.withEmpty=true] - Incluye mensaje para string vacío
+ * @returns {Joi.StringSchema} Campo Joi
+ */
+const emailField = ({ withEmpty = true } = {}) => Joi.string()
+  .email()
+  .required()
+  .messages({
+    'string.email': 'El email debe ser válido',
+    'any.required': 'El email es obligatorio',
+    ...(withEmpty && { 'string.empty': 'El email no puede estar vacío' }),
+  });
+
+/**
+ * Campo `password` requerido con mínimo 8 caracteres.
+ *
+ * @returns {Joi.StringSchema} Campo Joi
+ */
+const passwordField = () => Joi.string()
+  .min(8)
+  .required()
+  .messages({
+    'string.min': 'La contraseña debe tener al menos 8 caracteres',
+    'any.required': 'La contraseña es obligatoria',
+    'string.empty': 'La contraseña no puede estar vacía',
+  });
+
+/**
+ * Campo `title` requerido u opcional.
+ *
+ * @param {Object} [options] - Opciones del campo
+ * @param {boolean} [options.required=false] - Indica si el campo es requerido
+ * @returns {Joi.StringSchema} Campo Joi
+ */
+const titleField = ({ required = false } = {}) => {
+  const base = Joi.string();
+  const field = required ? base.required() : base.optional();
+  return field.messages({
+    ...(required && { 'any.required': 'El título es obligatorio' }),
+    'string.empty': 'El título no puede estar vacío',
+  });
+};
+
+/**
+ * Campo de URL de imagen opcional (archivo o URL externa).
+ *
+ * @param {Object} [options] - Opciones del campo
+ * @param {boolean} [options.withMessage=false] - Incluye mensaje de URI inválida
+ * @returns {Joi.StringSchema} Campo Joi
+ */
+const imageUrlField = ({ withMessage = false } = {}) => {
+  const field = Joi.string().uri().optional().allow('', null);
+  return withMessage
+    ? field.messages({ 'string.uri': 'La imagen debe ser una URL válida' })
+    : field;
+};
+
+/**
+ * Campo de texto opcional que permite string vacío o null.
+ *
+ * @returns {Joi.StringSchema} Campo Joi
+ */
+const optionalTextField = () => Joi.string().optional().allow('', null);
+
+/**
+ * Campo `subcategory` requerido u opcional, validado contra constantes.
+ *
+ * @param {Object} [options] - Opciones del campo
+ * @param {boolean} [options.required=false] - Indica si el campo es requerido
+ * @returns {Joi.StringSchema} Campo Joi
+ */
+const subcategoryField = ({ required = false } = {}) => {
+  const base = Joi.string().valid(...DESIGN_SUBCATEGORIES);
+  const field = required ? base.required() : base.optional();
+  return field.messages({
+    ...(required && {
+      'any.required': 'La subcategoría es obligatoria',
+      'string.empty': 'La subcategoría no puede estar vacía',
+    }),
+    'any.only': `La subcategoría debe ser: ${DESIGN_SUBCATEGORIES.join(', ')}`,
+  });
+};
+
+/**
+ * Campo `date` ISO requerido u opcional.
+ *
+ * @param {Object} [options] - Opciones del campo
+ * @param {boolean} [options.required=false] - Indica si el campo es requerido
+ * @returns {Joi.DateSchema} Campo Joi
+ */
+const dateField = ({ required = false } = {}) => {
+  const base = Joi.date().iso();
+  const field = required ? base.required() : base.optional();
+  return field.messages({
+    ...(required && { 'any.required': 'La fecha es obligatoria' }),
+    'date.base': 'La fecha debe ser válida',
+  });
+};
+
+/**
  * Schema de validación para login
  * @type {Joi.ObjectSchema}
- *
- * @property {string} email - Email válido (requerido)
- * @property {string} password - Mínimo 8 caracteres (requerido)
  */
 const loginSchema = Joi.object({
-  email: Joi.string()
-    .email()
-    .required()
-    .messages({
-      'string.email': 'El email debe ser válido',
-      'any.required': 'El email es obligatorio',
-      'string.empty': 'El email no puede estar vacío',
-    }),
-  password: Joi.string()
-    .min(8)
-    .required()
-    .messages({
-      'string.min': 'La contraseña debe tener al menos 8 caracteres',
-      'any.required': 'La contraseña es obligatoria',
-      'string.empty': 'La contraseña no puede estar vacía',
-    }),
+  email: emailField(),
+  password: passwordField(),
 });
 
 /**
  * Schema de validación para registro de administradores
  * @type {Joi.ObjectSchema}
- *
- * @property {string} email - Email válido (requerido)
- * @property {string} password - Mínimo 8 caracteres (requerido)
- * @property {string} name - Nombre del usuario (opcional)
  */
 const registerSchema = Joi.object({
-  email: Joi.string()
-    .email()
-    .required()
-    .messages({
-      'string.email': 'El email debe ser válido',
-      'any.required': 'El email es obligatorio',
-      'string.empty': 'El email no puede estar vacío',
-    }),
-  password: Joi.string()
-    .min(8)
-    .required()
-    .messages({
-      'string.min': 'La contraseña debe tener al menos 8 caracteres',
-      'any.required': 'La contraseña es obligatoria',
-      'string.empty': 'La contraseña no puede estar vacía',
-    }),
+  email: emailField(),
+  password: passwordField(),
   name: Joi.string()
     .optional()
     .messages({
@@ -92,19 +171,9 @@ const registerSchema = Joi.object({
  * @type {Joi.ObjectSchema}
  */
 const collectionSchema = Joi.object({
-  title: Joi.string()
-    .required()
-    .messages({
-      'any.required': 'El título es obligatorio',
-      'string.empty': 'El título no puede estar vacío',
-    }),
-  description: Joi.string()
-    .optional()
-    .allow('', null),
-  coverImage: Joi.string()
-    .uri()
-    .optional()
-    .allow('', null),
+  title: titleField({ required: true }),
+  description: optionalTextField(),
+  coverImage: imageUrlField(),
 });
 
 /**
@@ -113,19 +182,8 @@ const collectionSchema = Joi.object({
  * @type {Joi.ObjectSchema}
  */
 const paintingSchema = Joi.object({
-  title: Joi.string()
-    .required()
-    .messages({
-      'any.required': 'El título es obligatorio',
-      'string.empty': 'El título no puede estar vacío',
-    }),
-  imageUrl: Joi.string()
-    .uri()
-    .optional()
-    .allow('', null)
-    .messages({
-      'string.uri': 'La imagen debe ser una URL válida',
-    }),
+  title: titleField({ required: true }),
+  imageUrl: imageUrlField({ withMessage: true }),
   collectionId: Joi.number()
     .integer()
     .positive()
@@ -134,12 +192,8 @@ const paintingSchema = Joi.object({
       'any.required': 'La colección es obligatoria',
       'number.base': 'La colección debe ser un número',
     }),
-  dimensions: Joi.string()
-    .optional()
-    .allow('', null),
-  technique: Joi.string()
-    .optional()
-    .allow('', null),
+  dimensions: optionalTextField(),
+  technique: optionalTextField(),
   year: Joi.number()
     .integer()
     .min(1900)
@@ -153,18 +207,8 @@ const paintingSchema = Joi.object({
  * @type {Joi.ObjectSchema}
  */
 const paintingUpdateSchema = Joi.object({
-  title: Joi.string()
-    .optional()
-    .messages({
-      'string.empty': 'El título no puede estar vacío',
-    }),
-  imageUrl: Joi.string()
-    .uri()
-    .optional()
-    .allow('', null)
-    .messages({
-      'string.uri': 'La imagen debe ser una URL válida',
-    }),
+  title: titleField(),
+  imageUrl: imageUrlField({ withMessage: true }),
   collectionId: Joi.number()
     .integer()
     .positive()
@@ -172,12 +216,8 @@ const paintingUpdateSchema = Joi.object({
     .messages({
       'number.base': 'La colección debe ser un número',
     }),
-  dimensions: Joi.string()
-    .optional()
-    .allow('', null),
-  technique: Joi.string()
-    .optional()
-    .allow('', null),
+  dimensions: optionalTextField(),
+  technique: optionalTextField(),
   year: Joi.number()
     .integer()
     .min(1900)
@@ -193,25 +233,10 @@ const paintingUpdateSchema = Joi.object({
  * @type {Joi.ObjectSchema}
  */
 const exhibitionSchema = Joi.object({
-  title: Joi.string()
-    .required()
-    .messages({
-      'any.required': 'El título es obligatorio',
-      'string.empty': 'El título no puede estar vacío',
-    }),
-  date: Joi.date()
-    .iso()
-    .required()
-    .messages({
-      'any.required': 'La fecha es obligatoria',
-      'date.base': 'La fecha debe ser válida',
-    }),
-  location: Joi.string()
-    .optional()
-    .allow('', null),
-  description: Joi.string()
-    .optional()
-    .allow('', null),
+  title: titleField({ required: true }),
+  date: dateField({ required: true }),
+  location: optionalTextField(),
+  description: optionalTextField(),
 });
 
 /**
@@ -219,23 +244,10 @@ const exhibitionSchema = Joi.object({
  * @type {Joi.ObjectSchema}
  */
 const exhibitionUpdateSchema = Joi.object({
-  title: Joi.string()
-    .optional()
-    .messages({
-      'string.empty': 'El título no puede estar vacío',
-    }),
-  date: Joi.date()
-    .iso()
-    .optional()
-    .messages({
-      'date.base': 'La fecha debe ser válida',
-    }),
-  location: Joi.string()
-    .optional()
-    .allow('', null),
-  description: Joi.string()
-    .optional()
-    .allow('', null),
+  title: titleField(),
+  date: dateField(),
+  location: optionalTextField(),
+  description: optionalTextField(),
 }).min(1).messages({
   'object.min': 'Debe enviar al menos un campo para actualizar',
 });
@@ -245,30 +257,10 @@ const exhibitionUpdateSchema = Joi.object({
  * @type {Joi.ObjectSchema}
  */
 const designSchema = Joi.object({
-  title: Joi.string()
-    .required()
-    .messages({
-      'any.required': 'El título es obligatorio',
-      'string.empty': 'El título no puede estar vacío',
-    }),
-  subcategory: Joi.string()
-    .valid(...DESIGN_SUBCATEGORIES)
-    .required()
-    .messages({
-      'any.required': 'La subcategoría es obligatoria',
-      'string.empty': 'La subcategoría no puede estar vacía',
-      'any.only': `La subcategoría debe ser: ${DESIGN_SUBCATEGORIES.join(', ')}`,
-    }),
-  imageUrl: Joi.string()
-    .uri()
-    .optional()
-    .allow('', null)
-    .messages({
-      'string.uri': 'La imagen debe ser una URL válida',
-    }),
-  description: Joi.string()
-    .optional()
-    .allow('', null),
+  title: titleField({ required: true }),
+  subcategory: subcategoryField({ required: true }),
+  imageUrl: imageUrlField({ withMessage: true }),
+  description: optionalTextField(),
 });
 
 /**
@@ -276,27 +268,10 @@ const designSchema = Joi.object({
  * @type {Joi.ObjectSchema}
  */
 const designUpdateSchema = Joi.object({
-  title: Joi.string()
-    .optional()
-    .messages({
-      'string.empty': 'El título no puede estar vacío',
-    }),
-  subcategory: Joi.string()
-    .valid(...DESIGN_SUBCATEGORIES)
-    .optional()
-    .messages({
-      'any.only': `La subcategoría debe ser: ${DESIGN_SUBCATEGORIES.join(', ')}`,
-    }),
-  imageUrl: Joi.string()
-    .uri()
-    .optional()
-    .allow('', null)
-    .messages({
-      'string.uri': 'La imagen debe ser una URL válida',
-    }),
-  description: Joi.string()
-    .optional()
-    .allow('', null),
+  title: titleField(),
+  subcategory: subcategoryField(),
+  imageUrl: imageUrlField({ withMessage: true }),
+  description: optionalTextField(),
 }).min(1).messages({
   'object.min': 'Debe enviar al menos un campo para actualizar',
 });
@@ -306,22 +281,9 @@ const designUpdateSchema = Joi.object({
  * @type {Joi.ObjectSchema}
  */
 const illustrationSchema = Joi.object({
-  title: Joi.string()
-    .required()
-    .messages({
-      'any.required': 'El título es obligatorio',
-      'string.empty': 'El título no puede estar vacío',
-    }),
-  imageUrl: Joi.string()
-    .uri()
-    .optional()
-    .allow('', null)
-    .messages({
-      'string.uri': 'La imagen debe ser una URL válida',
-    }),
-  description: Joi.string()
-    .optional()
-    .allow('', null),
+  title: titleField({ required: true }),
+  imageUrl: imageUrlField({ withMessage: true }),
+  description: optionalTextField(),
 });
 
 /**
@@ -329,21 +291,9 @@ const illustrationSchema = Joi.object({
  * @type {Joi.ObjectSchema}
  */
 const illustrationUpdateSchema = Joi.object({
-  title: Joi.string()
-    .optional()
-    .messages({
-      'string.empty': 'El título no puede estar vacío',
-    }),
-  imageUrl: Joi.string()
-    .uri()
-    .optional()
-    .allow('', null)
-    .messages({
-      'string.uri': 'La imagen debe ser una URL válida',
-    }),
-  description: Joi.string()
-    .optional()
-    .allow('', null),
+  title: titleField(),
+  imageUrl: imageUrlField({ withMessage: true }),
+  description: optionalTextField(),
 }).min(1).messages({
   'object.min': 'Debe enviar al menos un campo para actualizar',
 });
@@ -361,10 +311,7 @@ const biographySchema = Joi.object({
       'string.min': 'El contenido debe tener al menos 10 caracteres',
       'string.empty': 'El contenido no puede estar vacío',
     }),
-  imageUrl: Joi.string()
-    .uri()
-    .optional()
-    .allow('', null),
+  imageUrl: imageUrlField(),
 });
 
 /**
@@ -378,13 +325,7 @@ const contactSchema = Joi.object({
       'any.required': 'El nombre es obligatorio',
       'string.empty': 'El nombre no puede estar vacío',
     }),
-  email: Joi.string()
-    .email()
-    .required()
-    .messages({
-      'string.email': 'El email debe ser válido',
-      'any.required': 'El email es obligatorio',
-    }),
+  email: emailField({ withEmpty: false }),
   subject: Joi.string()
     .required()
     .messages({
