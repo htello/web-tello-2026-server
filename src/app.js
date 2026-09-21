@@ -11,7 +11,7 @@
  * @requires express-rate-limit
  */
 
-import './services/sentry.js';
+import { Sentry, isEnabled } from './services/sentry.js';
 import express from 'express';
 import helmet from 'helmet';
 import cors from 'cors';
@@ -61,6 +61,14 @@ app.get('/api/v1/health', (req, res) => {
 
 // Rutas de la API v1
 app.use('/api/v1', routes);
+
+/**
+ * Sentry: captura errores no manejados antes del handler propio.
+ * Debe registrarse después de las rutas y antes del middleware de error.
+ */
+if (isEnabled) {
+  Sentry.setupExpressErrorHandler(app);
+}
 
 /**
  * Middleware de manejo centralizado de errores
