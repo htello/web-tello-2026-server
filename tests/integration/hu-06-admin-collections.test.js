@@ -432,7 +432,7 @@ describe('HU06 - Admin Colecciones y Pinturas', () => {
           .set('Authorization', `Bearer ${adminToken}`)
           .field('title', 'Pintura Upload')
           .field('collectionId', '1')
-          .attach('image', Buffer.from('fake-image-data'), 'test.jpg');
+          .attach('image', Buffer.from('fake-image-data'), { filename: 'test.jpg', contentType: 'image/jpeg' });
 
         expect(res.status).toBe(201);
         expect(uploadToCloudinary).toHaveBeenCalledWith(
@@ -619,7 +619,7 @@ describe('HU06 - Admin Colecciones y Pinturas', () => {
           .put('/api/v1/admin/paintings/1')
           .set('Authorization', `Bearer ${adminToken}`)
           .field('title', 'Actualizada')
-          .attach('image', Buffer.from('new-image-data'), 'new.jpg');
+          .attach('image', Buffer.from('new-image-data'), { filename: 'new.jpg', contentType: 'image/jpeg' });
 
         expect(res.status).toBe(200);
         expect(uploadToCloudinary).toHaveBeenCalled();

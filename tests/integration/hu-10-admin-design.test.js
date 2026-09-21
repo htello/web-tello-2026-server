@@ -85,7 +85,7 @@ describe('HU10 - Admin Design', () => {
           .set('Authorization', `Bearer ${adminToken}`)
           .field('title', 'Diseño Upload')
           .field('subcategory', 'carteleria')
-          .attach('image', Buffer.from('fake-image-data'), 'test.jpg');
+          .attach('image', Buffer.from('fake-image-data'), { filename: 'test.jpg', contentType: 'image/jpeg' });
 
         expect(res.status).toBe(201);
         expect(uploadToCloudinary).toHaveBeenCalled();
@@ -223,7 +223,7 @@ describe('HU10 - Admin Design', () => {
           .put('/api/v1/admin/design/1')
           .set('Authorization', `Bearer ${adminToken}`)
           .field('title', 'Test')
-          .attach('image', Buffer.from('fake-image-data'), 'test.jpg');
+          .attach('image', Buffer.from('fake-image-data'), { filename: 'test.jpg', contentType: 'image/jpeg' });
 
         expect(res.status).toBe(200);
         expect(uploadToCloudinary).toHaveBeenCalled();
@@ -373,7 +373,7 @@ describe('HU10 - Admin Design', () => {
           .post('/api/v1/admin/illustrations')
           .set('Authorization', `Bearer ${adminToken}`)
           .field('title', 'Ilustración Upload')
-          .attach('image', Buffer.from('fake-image-data'), 'test.jpg');
+          .attach('image', Buffer.from('fake-image-data'), { filename: 'test.jpg', contentType: 'image/jpeg' });
 
         expect(res.status).toBe(201);
         expect(uploadToCloudinary).toHaveBeenCalled();
@@ -479,7 +479,7 @@ describe('HU10 - Admin Design', () => {
           .put('/api/v1/admin/illustrations/1')
           .set('Authorization', `Bearer ${adminToken}`)
           .field('title', 'Test')
-          .attach('image', Buffer.from('fake-image-data'), 'test.jpg');
+          .attach('image', Buffer.from('fake-image-data'), { filename: 'test.jpg', contentType: 'image/jpeg' });
 
         expect(res.status).toBe(200);
         expect(uploadToCloudinary).toHaveBeenCalled();
