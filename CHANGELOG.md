@@ -20,6 +20,10 @@ y este proyecto adherido al [Versionado Semántico](https://semver.org/lang/es/)
 - Sincronizado `docs/openapi.yaml`, `docs/0001-API-DESIGN.md` y colección Postman con la lógica actual (enum `DesignSubcategory` en SCREAMING_SNAKE_CASE y `/admin/biography` como GET + PUT JSON)
 
 ### Added
+- Observabilidad con Sentry (`@sentry/node`): monitoreo de errores y trazas opcional vía `SENTRY_DSN`
+  - Servicio `src/services/sentry.js`: inicializa el SDK solo si `SENTRY_DSN` está definido, con `expressIntegration()`, `tracesSampleRate: 1.0`, `environment` (`NODE_ENV` o `development`) y `release` (`SENTRY_RELEASE`)
+  - Import de inicialización al inicio de `src/app.js` (antes que `express` para correcta auto-instrumentación)
+  - Test unitario: `src/services/sentry.test.js` (3 tests: init con DSN+release, fallback de environment, sin DSN)
 - HU13: Formulario de Contacto (POST /api/v1/contact)
   - Controller: `send` en `src/controllers/contact.js` (envía email y retorna 201)
   - Ruta pública `POST /` con `contactLimiter` + `validate(contactSchema)` en `src/routes/contact.js`
