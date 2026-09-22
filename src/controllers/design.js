@@ -16,7 +16,7 @@
 import prisma from '../lib/prisma.js';
 import logger from '../services/logger.js';
 import { resolveImageUrl } from '../services/upload.js';
-import { parseId, isNotFoundError, isDuplicateError } from '../lib/prisma-utils.js';
+import { parseId, isNotFoundError, isDuplicateError, reorderByPosition } from '../lib/prisma-utils.js';
 import { sendSuccess, sendError, sendNotFound, sendDuplicate, sendInternalError } from '../lib/http-response.js';
 import { DESIGN_SUBCATEGORIES } from '../lib/constants.js';
 
@@ -136,11 +136,39 @@ const remove = async (req, res) => {
  */
 const listAll = async (req, res) => {
   try {
-    const projects = await prisma.designProject.findMany();
+    const projects = await prisma.designProject.findMany({
+      orderBy: { position: 'asc' },
+    });
 
     return sendSuccess(res, projects);
   } catch (error) {
     return sendInternalError(res, logger, 'Error al listar proyectos de diseño', error);
+  }
+};
+
+/**
+ * HU10 - Reordenar proyectos de diseño
+ * Endpoint PUT /api/v1/admin/design/reorder
+ *
+ * @param {Object} req - Request de Express
+ * @param {Object} res - Response de Express
+ * @returns {Promise<Object>} 200 con confirmación, 400 o 500
+ * @security Requiere Bearer token con rol ADMIN
+ */
+const reorder = async (req, res) => {
+  try {
+    const { orderedIds } = req.body;
+
+    await reorderByPosition(prisma, prisma.designProject, orderedIds);
+
+    logger.info('Proyectos de diseño reordenados', { count: orderedIds.length });
+
+    return sendSuccess(res, { message: 'Orden actualizado correctamente' });
+  } catch (error) {
+    if (isNotFoundError(error)) {
+      return sendError(res, 400, 'VALIDATION_ERROR', 'Uno o más IDs no existen');
+    }
+    return sendInternalError(res, logger, 'Error al reordenar proyectos de diseño', error);
   }
 };
 
@@ -169,6 +197,7 @@ const listFiltered = async (req, res) => {
 
     const projects = await prisma.designProject.findMany({
       where: { subcategory, isPublished: true },
+      orderBy: { position: 'asc' },
     });
 
     return sendSuccess(res, projects);
@@ -190,6 +219,7 @@ const listFeatured = async (req, res) => {
   try {
     const projects = await prisma.designProject.findMany({
       where: { isFeatured: true, isPublished: true },
+      orderBy: { position: 'asc' },
     });
 
     return sendSuccess(res, projects);
@@ -198,4 +228,4 @@ const listFeatured = async (req, res) => {
   }
 };
 
-export { create, update, remove, listAll, listFiltered, listFeatured };
+export { create, update, remove, reorder, listAll, listFiltered, listFeatured };

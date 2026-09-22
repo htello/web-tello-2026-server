@@ -633,4 +633,120 @@ describe('HU10 - Admin Design', () => {
       });
     });
   });
+
+  describe('PUT /admin/design/reorder', () => {
+    describe('given admin token and orderedIds', () => {
+      it('should return 200 with success message', async () => {
+        mockPrisma.designProject.update.mockResolvedValue({ position: 0 });
+
+        const res = await request(app)
+          .put('/api/v1/admin/design/reorder')
+          .set('Authorization', `Bearer ${adminToken}`)
+          .send({ orderedIds: [2, 1] });
+
+        expect(res.status).toBe(200);
+        expect(res.body.data).toHaveProperty('message');
+      });
+    });
+
+    describe('given no token', () => {
+      it('should return 401', async () => {
+        const res = await request(app)
+          .put('/api/v1/admin/design/reorder')
+          .send({ orderedIds: [1, 2] });
+
+        expect(res.status).toBe(401);
+      });
+    });
+
+    describe('given a non-existent id', () => {
+      it('should return 400 VALIDATION_ERROR', async () => {
+        const notFoundError = new Error('Record to update not found');
+        notFoundError.code = 'P2025';
+        mockPrisma.designProject.update.mockRejectedValue(notFoundError);
+
+        const res = await request(app)
+          .put('/api/v1/admin/design/reorder')
+          .set('Authorization', `Bearer ${adminToken}`)
+          .send({ orderedIds: [999] });
+
+        expect(res.status).toBe(400);
+        expect(res.body).toHaveProperty('code', 'VALIDATION_ERROR');
+      });
+    });
+
+    describe('given database error during reorder', () => {
+      it('should return 500 INTERNAL_ERROR', async () => {
+        mockPrisma.designProject.update.mockRejectedValue(
+          new Error('Database connection failed')
+        );
+
+        const res = await request(app)
+          .put('/api/v1/admin/design/reorder')
+          .set('Authorization', `Bearer ${adminToken}`)
+          .send({ orderedIds: [1, 2] });
+
+        expect(res.status).toBe(500);
+        expect(res.body).toHaveProperty('code', 'INTERNAL_ERROR');
+      });
+    });
+  });
+
+  describe('PUT /admin/illustrations/reorder', () => {
+    describe('given admin token and orderedIds', () => {
+      it('should return 200 with success message', async () => {
+        mockPrisma.illustration.update.mockResolvedValue({ position: 0 });
+
+        const res = await request(app)
+          .put('/api/v1/admin/illustrations/reorder')
+          .set('Authorization', `Bearer ${adminToken}`)
+          .send({ orderedIds: [2, 1] });
+
+        expect(res.status).toBe(200);
+        expect(res.body.data).toHaveProperty('message');
+      });
+    });
+
+    describe('given no token', () => {
+      it('should return 401', async () => {
+        const res = await request(app)
+          .put('/api/v1/admin/illustrations/reorder')
+          .send({ orderedIds: [1, 2] });
+
+        expect(res.status).toBe(401);
+      });
+    });
+
+    describe('given a non-existent id', () => {
+      it('should return 400 VALIDATION_ERROR', async () => {
+        const notFoundError = new Error('Record to update not found');
+        notFoundError.code = 'P2025';
+        mockPrisma.illustration.update.mockRejectedValue(notFoundError);
+
+        const res = await request(app)
+          .put('/api/v1/admin/illustrations/reorder')
+          .set('Authorization', `Bearer ${adminToken}`)
+          .send({ orderedIds: [999] });
+
+        expect(res.status).toBe(400);
+        expect(res.body).toHaveProperty('code', 'VALIDATION_ERROR');
+      });
+    });
+
+    describe('given database error during reorder', () => {
+      it('should return 500 INTERNAL_ERROR', async () => {
+        mockPrisma.illustration.update.mockRejectedValue(
+          new Error('Database connection failed')
+        );
+
+        const res = await request(app)
+          .put('/api/v1/admin/illustrations/reorder')
+          .set('Authorization', `Bearer ${adminToken}`)
+          .send({ orderedIds: [1, 2] });
+
+        expect(res.status).toBe(500);
+        expect(res.body).toHaveProperty('code', 'INTERNAL_ERROR');
+      });
+    });
+  });
 });

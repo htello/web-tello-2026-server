@@ -69,6 +69,7 @@ jq '.. | objects | select(.name?=="POST /admin/collections")' \
 - Admin > POST /admin/design  `{{baseUrl}}/admin/design`
 - Admin > PUT /admin/design/:id  `{{baseUrl}}/admin/design/1`
 - Admin > DELETE /admin/design/:id  `{{baseUrl}}/admin/design/3`
+- Admin > PUT /admin/design/reorder  `{{baseUrl}}/admin/design/reorder`
 
 ### Illustrations
 - Publicas > GET /illustrations/featured  `{{baseUrl}}/illustrations/featured`
@@ -77,6 +78,7 @@ jq '.. | objects | select(.name?=="POST /admin/collections")' \
 - Admin > POST /admin/illustrations  `{{baseUrl}}/admin/illustrations`
 - Admin > PUT /admin/illustrations/:id  `{{baseUrl}}/admin/illustrations/1`
 - Admin > DELETE /admin/illustrations/:id  `{{baseUrl}}/admin/illustrations/5`
+- Admin > PUT /admin/illustrations/reorder  `{{baseUrl}}/admin/illustrations/reorder`
 
 ### Biography
 - Publica > GET /biography  `{{baseUrl}}/biography`

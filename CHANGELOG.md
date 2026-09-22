@@ -13,6 +13,7 @@ y este proyecto adherido al [Versionado Semántico](https://semver.org/lang/es/)
 - `GET /paintings` público: lista todas las pinturas publicadas (ordenadas por posición, incluyendo colección).
 - `GET /design/featured` y `GET /illustrations/featured`: listan proyectos/ilustraciones destacados y publicados para la portada de sección.
 - `POST /admin/biography`: crea la biografía con subida de imagen (multipart, campo `image`); devuelve 400 si ya existe una.
+- Reordenamiento de diseño e ilustraciones: campo `position Int @default(0)` en `DesignProject` e `Illustration` (migración `add_position_design_illustration`, seed con posiciones iniciales) y nuevos endpoints `PUT /admin/design/reorder` y `PUT /admin/illustrations/reorder` (body `ReorderRequest`; 400 si algún ID no existe). Los listados (`GET /design`, `GET /design/featured`, `GET /illustrations`, `GET /illustrations/featured`, `GET /admin/design`, `GET /admin/illustrations`) ordenan ahora por `position asc`. Sincronizados `docs/openapi.yaml` (+`position` en schemas `DesignProject`/`Illustration`), `docs/openapi-INDEX.md`, colección Postman (+2 requests) y su INDEX.
 
 ### Changed
 - Modelo de publicación/destacado unificado:

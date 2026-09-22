@@ -375,6 +375,8 @@ components:
           type: boolean
         isFeatured:
           type: boolean
+        position:
+          type: integer
 
     DesignRequest:
       type: object
@@ -417,6 +419,8 @@ components:
           type: boolean
         isFeatured:
           type: boolean
+        position:
+          type: integer
 
     IllustrationRequest:
       type: object
@@ -1606,6 +1610,36 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
 
+  /admin/design/reorder:
+    put:
+      tags: [Design]
+      summary: Reordenar proyectos de diseño
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReorderRequest'
+      responses:
+        '200':
+          description: Proyectos reordenados
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
+        '400':
+          description: Solicitud inválida
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: No autenticado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
   /illustrations:
     get:
       tags: [Illustrations]
@@ -1770,6 +1804,36 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
         '404':
           description: No encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /admin/illustrations/reorder:
+    put:
+      tags: [Illustrations]
+      summary: Reordenar ilustraciones
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReorderRequest'
+      responses:
+        '200':
+          description: Ilustraciones reordenadas
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
+        '400':
+          description: Solicitud inválida
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: No autenticado
           content:
             application/json:
               schema:

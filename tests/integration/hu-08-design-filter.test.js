@@ -48,6 +48,7 @@ describe('HU08 - Filtrar Diseño', () => {
         });
         expect(mockPrisma.designProject.findMany).toHaveBeenCalledWith({
           where: { subcategory: 'imagen-corporativa', isPublished: true },
+          orderBy: { position: 'asc' },
         });
       });
     });
