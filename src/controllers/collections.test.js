@@ -15,7 +15,7 @@ vi.mock('../services/logger.js', () => ({
 }));
 
 const logger = (await import('../services/logger.js')).default;
-const { listPublished, getById, create, update, remove, reorder } = await import('../controllers/collections.js');
+const { listPublished, listAll, getById, create, update, remove, reorder } = await import('../controllers/collections.js');
 
 describe('HU01 - Galería de Colecciones', () => {
   let req, res;
@@ -100,6 +100,86 @@ describe('HU01 - Galería de Colecciones', () => {
         mockPrisma.collection.findMany.mockRejectedValue(new Error('DB Error'));
 
         await listPublished(req, res);
+
+        expect(res.status).toHaveBeenCalledWith(500);
+        expect(res.json).toHaveBeenCalledWith({
+          error: 'Error interno del servidor',
+          code: 'INTERNAL_ERROR',
+        });
+      });
+    });
+  });
+
+  describe('listAll', () => {
+    describe('given collections exist (published and unpublished)', () => {
+      it('should return 200 with all collections and paintingsCount', async () => {
+        mockPrisma.collection.findMany.mockResolvedValue([
+          {
+            id: 1,
+            title: 'Colección Uno',
+            description: 'Descripción',
+            coverImage: 'https://example.com/cover.jpg',
+            position: 0,
+            isPublished: true,
+            _count: { paintings: 3 },
+          },
+          {
+            id: 2,
+            title: 'Colección Dos',
+            description: null,
+            coverImage: null,
+            position: 1,
+            isPublished: false,
+            _count: { paintings: 0 },
+          },
+        ]);
+
+        await listAll(req, res);
+
+        expect(res.status).toHaveBeenCalledWith(200);
+
+        const { data } = res.json.mock.calls[0][0];
+        expect(data).toHaveLength(2);
+        expect(data[0]).toMatchObject({
+          id: 1,
+          title: 'Colección Uno',
+          isPublished: true,
+          paintingsCount: 3,
+        });
+        expect(data[1]).toMatchObject({ id: 2, isPublished: false, paintingsCount: 0 });
+        expect(data[0]).not.toHaveProperty('_count');
+      });
+
+      it('should query all collections ordered by position without published filter', async () => {
+        mockPrisma.collection.findMany.mockResolvedValue([]);
+
+        await listAll(req, res);
+
+        expect(mockPrisma.collection.findMany).toHaveBeenCalledWith({
+          orderBy: { position: 'asc' },
+          include: {
+            _count: { select: { paintings: true } },
+          },
+        });
+      });
+    });
+
+    describe('given no collections', () => {
+      it('should return 200 with an empty array', async () => {
+        mockPrisma.collection.findMany.mockResolvedValue([]);
+
+        await listAll(req, res);
+
+        expect(res.status).toHaveBeenCalledWith(200);
+        expect(res.json).toHaveBeenCalledWith({ data: [] });
+      });
+    });
+
+    describe('given a database error', () => {
+      it('should return 500 with internal error', async () => {
+        mockPrisma.collection.findMany.mockRejectedValue(new Error('DB Error'));
+
+        await listAll(req, res);
 
         expect(res.status).toHaveBeenCalledWith(500);
         expect(res.json).toHaveBeenCalledWith({

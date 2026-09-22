@@ -136,15 +136,15 @@ const reorder = async (req, res) => {
 };
 
 /**
- * HU05 - Listar exposiciones
+ * HU05 - Listar exposiciones publicadas
  * Endpoint GET /api/v1/exhibitions
  *
  * @param {Object} req - Request de Express
  * @param {Object} res - Response de Express
- * @returns {Promise<Object>} 200 con exposiciones o 500
+ * @returns {Promise<Object>} 200 con exposiciones publicadas o 500
  * @security Endpoint público (no requiere autenticación)
  */
-const listAll = async (req, res) => {
+const listPublished = async (req, res) => {
   try {
     const exhibitions = await prisma.exhibition.findMany({
       where: { isPublished: true },
@@ -157,4 +157,25 @@ const listAll = async (req, res) => {
   }
 };
 
-export { create, update, remove, reorder, listAll };
+/**
+ * HU07 - Listar todas las exposiciones (admin)
+ * Endpoint GET /api/v1/admin/exhibitions
+ *
+ * @param {Object} req - Request de Express
+ * @param {Object} res - Response de Express
+ * @returns {Promise<Object>} 200 con todas las exposiciones o 500
+ * @security Requiere Bearer token con rol ADMIN
+ */
+const listAll = async (req, res) => {
+  try {
+    const exhibitions = await prisma.exhibition.findMany({
+      orderBy: { position: 'asc' },
+    });
+
+    return sendSuccess(res, exhibitions);
+  } catch (error) {
+    return sendInternalError(res, logger, 'Error al listar exposiciones', error);
+  }
+};
+
+export { create, update, remove, reorder, listPublished, listAll };

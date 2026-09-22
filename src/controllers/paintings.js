@@ -19,6 +19,28 @@ import { parseId, isNotFoundError, isDuplicateError, reorderByPosition } from '.
 import { sendSuccess, sendError, sendNotFound, sendDuplicate, sendInternalError } from '../lib/http-response.js';
 
 /**
+ * HU06 - Listar todas las pinturas (admin)
+ * Endpoint GET /api/v1/admin/paintings
+ *
+ * @param {Object} req - Request de Express
+ * @param {Object} res - Response de Express
+ * @returns {Promise<Object>} 200 con todas las pinturas o 500
+ * @security Requiere Bearer token con rol ADMIN
+ */
+const listAll = async (req, res) => {
+  try {
+    const paintings = await prisma.painting.findMany({
+      orderBy: { position: 'asc' },
+      include: { collection: { select: { id: true, title: true } } },
+    });
+
+    return sendSuccess(res, paintings);
+  } catch (error) {
+    return sendInternalError(res, logger, 'Error al listar pinturas', error);
+  }
+};
+
+/**
  * HU06 - Crear pintura
  * Endpoint POST /api/v1/admin/paintings
  *
@@ -232,4 +254,4 @@ const listPublished = async (req, res) => {
   }
 };
 
-export { create, update, remove, reorder, getById, getFeatured, listPublished };
+export { create, update, remove, reorder, getById, getFeatured, listPublished, listAll };

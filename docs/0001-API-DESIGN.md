@@ -116,6 +116,7 @@
 |--------|----------|-------------|------|
 | `GET` | `/api/v1/collections` | Listar colecciones publicadas | No |
 | `GET` | `/api/v1/collections/:id` | Detalle de colección + sus pinturas | No |
+| `GET` | `/api/v1/admin/collections` | Listar todas las colecciones (publicadas y no publicadas) | Admin |
 | `POST` | `/api/v1/admin/collections` | Crear colección | Admin |
 | `PUT` | `/api/v1/admin/collections/:id` | Editar colección | Admin |
 | `DELETE` | `/api/v1/admin/collections/:id` | Eliminar colección | Admin |
@@ -190,6 +191,7 @@
 |--------|----------|-------------|------|
 | `GET` | `/api/v1/paintings/featured` | Obras destacadas (portada) | No |
 | `GET` | `/api/v1/paintings/:id` | Ficha detallada de pintura | No |
+| `GET` | `/api/v1/admin/paintings` | Listar todas las pinturas (publicadas y no publicadas) | Admin |
 | `POST` | `/api/v1/admin/paintings` | Crear pintura | Admin |
 | `PUT` | `/api/v1/admin/paintings/:id` | Editar pintura | Admin |
 | `DELETE` | `/api/v1/admin/paintings/:id` | Eliminar pintura | Admin |
@@ -253,6 +255,7 @@
 | Método | Endpoint | Descripción | Auth |
 |--------|----------|-------------|------|
 | `GET` | `/api/v1/exhibitions` | Listar exposiciones ordenadas por position | No |
+| `GET` | `/api/v1/admin/exhibitions` | Listar todas las exposiciones (publicadas y no publicadas) | Admin |
 | `POST` | `/api/v1/admin/exhibitions` | Crear exposición | Admin |
 | `PUT` | `/api/v1/admin/exhibitions/:id` | Editar exposición | Admin |
 | `DELETE` | `/api/v1/admin/exhibitions/:id` | Eliminar exposición | Admin |
@@ -295,6 +298,7 @@
 |--------|----------|-------------|------|
 | `GET` | `/api/v1/design` | Listar proyectos de diseño | No |
 | `GET` | `/api/v1/design?subcategory=packaging-expositores` | Filtrar por subcategoría | No |
+| `GET` | `/api/v1/admin/design` | Listar todos los proyectos de diseño (publicados y no publicados) | Admin |
 | `POST` | `/api/v1/admin/design` | Crear proyecto de diseño | Admin |
 | `PUT` | `/api/v1/admin/design/:id` | Editar proyecto de diseño | Admin |
 | `DELETE` | `/api/v1/admin/design/:id` | Eliminar proyecto de diseño | Admin |
@@ -324,6 +328,7 @@
 | Método | Endpoint | Descripción | Auth |
 |--------|----------|-------------|------|
 | `GET` | `/api/v1/illustrations` | Galería de ilustraciones | No |
+| `GET` | `/api/v1/admin/illustrations` | Listar todas las ilustraciones (publicadas y no publicadas) | Admin |
 | `POST` | `/api/v1/admin/illustrations` | Crear ilustración | Admin |
 | `PUT` | `/api/v1/admin/illustrations/:id` | Editar ilustración | Admin |
 | `DELETE` | `/api/v1/admin/illustrations/:id` | Eliminar ilustración | Admin |

@@ -34,6 +34,60 @@ describe('HU10 - Admin Design', () => {
     );
   });
 
+  describe('GET /admin/design', () => {
+    describe('given admin token', () => {
+      it('should return 200 with all projects including unpublished', async () => {
+        mockPrisma.designProject.findMany.mockResolvedValue([
+          { id: 1, title: 'Publicado', subcategory: 'editorial', isPublished: true },
+          { id: 2, title: 'Borrador', subcategory: 'editorial', isPublished: false },
+        ]);
+
+        const res = await request(app)
+          .get('/api/v1/admin/design')
+          .set('Authorization', `Bearer ${adminToken}`);
+
+        expect(res.status).toBe(200);
+        expect(res.body.data).toHaveLength(2);
+        expect(res.body.data[1]).toMatchObject({ id: 2, isPublished: false });
+      });
+    });
+
+    describe('given no token', () => {
+      it('should return 401', async () => {
+        const res = await request(app).get('/api/v1/admin/design');
+
+        expect(res.status).toBe(401);
+      });
+    });
+  });
+
+  describe('GET /admin/illustrations', () => {
+    describe('given admin token', () => {
+      it('should return 200 with all illustrations including unpublished', async () => {
+        mockPrisma.illustration.findMany.mockResolvedValue([
+          { id: 1, title: 'Publicada', imageUrl: 'https://example.com/1.jpg', isPublished: true },
+          { id: 2, title: 'Borrador', imageUrl: 'https://example.com/2.jpg', isPublished: false },
+        ]);
+
+        const res = await request(app)
+          .get('/api/v1/admin/illustrations')
+          .set('Authorization', `Bearer ${adminToken}`);
+
+        expect(res.status).toBe(200);
+        expect(res.body.data).toHaveLength(2);
+        expect(res.body.data[1]).toMatchObject({ id: 2, isPublished: false });
+      });
+    });
+
+    describe('given no token', () => {
+      it('should return 401', async () => {
+        const res = await request(app).get('/api/v1/admin/illustrations');
+
+        expect(res.status).toBe(401);
+      });
+    });
+  });
+
   describe('POST /admin/design', () => {
     describe('given admin token and valid data', () => {
       it('should return 201 with created project', async () => {

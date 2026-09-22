@@ -36,6 +36,50 @@ describe('HU06 - Admin Colecciones y Pinturas', () => {
 
   // ─── COLLECTIONS ────────────────────────────────────────────
 
+  describe('GET /admin/collections', () => {
+    describe('given admin token', () => {
+      it('should return 200 with all collections including unpublished', async () => {
+        mockPrisma.collection.findMany.mockResolvedValue([
+          {
+            id: 1,
+            title: 'Publicada',
+            description: null,
+            coverImage: null,
+            position: 0,
+            isPublished: true,
+            _count: { paintings: 2 },
+          },
+          {
+            id: 2,
+            title: 'Borrador',
+            description: null,
+            coverImage: null,
+            position: 1,
+            isPublished: false,
+            _count: { paintings: 0 },
+          },
+        ]);
+
+        const res = await request(app)
+          .get('/api/v1/admin/collections')
+          .set('Authorization', `Bearer ${adminToken}`);
+
+        expect(res.status).toBe(200);
+        expect(res.body.data).toHaveLength(2);
+        expect(res.body.data[0]).toMatchObject({ id: 1, isPublished: true, paintingsCount: 2 });
+        expect(res.body.data[1]).toMatchObject({ id: 2, isPublished: false, paintingsCount: 0 });
+      });
+    });
+
+    describe('given no token', () => {
+      it('should return 401', async () => {
+        const res = await request(app).get('/api/v1/admin/collections');
+
+        expect(res.status).toBe(401);
+      });
+    });
+  });
+
   describe('POST /admin/collections', () => {
     describe('given admin token and valid title', () => {
       it('should return 201 with created collection', async () => {
@@ -310,6 +354,45 @@ describe('HU06 - Admin Colecciones y Pinturas', () => {
   });
 
   // ─── PAINTINGS ──────────────────────────────────────────────
+
+  describe('GET /admin/paintings', () => {
+    describe('given admin token', () => {
+      it('should return 200 with all paintings including unpublished', async () => {
+        mockPrisma.painting.findMany.mockResolvedValue([
+          {
+            id: 1,
+            title: 'Publicada',
+            imageUrl: 'https://example.com/1.jpg',
+            isPublished: true,
+            collection: { id: 1, title: 'Colección Uno' },
+          },
+          {
+            id: 2,
+            title: 'Borrador',
+            imageUrl: 'https://example.com/2.jpg',
+            isPublished: false,
+            collection: { id: 1, title: 'Colección Uno' },
+          },
+        ]);
+
+        const res = await request(app)
+          .get('/api/v1/admin/paintings')
+          .set('Authorization', `Bearer ${adminToken}`);
+
+        expect(res.status).toBe(200);
+        expect(res.body.data).toHaveLength(2);
+        expect(res.body.data[1]).toMatchObject({ id: 2, isPublished: false });
+      });
+    });
+
+    describe('given no token', () => {
+      it('should return 401', async () => {
+        const res = await request(app).get('/api/v1/admin/paintings');
+
+        expect(res.status).toBe(401);
+      });
+    });
+  });
 
   describe('POST /admin/paintings', () => {
     describe('given admin token and valid data', () => {

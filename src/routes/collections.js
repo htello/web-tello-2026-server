@@ -14,6 +14,13 @@ publicRouter.get('/:id', controller.getById);
 
 const router = Router();
 
+router.get(
+  '/',
+  authenticate,
+  requireAdmin,
+  controller.listAll
+);
+
 router.post(
   '/',
   authenticate,
