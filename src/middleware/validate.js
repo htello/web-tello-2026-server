@@ -184,6 +184,7 @@ const registerSchema = Joi.object({
     .optional()
     .messages({
       'string.base': 'El nombre debe ser una cadena de texto',
+      'string.empty': 'El nombre no puede estar vacío',
     }),
 });
 
@@ -197,18 +198,26 @@ const userUpdateSchema = Joi.object({
     .optional()
     .messages({
       'string.email': 'El email debe ser válido',
+      'string.empty': 'El email no puede estar vacío',
     }),
   name: Joi.string()
     .optional()
-    .allow('', null)
+    .allow(null)
     .messages({
       'string.base': 'El nombre debe ser una cadena de texto',
+      'string.empty': 'El nombre no puede estar vacío',
     }),
   role: Joi.string()
-    .valid('ADMIN', 'USER')
     .optional()
     .messages({
-      'any.only': 'El rol debe ser ADMIN o USER',
+      'string.base': 'El rol debe ser una cadena de texto',
+      'string.empty': 'El rol no puede estar vacío',
+    })
+    .custom((value, helpers) => {
+      if (!['ADMIN', 'USER'].includes(value)) {
+        return helpers.message('El rol debe ser ADMIN o USER');
+      }
+      return value;
     }),
 }).min(1).messages({
   'object.min': 'Debe enviar al menos un campo para actualizar',
@@ -219,7 +228,7 @@ const userUpdateSchema = Joi.object({
  * @type {Joi.ObjectSchema}
  */
 const passwordResetSchema = Joi.object({
-  password: passwordField(),
+  password: passwordField({ strong: true }),
 });
 
 /**
@@ -427,7 +436,7 @@ const contactSchema = Joi.object({
       'any.required': 'El nombre es obligatorio',
       'string.empty': 'El nombre no puede estar vacío',
     }),
-  email: emailField({ withEmpty: false }),
+  email: emailField(),
   subject: Joi.string()
     .required()
     .messages({

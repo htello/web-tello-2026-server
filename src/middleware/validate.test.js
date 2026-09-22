@@ -10,6 +10,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import {
   validate,
+  userUpdateSchema,
   paintingUpdateSchema,
   exhibitionUpdateSchema,
   designUpdateSchema,
@@ -46,6 +47,39 @@ describe('HU - Validate Middleware (schemas de actualización)', () => {
         code: 'VALIDATION_ERROR',
       });
       expect(next).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('userUpdateSchema (rol)', () => {
+    it('should return 400 when role is empty', () => {
+      req.body = { role: '' };
+      validate(userUpdateSchema)(req, res, next);
+
+      expect(res.status).toHaveBeenCalledWith(400);
+      expect(res.json).toHaveBeenCalledWith({
+        error: 'El rol no puede estar vacío',
+        code: 'VALIDATION_ERROR',
+      });
+      expect(next).not.toHaveBeenCalled();
+    });
+
+    it('should return 400 when role is invalid', () => {
+      req.body = { role: 'VIEWER' };
+      validate(userUpdateSchema)(req, res, next);
+
+      expect(res.status).toHaveBeenCalledWith(400);
+      expect(res.json).toHaveBeenCalledWith({
+        error: 'El rol debe ser ADMIN o USER',
+        code: 'VALIDATION_ERROR',
+      });
+      expect(next).not.toHaveBeenCalled();
+    });
+
+    it('should pass when role is valid', () => {
+      req.body = { role: 'ADMIN' };
+      validate(userUpdateSchema)(req, res, next);
+
+      expect(next).toHaveBeenCalled();
     });
   });
 });
