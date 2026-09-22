@@ -1070,7 +1070,8 @@
                   "mode": "formdata",
                   "formdata": [
                     { "key": "content", "value": "Biografia del artista Antonio Tello. Con mas de 10 anos de experiencia en el mundo del arte y el diseno.", "type": "text" },
-                    { "key": "image", "type": "file", "src": "" }
+                    { "key": "imageUrl", "value": "", "type": "text", "description": "Opcional: URL de la imagen (alternativa recomendada; subir antes vía POST /admin/upload)" },
+                    { "key": "image", "type": "file", "src": "", "disabled": true, "description": "Opcional: habilita y selecciona un archivo real para subirlo directamente" }
                   ]
                 },
                 "url": {
@@ -1094,7 +1095,8 @@
                   "mode": "formdata",
                   "formdata": [
                     { "key": "content", "value": "Biografia actualizada del artista Antonio Tello.", "type": "text" },
-                    { "key": "image", "type": "file", "src": "" }
+                    { "key": "imageUrl", "value": "", "type": "text", "description": "Opcional: URL de la imagen; si se omite o va vacía, se preserva la existente" },
+                    { "key": "image", "type": "file", "src": "", "disabled": true, "description": "Opcional: habilita y selecciona un archivo real para reemplazar la imagen" }
                   ]
                 },
                 "url": {
@@ -1150,7 +1152,7 @@
             "body": {
               "mode": "formdata",
               "formdata": [
-                { "key": "file", "type": "file", "src": "" },
+                { "key": "file", "type": "file", "src": "", "disabled": true, "description": "Habilita esta fila y selecciona una imagen real (JPEG/PNG/WebP, máx 5MB). Sin archivo, el servidor responde 400 'No se proporcionó archivo'." },
                 { "key": "section", "value": "pintura", "type": "text" }
               ]
             },
@@ -1174,7 +1176,7 @@
             "body": {
               "mode": "formdata",
               "formdata": [
-                { "key": "file", "type": "file", "src": "" },
+                { "key": "file", "type": "file", "src": "", "disabled": true, "description": "Habilita esta fila y selecciona una imagen real (JPEG/PNG/WebP, máx 5MB). Sin archivo, el servidor responde 400 'No se proporcionó archivo'." },
                 { "key": "section", "value": "ilustracion", "type": "text" }
               ]
             },
@@ -1198,7 +1200,7 @@
             "body": {
               "mode": "formdata",
               "formdata": [
-                { "key": "file", "type": "file", "src": "" },
+                { "key": "file", "type": "file", "src": "", "disabled": true, "description": "Habilita esta fila y selecciona una imagen real (JPEG/PNG/WebP, máx 5MB). Sin archivo, el servidor responde 400 'No se proporcionó archivo'." },
                 { "key": "section", "value": "diseno", "type": "text" }
               ]
             },
