@@ -55,6 +55,14 @@ CAMBIOS DE fix/endpoints (rama en curso, pendiente de merge a develop):
 - Pendiente al iniciar el front: configurar CORS_ORIGIN en .env (src/app.js acepta un único origen; en producción, dominio del hosting). Solo añadir soporte multi-origen si se necesitan varios a la vez.
 - Riesgo aceptado: uploads huérfanos en Cloudinary si el admin abandona un formulario tras subir imagen (bajo volumen; limpieza futura opcional).
 
+CAMBIOS DE chore/docker-deploy (rama en curso):
+- Fix contacto: POST /contact devuelve 502 EMAIL_ERROR si el envío SMTP falla (antes daba 201 falso).
+- Nuevo GET /api/v1/health/db (SELECT 1; 200/503) para monitorización y ping anti-pausa.
+- Dockerización: Dockerfile (node:22-alpine + pnpm 9 + prisma generate, no-root), docker-entrypoint.sh (migrate deploy + start) y render.yaml (Blueprint Render, free, rama main). Imagen verificada en local contra la BD del compose (health, health/db y collections OK).
+- scripts/bootstrap-admin.js: primer ADMIN de producción vía env (ADMIN_EMAIL/ADMIN_PASS fuerte, upsert, sin secretos en logs). NO ejecutar prisma db seed en prod.
+- docs/DEPLOY.md: guía Render + Supabase (URLs de conexión, env checklist, bootstrap, cron-job.org ping cada 10 min a /health/db, ciclo develop→main).
+- PENDIENTES manuales: crear proyecto Supabase (Frankfurt) + Blueprint en Render con envs reales; bootstrap admin; ping cron-job.org; configurar SMTP real (contacto dará 502 hasta entonces); CORS_ORIGIN cuando exista el front.
+
 REGLAS DE SESIÓN (ESTRICTAS):
 1. Verificar siempre la rama antes de trabajar (`hu/XX-nombre`). NUNCA escribir código directo en `develop`.
 2. Seguir TDD estricto (RED → GREEN → REFACTOR) y mantener 100% de cobertura.

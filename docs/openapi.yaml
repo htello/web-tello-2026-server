@@ -2015,3 +2015,36 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/HealthResponse'
+
+  /health/db:
+    get:
+      tags: [Health]
+      summary: Estado de la base de datos
+      description: Comprueba la conectividad con PostgreSQL (SELECT 1). Útil para monitorización externa y pings anti-pausa de free tiers.
+      security: []
+      responses:
+        '200':
+          description: Base de datos operativa
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      status:
+                        type: string
+                        example: ok
+                      db:
+                        type: string
+                        example: up
+                      timestamp:
+                        type: string
+                        format: date-time
+        '503':
+          description: Base de datos no disponible
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'

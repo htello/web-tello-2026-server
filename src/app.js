@@ -18,6 +18,7 @@ import cors from 'cors';
 import logger from './services/logger.js';
 import routes from './routes/index.js';
 import { loginLimiter } from './middleware/rateLimiter.js';
+import { dbCheck } from './controllers/health.js';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -52,6 +53,13 @@ app.use('/api/v1/auth/login', loginLimiter);
 app.get('/api/v1/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
+
+/**
+ * Health check de base de datos (monitorización / ping anti-pausa)
+ * GET /api/v1/health/db
+ * Retorna 200 si la BD responde, 503 en caso contrario
+ */
+app.get('/api/v1/health/db', dbCheck);
 
 // Rutas de la API v1
 app.use('/api/v1', routes);

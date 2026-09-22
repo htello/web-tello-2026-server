@@ -7,6 +7,15 @@ y este proyecto adherido al [Versionado Semántico](https://semver.org/lang/es/)
 
 ## [Unreleased]
 
+### Added (despliegue)
+- `GET /api/v1/health/db`: health check de base de datos (`SELECT 1`; 200 `{status:'ok',db:'up'}` / 503 `SERVICE_UNAVAILABLE`). Nuevo `src/controllers/health.js`; pensado para monitorización y ping anti-pausa de free tiers. Sincronizados `docs/openapi.yaml`, `docs/openapi-INDEX.md`, colección Postman (+request) e INDEX.
+- Dockerización: `Dockerfile` (node:22-alpine, pnpm 9, prisma generate, usuario no-root), `docker-entrypoint.sh` (`prisma migrate deploy` → `node src/app.js`) y `render.yaml` (Blueprint Render: web Docker free, rama `main`, healthcheck `/api/v1/health`, env vars con `sync:false` para secretos y `generateValue` para `JWT_SECRET`).
+- `scripts/bootstrap-admin.js`: crea/promueve el primer ADMIN en producción vía upsert con `ADMIN_EMAIL`/`ADMIN_PASS` por env (política de contraseña fuerte; sin secretos en logs). Fuera de `src/`, no computa cobertura.
+- `docs/DEPLOY.md`: guía completa de despliegue Render + Supabase (connection strings, env checklist, bootstrap admin, ping anti-pausa, ciclo de despliegue).
+
+### Fixed
+- `POST /contact` devolvía `201 "Mensaje enviado correctamente"` aunque el envío SMTP fallara (`sendContactEmail` retorna `{success:false}` sin lanzar excepción). Ahora responde `502 EMAIL_ERROR` "No se pudo enviar el mensaje. Inténtalo de nuevo más tarde" y registra el fallo con Winston.
+
 ### Added
 - Listados admin sin filtro de publicación para que el panel pueda mostrar y seleccionar cualquier elemento (publicado o no): `GET /admin/collections`, `GET /admin/paintings`, `GET /admin/exhibitions`, `GET /admin/design` y `GET /admin/illustrations`.
 - Gestión de usuarios (Admin): `GET /admin/users` (paginación con `meta`), `GET /admin/users/:id`, `PUT /admin/users/:id`, `DELETE /admin/users/:id` y `PUT /admin/users/:id/password`. Nuevo `src/controllers/users.js`, `src/routes/users.js`, schemas `userUpdateSchema`/`passwordResetSchema` y helper `sendPaginated`.

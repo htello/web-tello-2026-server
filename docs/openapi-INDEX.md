@@ -1,6 +1,6 @@
 # Índice OpenAPI — Portfolio API
 
-> Mapa ligero de `docs/openapi.yaml` (fuente de verdad, 2017 líneas).
+> Mapa ligero de `docs/openapi.yaml` (fuente de verdad, 2050 líneas).
 > Leer ESTE índice y abrir solo el bloque necesario con `offset/limit` ahorra ~85% de tokens.
 
 ## Uso
@@ -51,6 +51,7 @@
 | /contact | POST L1929 |
 | /admin/upload | POST L1961 |
 | /health | GET L2007 |
+| /health/db | GET L2020 |
 
 ## Schemas (nombre @línea)
 ErrorResponse L53 · PaginationMeta L74 · RegisterRequest L86 · LoginRequest L103 · AuthResponse L115 · User L126 · UserUpdateRequest L143 · PasswordResetRequest L155 · Collection L164 · CollectionDetail L183 · CollectionRequest L193 · ReorderRequest L210 · PaintingSummary L220 · PaintingDetail L239 · PaintingRequest L252 · PaintingUpdateRequest L279 · PaintingReorderRequest L303 · Exhibition L316 · ExhibitionRequest L335 · DesignProject L355 · DesignRequest L381 · Illustration L406 · IllustrationRequest L425 · Biography L442 · BiographyRequest L456 · ContactRequest L470 · ContactResponse L488 · UploadResponse L498 · HealthResponse L517 · MessageResponse L527

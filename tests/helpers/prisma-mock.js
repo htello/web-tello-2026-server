@@ -49,6 +49,7 @@ const createPrismaMock = () => ({
     create: vi.fn(),
     update: vi.fn(),
   },
+  $queryRaw: vi.fn(),
   $transaction: vi.fn((fns) => Promise.all(fns)),
 });
 
