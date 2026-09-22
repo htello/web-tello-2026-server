@@ -40,6 +40,7 @@ y este proyecto adherido al [Versionado Semántico](https://semver.org/lang/es/)
 - `POST/PUT /admin/exhibitions` ignoraban `position`. Ahora `exhibitionSchema`/`exhibitionUpdateSchema` lo validan y `create`/`update` lo persisten.
 - `PUT /admin/{collections,paintings,exhibitions}/reorder` devolvían `500` cuando `orderedIds` contenía un ID inexistente; ahora devuelven `400 VALIDATION_ERROR` ("Uno o más IDs no existen").
 - Colección Postman: script de login ahora guarda el token en `environment` o `collection` según exista; `PUT /admin/biography` incluye `Content-Type: application/json`; contraseña de ejemplo de registro ajustada a la política de complejidad.
+- CI (GitHub Actions) fallaba en todos los merges a `develop` desde que se activaron los umbrales de cobertura 100%: en CI `JWT_SECRET` está definido (ci.yml), por lo que la rama fallback de `src/lib/constants.js` (`process.env.JWT_SECRET || 'default'`) nunca se evaluaba y la cobertura global de ramas quedaba en 99.69%. Añadido `src/lib/constants.test.js` que cubre ambas ramas con `vi.stubEnv` + `vi.resetModules` + import dinámico; la cobertura es 100% con y sin la variable de entorno definida.
 
 ## [0.3.0] - 2026-09-21
 
