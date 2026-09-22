@@ -1876,6 +1876,15 @@ paths:
                   type: string
                   format: binary
                   description: Imagen (JPEG, PNG, WebP)
+                section:
+                  type: string
+                  enum:
+                    - pintura
+                    - ilustracion
+                    - diseno
+                    - general
+                  default: general
+                  description: Subcarpeta de destino en Cloudinary. Si se omite, se usa "general". Un valor fuera del enum devuelve 400.
       responses:
         '200':
           description: Imagen subida

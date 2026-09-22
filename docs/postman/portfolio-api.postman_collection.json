@@ -249,6 +249,23 @@
           "name": "Admin",
           "item": [
             {
+              "name": "GET /admin/collections",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{authToken}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/admin/collections",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["admin", "collections"]
+                }
+              }
+            },
+            {
               "name": "POST /admin/collections",
               "request": {
                 "method": "POST",
@@ -392,6 +409,23 @@
           "name": "Admin",
           "item": [
             {
+              "name": "GET /admin/paintings",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{authToken}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/admin/paintings",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["admin", "paintings"]
+                }
+              }
+            },
+            {
               "name": "POST /admin/paintings",
               "request": {
                 "method": "POST",
@@ -519,6 +553,23 @@
         {
           "name": "Admin",
           "item": [
+            {
+              "name": "GET /admin/exhibitions",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{authToken}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/admin/exhibitions",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["admin", "exhibitions"]
+                }
+              }
+            },
             {
               "name": "POST /admin/exhibitions",
               "request": {
@@ -711,6 +762,23 @@
           "name": "Admin",
           "item": [
             {
+              "name": "GET /admin/design",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{authToken}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/admin/design",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["admin", "design"]
+                }
+              }
+            },
+            {
               "name": "POST /admin/design",
               "request": {
                 "method": "POST",
@@ -822,6 +890,23 @@
         {
           "name": "Admin",
           "item": [
+            {
+              "name": "GET /admin/illustrations",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{authToken}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/admin/illustrations",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["admin", "illustrations"]
+                }
+              }
+            },
             {
               "name": "POST /admin/illustrations",
               "request": {

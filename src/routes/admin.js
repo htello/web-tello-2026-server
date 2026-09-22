@@ -53,10 +53,8 @@ router.use('/collections', collectionsRoutes);
 /**
  * Rutas de pinturas
  * - POST /paintings → HU06: Crear pintura
- * - PUT /paintings/:id → HU06: Actualizar pintura
+ * - PUT /paintings/:id → HU06: Actualizar pintura (incluye toggle destacada/publicada)
  * - DELETE /paintings/:id → HU06: Eliminar pintura
- * - PUT /paintings/:id/feature → HU06: Toggle destacada
- * - PUT /paintings/:id/publish → HU06: Toggle publicada
  * - PUT /paintings/reorder → HU06: Reordenar pinturas
  */
 router.use('/paintings', paintingsRoutes);
