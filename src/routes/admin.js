@@ -73,6 +73,7 @@ router.use('/exhibitions', exhibitionsRoutes);
  * - POST /design → HU10: Crear proyecto de diseño
  * - PUT /design/:id → HU10: Actualizar proyecto de diseño
  * - DELETE /design/:id → HU10: Eliminar proyecto de diseño
+ * - PUT /design/reorder → HU10: Reordenar proyectos de diseño
  */
 router.use('/design', designRoutes);
 
@@ -81,6 +82,7 @@ router.use('/design', designRoutes);
  * - POST /illustrations → HU10: Crear ilustración
  * - PUT /illustrations/:id → HU10: Actualizar ilustración
  * - DELETE /illustrations/:id → HU10: Eliminar ilustración
+ * - PUT /illustrations/reorder → HU10: Reordenar ilustraciones
  */
 router.use('/illustrations', illustrationsRoutes);
 

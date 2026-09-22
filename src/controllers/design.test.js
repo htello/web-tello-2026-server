@@ -1,7 +1,7 @@
 /**
  * @fileoverview Tests unitarios del controller de proyectos de diseño.
  *
- * Cubre HU09 - Admin Diseño: create, update, remove.
+ * Cubre HU09 - Admin Diseño: create, update, remove, reorder.
  *
  * @module controllers/design.test
  */
@@ -18,7 +18,7 @@ vi.mock('../services/logger.js', () => ({
   default: { info: vi.fn(), error: vi.fn(), warn: vi.fn() },
 }));
 
-const { create, update, remove, listAll, listFiltered, listFeatured } = await import('./design.js');
+const { create, update, remove, reorder, listAll, listFiltered, listFeatured } = await import('./design.js');
 const { resolveImageUrl } = await import('../services/upload.js');
 const logger = (await import('../services/logger.js')).default;
 
@@ -45,7 +45,9 @@ describe('HU09 - Admin Diseño', () => {
 
         await listAll(req, res);
 
-        expect(mockPrisma.designProject.findMany).toHaveBeenCalledWith();
+        expect(mockPrisma.designProject.findMany).toHaveBeenCalledWith({
+          orderBy: { position: 'asc' },
+        });
         expect(res.status).toHaveBeenCalledWith(200);
         expect(res.json).toHaveBeenCalledWith({
           data: [
@@ -84,24 +86,16 @@ describe('HU09 - Admin Diseño', () => {
 
   describe('listFiltered', () => {
     describe('given no subcategory', () => {
-      it('should return 200 with all projects', async () => {
-        mockPrisma.designProject.findMany.mockResolvedValue([
-          { id: 1, title: 'Proyecto A', subcategory: 'imagen-corporativa' },
-          { id: 2, title: 'Proyecto B', subcategory: 'editorial' },
-        ]);
+      it('should return 400 VALIDATION_ERROR', async () => {
         req.query = {};
 
         await listFiltered(req, res);
 
-        expect(mockPrisma.designProject.findMany).toHaveBeenCalledWith({
-          where: { isPublished: true },
-        });
-        expect(res.status).toHaveBeenCalledWith(200);
+        expect(mockPrisma.designProject.findMany).not.toHaveBeenCalled();
+        expect(res.status).toHaveBeenCalledWith(400);
         expect(res.json).toHaveBeenCalledWith({
-          data: [
-            { id: 1, title: 'Proyecto A', subcategory: 'imagen-corporativa' },
-            { id: 2, title: 'Proyecto B', subcategory: 'editorial' },
-          ],
+          error: 'La subcategoría es obligatoria',
+          code: 'VALIDATION_ERROR',
         });
       });
     });
@@ -117,6 +111,7 @@ describe('HU09 - Admin Diseño', () => {
 
         expect(mockPrisma.designProject.findMany).toHaveBeenCalledWith({
           where: { subcategory: 'imagen-corporativa', isPublished: true },
+          orderBy: { position: 'asc' },
         });
         expect(res.status).toHaveBeenCalledWith(200);
         expect(res.json).toHaveBeenCalledWith({
@@ -134,6 +129,7 @@ describe('HU09 - Admin Diseño', () => {
 
         expect(mockPrisma.designProject.findMany).toHaveBeenCalledWith({
           where: { subcategory: 'packaging-expositores', isPublished: true },
+          orderBy: { position: 'asc' },
         });
         expect(res.status).toHaveBeenCalledWith(200);
         expect(res.json).toHaveBeenCalledWith({ data: [] });
@@ -158,7 +154,7 @@ describe('HU09 - Admin Diseño', () => {
     describe('given a database error', () => {
       it('should return 500 INTERNAL_ERROR', async () => {
         mockPrisma.designProject.findMany.mockRejectedValue(new Error('DB Error'));
-        req.query = {};
+        req.query = { subcategory: 'editorial' };
 
         await listFiltered(req, res);
 
@@ -183,6 +179,7 @@ describe('HU09 - Admin Diseño', () => {
 
         expect(mockPrisma.designProject.findMany).toHaveBeenCalledWith({
           where: { isFeatured: true, isPublished: true },
+          orderBy: { position: 'asc' },
         });
         expect(res.status).toHaveBeenCalledWith(200);
         expect(res.json).toHaveBeenCalledWith({
@@ -526,6 +523,56 @@ describe('HU09 - Admin Diseño', () => {
         req.params = { id: '1' };
 
         await remove(req, res);
+
+        expect(res.status).toHaveBeenCalledWith(500);
+        expect(res.json).toHaveBeenCalledWith({
+          error: 'Error interno del servidor',
+          code: 'INTERNAL_ERROR',
+        });
+      });
+    });
+  });
+
+  describe('reorder', () => {
+    describe('given orderedIds', () => {
+      it('should return 200 with success message', async () => {
+        mockPrisma.designProject.update.mockResolvedValue({ id: 2, position: 0 });
+        req.body = { orderedIds: [2, 1] };
+
+        await reorder(req, res);
+
+        expect(mockPrisma.$transaction).toHaveBeenCalledWith(expect.any(Array));
+        expect(res.status).toHaveBeenCalledWith(200);
+        expect(res.json).toHaveBeenCalledWith({
+          data: { message: 'Orden actualizado correctamente' },
+        });
+        expect(logger.info).toHaveBeenCalled();
+      });
+    });
+
+    describe('given a non-existent id', () => {
+      it('should return 400 VALIDATION_ERROR', async () => {
+        const notFoundError = new Error('Record to update not found');
+        notFoundError.code = 'P2025';
+        mockPrisma.designProject.update.mockRejectedValue(notFoundError);
+        req.body = { orderedIds: [999] };
+
+        await reorder(req, res);
+
+        expect(res.status).toHaveBeenCalledWith(400);
+        expect(res.json).toHaveBeenCalledWith({
+          error: 'Uno o más IDs no existen',
+          code: 'VALIDATION_ERROR',
+        });
+      });
+    });
+
+    describe('given a database error', () => {
+      it('should return 500 INTERNAL_ERROR', async () => {
+        mockPrisma.designProject.update.mockRejectedValue(new Error('DB Error'));
+        req.body = { orderedIds: [1, 2] };
+
+        await reorder(req, res);
 
         expect(res.status).toHaveBeenCalledWith(500);
         expect(res.json).toHaveBeenCalledWith({

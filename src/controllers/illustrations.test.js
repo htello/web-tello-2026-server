@@ -1,7 +1,7 @@
 /**
  * @fileoverview Tests unitarios del controller de ilustraciones.
  *
- * Cubre HU08 - Admin Ilustraciones: create, update, remove.
+ * Cubre HU08 - Admin Ilustraciones: create, update, remove, reorder.
  *
  * @module controllers/illustrations.test
  */
@@ -18,7 +18,7 @@ vi.mock('../services/logger.js', () => ({
   default: { info: vi.fn(), error: vi.fn(), warn: vi.fn() },
 }));
 
-const { create, update, remove, listPublished, listAll, listFeatured } = await import('./illustrations.js');
+const { create, update, remove, reorder, listPublished, listAll, listFeatured } = await import('./illustrations.js');
 const { resolveImageUrl } = await import('../services/upload.js');
 const logger = (await import('../services/logger.js')).default;
 
@@ -47,6 +47,7 @@ describe('HU08 - Admin Ilustraciones', () => {
 
         expect(mockPrisma.illustration.findMany).toHaveBeenCalledWith({
           where: { isPublished: true },
+          orderBy: { position: 'asc' },
         });
         expect(res.status).toHaveBeenCalledWith(200);
         expect(res.json).toHaveBeenCalledWith({
@@ -95,7 +96,9 @@ describe('HU08 - Admin Ilustraciones', () => {
 
         await listAll(req, res);
 
-        expect(mockPrisma.illustration.findMany).toHaveBeenCalledWith();
+        expect(mockPrisma.illustration.findMany).toHaveBeenCalledWith({
+          orderBy: { position: 'asc' },
+        });
         expect(res.status).toHaveBeenCalledWith(200);
         expect(res.json).toHaveBeenCalledWith({
           data: [
@@ -143,6 +146,7 @@ describe('HU08 - Admin Ilustraciones', () => {
 
         expect(mockPrisma.illustration.findMany).toHaveBeenCalledWith({
           where: { isFeatured: true, isPublished: true },
+          orderBy: { position: 'asc' },
         });
         expect(res.status).toHaveBeenCalledWith(200);
         expect(res.json).toHaveBeenCalledWith({
@@ -467,6 +471,56 @@ describe('HU08 - Admin Ilustraciones', () => {
         req.params = { id: '1' };
 
         await remove(req, res);
+
+        expect(res.status).toHaveBeenCalledWith(500);
+        expect(res.json).toHaveBeenCalledWith({
+          error: 'Error interno del servidor',
+          code: 'INTERNAL_ERROR',
+        });
+      });
+    });
+  });
+
+  describe('reorder', () => {
+    describe('given orderedIds', () => {
+      it('should return 200 with success message', async () => {
+        mockPrisma.illustration.update.mockResolvedValue({ id: 2, position: 0 });
+        req.body = { orderedIds: [2, 1] };
+
+        await reorder(req, res);
+
+        expect(mockPrisma.$transaction).toHaveBeenCalledWith(expect.any(Array));
+        expect(res.status).toHaveBeenCalledWith(200);
+        expect(res.json).toHaveBeenCalledWith({
+          data: { message: 'Orden actualizado correctamente' },
+        });
+        expect(logger.info).toHaveBeenCalled();
+      });
+    });
+
+    describe('given a non-existent id', () => {
+      it('should return 400 VALIDATION_ERROR', async () => {
+        const notFoundError = new Error('Record to update not found');
+        notFoundError.code = 'P2025';
+        mockPrisma.illustration.update.mockRejectedValue(notFoundError);
+        req.body = { orderedIds: [999] };
+
+        await reorder(req, res);
+
+        expect(res.status).toHaveBeenCalledWith(400);
+        expect(res.json).toHaveBeenCalledWith({
+          error: 'Uno o más IDs no existen',
+          code: 'VALIDATION_ERROR',
+        });
+      });
+    });
+
+    describe('given a database error', () => {
+      it('should return 500 INTERNAL_ERROR', async () => {
+        mockPrisma.illustration.update.mockRejectedValue(new Error('DB Error'));
+        req.body = { orderedIds: [1, 2] };
+
+        await reorder(req, res);
 
         expect(res.status).toHaveBeenCalledWith(500);
         expect(res.json).toHaveBeenCalledWith({

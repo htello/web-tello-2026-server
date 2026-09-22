@@ -125,9 +125,52 @@ const optionalTextField = () => Joi.string().optional().allow('', null);
  */
 const booleanField = () => Joi.boolean()
   .optional()
+  .empty('')
   .messages({
     'boolean.base': 'El valor debe ser booleano',
   });
+
+/**
+ * Campo `position` numérico opcional.
+ *
+ * Acepta strings numéricos (multipart/form-data) y trata el string
+ * vacío como campo no enviado (`.empty('')`).
+ *
+ * @returns {Joi.NumberSchema} Campo Joi
+ */
+const positionField = () => Joi.number()
+  .integer()
+  .min(0)
+  .optional()
+  .empty('')
+  .messages({
+    'number.base': 'La posición debe ser un número',
+    'number.integer': 'La posición debe ser un número entero',
+    'number.min': 'La posición no puede ser negativa',
+  });
+
+/**
+ * Campo `year` numérico (1900-2100), requerido u opcional.
+ *
+ * Acepta strings numéricos (multipart/form-data) y trata el string
+ * vacío como campo no enviado (`.empty('')`); en modo opcional
+ * admite null.
+ *
+ * @param {Object} [options] - Opciones del campo
+ * @param {boolean} [options.required=false] - Indica si el campo es requerido
+ * @returns {Joi.NumberSchema} Campo Joi
+ */
+const yearField = ({ required = false } = {}) => {
+  const base = Joi.number()
+    .integer()
+    .min(1900)
+    .max(2100)
+    .empty('');
+  const field = required ? base.required() : base.optional().allow(null);
+  return field.messages({
+    ...(required && { 'any.required': 'El año es obligatorio' }),
+  });
+};
 
 /**
  * Campo `subcategory` requerido u opcional, validado contra constantes.
@@ -156,7 +199,7 @@ const subcategoryField = ({ required = false } = {}) => {
  * @returns {Joi.DateSchema} Campo Joi
  */
 const dateField = ({ required = false } = {}) => {
-  const base = Joi.date().iso();
+  const base = Joi.date().iso().empty('');
   const field = required ? base.required() : base.optional();
   return field.messages({
     ...(required && { 'any.required': 'La fecha es obligatoria' }),
@@ -239,17 +282,10 @@ const collectionSchema = Joi.object({
   title: titleField({ required: true }),
   description: optionalTextField(),
   coverImage: imageUrlField(),
-  position: Joi.number()
-    .integer()
-    .min(0)
-    .optional()
-    .messages({
-      'number.base': 'La posición debe ser un número',
-      'number.integer': 'La posición debe ser un número entero',
-      'number.min': 'La posición no puede ser negativa',
-    }),
+  position: positionField(),
   isPublished: Joi.boolean()
     .optional()
+    .empty('')
     .messages({
       'boolean.base': 'isPublished debe ser un booleano',
     }),
@@ -257,7 +293,8 @@ const collectionSchema = Joi.object({
 
 /**
  * Schema de validación para pinturas
- * imageUrl es opcional porque puede venir de un archivo upload
+ * imageUrl es opcional porque puede venir de un archivo upload;
+ * year es obligatorio al crear
  * @type {Joi.ObjectSchema}
  */
 const paintingSchema = Joi.object({
@@ -267,18 +304,14 @@ const paintingSchema = Joi.object({
     .integer()
     .positive()
     .required()
+    .empty('')
     .messages({
       'any.required': 'La colección es obligatoria',
       'number.base': 'La colección debe ser un número',
     }),
   dimensions: optionalTextField(),
   technique: optionalTextField(),
-  year: Joi.number()
-    .integer()
-    .min(1900)
-    .max(2100)
-    .optional()
-    .allow(null),
+  year: yearField({ required: true }),
   isPublished: booleanField(),
   isFeatured: booleanField(),
 });
@@ -294,17 +327,13 @@ const paintingUpdateSchema = Joi.object({
     .integer()
     .positive()
     .optional()
+    .empty('')
     .messages({
       'number.base': 'La colección debe ser un número',
     }),
   dimensions: optionalTextField(),
   technique: optionalTextField(),
-  year: Joi.number()
-    .integer()
-    .min(1900)
-    .max(2100)
-    .optional()
-    .allow(null),
+  year: yearField(),
   isPublished: booleanField(),
   isFeatured: booleanField(),
 }).min(1).messages({
@@ -320,15 +349,7 @@ const exhibitionSchema = Joi.object({
   date: dateField({ required: true }),
   location: optionalTextField(),
   description: optionalTextField(),
-  position: Joi.number()
-    .integer()
-    .min(0)
-    .optional()
-    .messages({
-      'number.base': 'La posición debe ser un número',
-      'number.integer': 'La posición debe ser un número entero',
-      'number.min': 'La posición no puede ser negativa',
-    }),
+  position: positionField(),
   isPublished: booleanField(),
 });
 
@@ -341,15 +362,7 @@ const exhibitionUpdateSchema = Joi.object({
   date: dateField(),
   location: optionalTextField(),
   description: optionalTextField(),
-  position: Joi.number()
-    .integer()
-    .min(0)
-    .optional()
-    .messages({
-      'number.base': 'La posición debe ser un número',
-      'number.integer': 'La posición debe ser un número entero',
-      'number.min': 'La posición no puede ser negativa',
-    }),
+  position: positionField(),
   isPublished: booleanField(),
 }).min(1).messages({
   'object.min': 'Debe enviar al menos un campo para actualizar',

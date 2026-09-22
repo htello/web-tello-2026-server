@@ -321,10 +321,7 @@ describe('HU06 - Admin Colecciones y Pinturas', () => {
   describe('PUT /admin/collections/reorder', () => {
     describe('given admin token and orderedIds', () => {
       it('should return 200 with success message', async () => {
-        mockPrisma.collection.update
-          .mockResolvedValueOnce({ id: 3, position: 0 })
-          .mockResolvedValueOnce({ id: 1, position: 1 })
-          .mockResolvedValueOnce({ id: 2, position: 2 });
+        mockPrisma.collection.update.mockResolvedValue({ position: 0 });
 
         const res = await request(app)
           .put('/api/v1/admin/collections/reorder')
@@ -480,6 +477,7 @@ describe('HU06 - Admin Colecciones y Pinturas', () => {
             title: 'Test',
             imageUrl: 'https://test.com/img.jpg',
             collectionId: 1,
+            year: 2024,
           });
 
         expect(res.status).toBe(500);
@@ -515,6 +513,7 @@ describe('HU06 - Admin Colecciones y Pinturas', () => {
           .set('Authorization', `Bearer ${adminToken}`)
           .field('title', 'Pintura Upload')
           .field('collectionId', '1')
+          .field('year', '2024')
           .attach('image', Buffer.from('fake-image-data'), { filename: 'test.jpg', contentType: 'image/jpeg' });
 
         expect(res.status).toBe(201);
@@ -532,9 +531,23 @@ describe('HU06 - Admin Colecciones y Pinturas', () => {
           .post('/api/v1/admin/paintings')
           .set('Authorization', `Bearer ${adminToken}`)
           .field('title', 'Sin imagen')
-          .field('collectionId', '1');
+          .field('collectionId', '1')
+          .field('year', '2024');
 
         expect(res.status).toBe(400);
+      });
+    });
+
+    describe('given missing year', () => {
+      it('should return 400 VALIDATION_ERROR', async () => {
+        const res = await request(app)
+          .post('/api/v1/admin/paintings')
+          .set('Authorization', `Bearer ${adminToken}`)
+          .send({ title: 'Test', imageUrl: 'https://test.com/img.jpg', collectionId: 1 });
+
+        expect(res.status).toBe(400);
+        expect(res.body).toHaveProperty('code', 'VALIDATION_ERROR');
+        expect(res.body.error).toBe('El año es obligatorio');
       });
     });
 
@@ -552,6 +565,7 @@ describe('HU06 - Admin Colecciones y Pinturas', () => {
             title: 'Atardecer',
             imageUrl: 'https://test.com/img.jpg',
             collectionId: 1,
+            year: 2024,
           });
 
         expect(res.status).toBe(400);
@@ -570,6 +584,7 @@ describe('HU06 - Admin Colecciones y Pinturas', () => {
             title: 'Pintura sin colección',
             imageUrl: 'https://test.com/img.jpg',
             collectionId: 9999,
+            year: 2024,
           });
 
         expect(res.status).toBe(404);
@@ -759,9 +774,7 @@ describe('HU06 - Admin Colecciones y Pinturas', () => {
   describe('PUT /admin/paintings/reorder', () => {
     describe('given admin token and orderedIds with collectionId', () => {
       it('should return 200 with success message', async () => {
-        mockPrisma.painting.update
-          .mockResolvedValueOnce({ id: 2, position: 0 })
-          .mockResolvedValueOnce({ id: 1, position: 1 });
+        mockPrisma.painting.update.mockResolvedValue({ position: 0 });
 
         const res = await request(app)
           .put('/api/v1/admin/paintings/reorder')

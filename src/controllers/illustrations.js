@@ -15,7 +15,7 @@
 import prisma from '../lib/prisma.js';
 import logger from '../services/logger.js';
 import { resolveImageUrl } from '../services/upload.js';
-import { parseId, isNotFoundError, isDuplicateError } from '../lib/prisma-utils.js';
+import { parseId, isNotFoundError, isDuplicateError, reorderByPosition } from '../lib/prisma-utils.js';
 import { sendSuccess, sendError, sendNotFound, sendDuplicate, sendInternalError } from '../lib/http-response.js';
 
 /**
@@ -134,6 +134,7 @@ const listPublished = async (req, res) => {
   try {
     const illustrations = await prisma.illustration.findMany({
       where: { isPublished: true },
+      orderBy: { position: 'asc' },
     });
 
     return sendSuccess(res, illustrations);
@@ -153,11 +154,39 @@ const listPublished = async (req, res) => {
  */
 const listAll = async (req, res) => {
   try {
-    const illustrations = await prisma.illustration.findMany();
+    const illustrations = await prisma.illustration.findMany({
+      orderBy: { position: 'asc' },
+    });
 
     return sendSuccess(res, illustrations);
   } catch (error) {
     return sendInternalError(res, logger, 'Error al listar ilustraciones', error);
+  }
+};
+
+/**
+ * HU10 - Reordenar ilustraciones
+ * Endpoint PUT /api/v1/admin/illustrations/reorder
+ *
+ * @param {Object} req - Request de Express
+ * @param {Object} res - Response de Express
+ * @returns {Promise<Object>} 200 con confirmación, 400 o 500
+ * @security Requiere Bearer token con rol ADMIN
+ */
+const reorder = async (req, res) => {
+  try {
+    const { orderedIds } = req.body;
+
+    await reorderByPosition(prisma, prisma.illustration, orderedIds);
+
+    logger.info('Ilustraciones reordenadas', { count: orderedIds.length });
+
+    return sendSuccess(res, { message: 'Orden actualizado correctamente' });
+  } catch (error) {
+    if (isNotFoundError(error)) {
+      return sendError(res, 400, 'VALIDATION_ERROR', 'Uno o más IDs no existen');
+    }
+    return sendInternalError(res, logger, 'Error al reordenar ilustraciones', error);
   }
 };
 
@@ -174,6 +203,7 @@ const listFeatured = async (req, res) => {
   try {
     const illustrations = await prisma.illustration.findMany({
       where: { isFeatured: true, isPublished: true },
+      orderBy: { position: 'asc' },
     });
 
     return sendSuccess(res, illustrations);
@@ -182,4 +212,4 @@ const listFeatured = async (req, res) => {
   }
 };
 
-export { create, update, remove, listPublished, listAll, listFeatured };
+export { create, update, remove, reorder, listPublished, listAll, listFeatured };

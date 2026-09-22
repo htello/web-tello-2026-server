@@ -257,6 +257,7 @@ const main = async () => {
         imageUrl: 'https://res.cloudinary.com/demo/image/upload/design1.jpg',
         subcategory: 'imagen-corporativa',
         isFeatured: true,
+        position: 1,
       },
     }),
     prisma.designProject.create({
@@ -265,6 +266,7 @@ const main = async () => {
         description: 'Diseño de etiquetas y embalaje para vino premium',
         imageUrl: 'https://res.cloudinary.com/demo/image/upload/design2.jpg',
         subcategory: 'packaging-expositores',
+        position: 2,
       },
     }),
     prisma.designProject.create({
@@ -273,6 +275,7 @@ const main = async () => {
         description: 'Diseño de cartel para festival de música indie',
         imageUrl: 'https://res.cloudinary.com/demo/image/upload/design3.jpg',
         subcategory: 'carteleria',
+        position: 3,
       },
     }),
     prisma.designProject.create({
@@ -281,6 +284,7 @@ const main = async () => {
         description: 'Diseño editorial de catálogo de obra gráfica',
         imageUrl: 'https://res.cloudinary.com/demo/image/upload/design4.jpg',
         subcategory: 'editorial',
+        position: 4,
       },
     }),
   ]);
@@ -291,6 +295,7 @@ const main = async () => {
     prisma.illustration.create({
       data: {
         title: 'Bosque Encantado',
+        position: 1,
         description: 'Ilustración digital de un bosque mágico',
         imageUrl: 'https://res.cloudinary.com/demo/image/upload/illust1.jpg',
         isFeatured: true,
@@ -299,6 +304,7 @@ const main = async () => {
     prisma.illustration.create({
       data: {
         title: 'Ciudad Futurista',
+        position: 2,
         description: 'Ilustración de una ciudad del futuro',
         imageUrl: 'https://res.cloudinary.com/demo/image/upload/illust2.jpg',
       },
@@ -306,6 +312,7 @@ const main = async () => {
     prisma.illustration.create({
       data: {
         title: 'Retrato Onírico',
+        position: 3,
         description: 'Ilustración de retrato surrealista',
         imageUrl: 'https://res.cloudinary.com/demo/image/upload/illust3.jpg',
       },
@@ -313,6 +320,7 @@ const main = async () => {
     prisma.illustration.create({
       data: {
         title: 'Naturaleza Viva',
+        position: 4,
         description: 'Ilustración de flora y fauna',
         imageUrl: 'https://res.cloudinary.com/demo/image/upload/illust4.jpg',
       },
@@ -320,6 +328,7 @@ const main = async () => {
     prisma.illustration.create({
       data: {
         title: 'Abstracción Geométrica',
+        position: 5,
         description: 'Ilustración abstracta con formas geométricas',
         imageUrl: 'https://res.cloudinary.com/demo/image/upload/illust5.jpg',
       },

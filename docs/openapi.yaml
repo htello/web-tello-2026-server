@@ -254,6 +254,7 @@ components:
       required:
         - title
         - collectionId
+        - year
       properties:
         title:
           type: string
@@ -263,6 +264,32 @@ components:
           type: string
         year:
           type: integer
+          minimum: 1900
+          maximum: 2100
+        collectionId:
+          type: integer
+        isFeatured:
+          type: boolean
+        isPublished:
+          type: boolean
+        image:
+          type: string
+          format: binary
+
+    PaintingUpdateRequest:
+      type: object
+      minProperties: 1
+      properties:
+        title:
+          type: string
+        dimensions:
+          type: string
+        technique:
+          type: string
+        year:
+          type: integer
+          minimum: 1900
+          maximum: 2100
         collectionId:
           type: integer
         isFeatured:
@@ -348,6 +375,8 @@ components:
           type: boolean
         isFeatured:
           type: boolean
+        position:
+          type: integer
 
     DesignRequest:
       type: object
@@ -390,6 +419,8 @@ components:
           type: boolean
         isFeatured:
           type: boolean
+        position:
+          type: integer
 
     IllustrationRequest:
       type: object
@@ -1117,7 +1148,7 @@ paths:
         content:
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/PaintingRequest'
+              $ref: '#/components/schemas/PaintingUpdateRequest'
       responses:
         '200':
           description: Pintura actualizada
@@ -1389,11 +1420,12 @@ paths:
   /design:
     get:
       tags: [Design]
-      summary: Listar proyectos de diseño
+      summary: Listar proyectos de diseño por subcategoría
       security: []
       parameters:
         - name: subcategory
           in: query
+          required: true
           schema:
             type: string
             enum:
@@ -1401,10 +1433,10 @@ paths:
               - packaging-expositores
               - carteleria
               - editorial
-          description: Filtrar por subcategoría
+          description: Subcategoría obligatoria para filtrar
       responses:
         '200':
-          description: Lista de proyectos de diseño
+          description: Lista de proyectos de diseño publicados de la subcategoría
           content:
             application/json:
               schema:
@@ -1414,6 +1446,12 @@ paths:
                     type: array
                     items:
                       $ref: '#/components/schemas/DesignProject'
+        '400':
+          description: Subcategoría no proporcionada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
         '404':
           description: Subcategoría inválida
           content:
@@ -1567,6 +1605,36 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
         '404':
           description: No encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /admin/design/reorder:
+    put:
+      tags: [Design]
+      summary: Reordenar proyectos de diseño
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReorderRequest'
+      responses:
+        '200':
+          description: Proyectos reordenados
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
+        '400':
+          description: Solicitud inválida
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: No autenticado
           content:
             application/json:
               schema:
@@ -1736,6 +1804,36 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
         '404':
           description: No encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /admin/illustrations/reorder:
+    put:
+      tags: [Illustrations]
+      summary: Reordenar ilustraciones
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReorderRequest'
+      responses:
+        '200':
+          description: Ilustraciones reordenadas
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
+        '400':
+          description: Solicitud inválida
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: No autenticado
           content:
             application/json:
               schema:
