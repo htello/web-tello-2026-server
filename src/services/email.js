@@ -73,4 +73,32 @@ const sendContactEmail = async ({ name, email, subject, message }) => {
   }
 };
 
-export { sendContactEmail, transporter };
+/**
+ * Envía un email con el enlace de recuperación de contraseña.
+ *
+ * @param {string} to - Email del destinatario
+ * @param {string} resetLink - Enlace completo con el token de recuperación
+ * @returns {Promise<{success: boolean, error?: string}>} Resultado del envío
+ */
+const sendPasswordResetEmail = async (to, resetLink) => {
+  try {
+    await transporter.sendMail({
+      from: process.env.SMTP_USER,
+      to,
+      subject: '[Portfolio] Restablecer contraseña',
+      html: `
+        <h2>Restablecer contraseña</h2>
+        <p>Haz clic en el siguiente enlace para crear una nueva contraseña:</p>
+        <p><a href="${escapeHtml(resetLink)}">Restablecer contraseña</a></p>
+        <p>El enlace caduca en 1 hora. Si no solicitaste este cambio, ignora este email.</p>
+      `,
+    });
+
+    return { success: true };
+  } catch (error) {
+    logger.error('Error al enviar email de recuperación', { error: error.message });
+    return { success: false, error: error.message };
+  }
+};
+
+export { sendContactEmail, sendPasswordResetEmail, transporter };

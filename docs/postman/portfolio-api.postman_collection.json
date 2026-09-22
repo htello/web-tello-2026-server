@@ -90,6 +90,50 @@
           }
         },
         {
+          "name": "POST /auth/forgot-password",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@test.com\"\n}"
+            },
+            "description": "Siempre responde 200 genérico. Si el email existe, envía enlace con token de 1 uso (1 h). Rate limit: 5/15min. Requiere SMTP configurado para entrega real.",
+            "url": {
+              "raw": "{{baseUrl}}/auth/forgot-password",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "forgot-password"]
+            }
+          }
+        },
+        {
+          "name": "POST /auth/reset-password",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"token\": \"TOKEN_DEL_EMAIL\",\n  \"password\": \"NuevaClave1!\"\n}"
+            },
+            "description": "Usa el token del enlace recibido por email. 400 si es inválido/expirado. Rate limit: 5/15min.",
+            "url": {
+              "raw": "{{baseUrl}}/auth/reset-password",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "reset-password"]
+            }
+          }
+        },
+        {
           "name": "POST /admin/users/register",
           "request": {
             "method": "POST",

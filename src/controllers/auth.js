@@ -7,18 +7,37 @@
  * @module controllers/auth
  * @requires bcrypt
  * @requires jsonwebtoken
+ * @requires node:crypto
  * @requires lib/prisma
  * @requires lib/constants
  * @requires lib/http-response
+ * @requires services/email
  * @requires services/logger
  */
 
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
+import { randomBytes, createHash } from 'node:crypto';
 import prisma from '../lib/prisma.js';
 import logger from '../services/logger.js';
-import { JWT_SECRET, JWT_EXPIRATION, BCRYPT_ROUNDS } from '../lib/constants.js';
+import { sendPasswordResetEmail } from '../services/email.js';
+import {
+  JWT_SECRET,
+  JWT_EXPIRATION,
+  BCRYPT_ROUNDS,
+  FRONTEND_URL,
+  RESET_TOKEN_EXPIRES_MINUTES,
+} from '../lib/constants.js';
 import { sendSuccess, sendError, sendInternalError } from '../lib/http-response.js';
+
+/**
+ * Calcula el hash SHA-256 de un token de recuperación.
+ *
+ * @param {string} token - Token en claro
+ * @returns {string} Hash hexadecimal
+ * @security Solo el hash se persiste en la base de datos
+ */
+const hashToken = (token) => createHash('sha256').update(token).digest('hex');
 
 /**
  * HU20 - Login Admin
@@ -107,4 +126,97 @@ const register = async (req, res) => {
   }
 };
 
-export { login, register };
+/**
+ * Solicitud de recuperación de contraseña
+ * Endpoint POST /api/v1/auth/forgot-password
+ *
+ * Genera un token de un solo uso (hash SHA-256 en BD, 1 h de validez)
+ * y envía el enlace por email. Responde siempre 200 genérico para no
+ * revelar si el email está registrado (OWASP).
+ *
+ * @param {Object} req - Request de Express
+ * @param {Object} req.body - { email }
+ * @param {Object} res - Response de Express
+ * @returns {Promise<Object>} 200 con mensaje genérico o 500
+ * @security Endpoint público protegido por rate limiting
+ */
+const forgotPassword = async (req, res) => {
+  try {
+    const { email } = req.body;
+    const genericMessage = 'Si el email está registrado, recibirás un enlace para restablecer la contraseña';
+
+    const user = await prisma.user.findUnique({ where: { email } });
+
+    if (user) {
+      const rawToken = randomBytes(32).toString('hex');
+      const passwordResetExpires = new Date(Date.now() + RESET_TOKEN_EXPIRES_MINUTES * 60 * 1000);
+
+      await prisma.user.update({
+        where: { id: user.id },
+        data: {
+          passwordResetToken: hashToken(rawToken),
+          passwordResetExpires,
+        },
+      });
+
+      const resetLink = `${FRONTEND_URL}/reset-password?token=${rawToken}`;
+      const result = await sendPasswordResetEmail(user.email, resetLink);
+
+      if (result.success) {
+        logger.info('Email de recuperación enviado', { userId: user.id });
+      } else {
+        logger.error('Fallo al enviar email de recuperación', { userId: user.id, error: result.error });
+      }
+    }
+
+    return sendSuccess(res, { message: genericMessage });
+  } catch (error) {
+    return sendInternalError(res, logger, 'Error en recuperación de contraseña', error);
+  }
+};
+
+/**
+ * Restablecer contraseña con token
+ * Endpoint POST /api/v1/auth/reset-password
+ *
+ * Valida el token (hash + expiración), actualiza la contraseña y
+ * consume el token (un solo uso).
+ *
+ * @param {Object} req - Request de Express
+ * @param {Object} req.body - { token, password }
+ * @param {Object} res - Response de Express
+ * @returns {Promise<Object>} 200 con confirmación, 400 o 500
+ * @security Endpoint público protegido por rate limiting
+ */
+const resetPassword = async (req, res) => {
+  try {
+    const { token, password } = req.body;
+
+    const user = await prisma.user.findUnique({
+      where: { passwordResetToken: hashToken(token) },
+    });
+
+    if (!user || !user.passwordResetExpires || user.passwordResetExpires < new Date()) {
+      return sendError(res, 400, 'VALIDATION_ERROR', 'Token inválido o expirado');
+    }
+
+    const hashedPassword = await bcrypt.hash(password, BCRYPT_ROUNDS);
+
+    await prisma.user.update({
+      where: { id: user.id },
+      data: {
+        password: hashedPassword,
+        passwordResetToken: null,
+        passwordResetExpires: null,
+      },
+    });
+
+    logger.info('Contraseña restablecida', { userId: user.id });
+
+    return sendSuccess(res, { message: 'Contraseña actualizada correctamente' });
+  } catch (error) {
+    return sendInternalError(res, logger, 'Error al restablecer contraseña', error);
+  }
+};
+
+export { login, register, forgotPassword, resetPassword };

@@ -42,10 +42,40 @@ const createLoginLimiter = (options = {}) => rateLimit({
   ...options,
 });
 
+/**
+ * Crea un limiter de recuperación de contraseña con la configuración indicada.
+ *
+ * @param {Object} [options] - Opciones adicionales para sobreescribir
+ * @returns {import('express-rate-limit').RateLimitRequestHandler} Middleware de rate limiting
+ */
+const createPasswordResetLimiter = (options = {}) => rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 5,
+  message: {
+    error: 'Demasiadas solicitudes de recuperación. Intenta de nuevo en 15 minutos.',
+    code: 'RATE_LIMITED',
+  },
+  ...options,
+});
+
 /** Limiter por defecto para POST /api/v1/contact. */
 const contactLimiter = createContactLimiter();
 
 /** Limiter por defecto para POST /api/v1/auth/login. */
 const loginLimiter = createLoginLimiter();
 
-export { contactLimiter, createContactLimiter, loginLimiter, createLoginLimiter };
+/** Limiter por defecto para POST /api/v1/auth/forgot-password. */
+const forgotPasswordLimiter = createPasswordResetLimiter();
+
+/** Limiter por defecto para POST /api/v1/auth/reset-password. */
+const resetPasswordLimiter = createPasswordResetLimiter();
+
+export {
+  contactLimiter,
+  createContactLimiter,
+  loginLimiter,
+  createLoginLimiter,
+  createPasswordResetLimiter,
+  forgotPasswordLimiter,
+  resetPasswordLimiter,
+};

@@ -7,6 +7,15 @@ y este proyecto adherido al [Versionado Semántico](https://semver.org/lang/es/)
 
 ## [Unreleased]
 
+### Added (recuperación de contraseña)
+- Flujo completo de recuperación de contraseña (auto-servicio):
+  - `POST /api/v1/auth/forgot-password`: responde siempre 200 genérico (no revela si el email existe, OWASP); si existe, genera token de un solo uso (64 hex, `crypto.randomBytes`), persiste solo su hash SHA-256 con expiración de 1 h (`RESET_TOKEN_EXPIRES_MINUTES`) y envía email con enlace `${FRONTEND_URL}/reset-password?token=...`. Rate limit 5/15 min.
+  - `POST /api/v1/auth/reset-password`: valida hash+expiración, actualiza contraseña (bcrypt 12, política fuerte como register) y consume el token. 400 genérico "Token inválido o expirado". Rate limit 5/15 min.
+  - Prisma: campos `passwordResetToken String? @unique` y `passwordResetExpires DateTime?` en `User` (migración `add_password_reset_fields`).
+  - Nuevo `sendPasswordResetEmail` en `src/services/email.js`; constantes `FRONTEND_URL` (env con fallback localhost:5173) y `RESET_TOKEN_EXPIRES_MINUTES`; limiters `forgotPasswordLimiter`/`resetPasswordLimiter`; schemas Joi `forgotPasswordSchema`/`resetPasswordSchema`.
+  - Sincronizados `docs/openapi.yaml` (+2 paths, +2 schemas), `docs/openapi-INDEX.md`, colección Postman (+2 requests), `.env.example`, `render.yaml` (`FRONTEND_URL`) y `docs/DEPLOY.md`.
+  - Nota: la entrega real de emails depende de configurar `SMTP_*` (pendiente); sin SMTP, forgot-password responde 200 y registra el fallo de envío.
+
 ### Added (despliegue)
 - `GET /api/v1/health/db`: health check de base de datos (`SELECT 1`; 200 `{status:'ok',db:'up'}` / 503 `SERVICE_UNAVAILABLE`). Nuevo `src/controllers/health.js`; pensado para monitorización y ping anti-pausa de free tiers. Sincronizados `docs/openapi.yaml`, `docs/openapi-INDEX.md`, colección Postman (+request) e INDEX.
 - Dockerización: `Dockerfile` (node:22-alpine, pnpm 9, prisma generate, usuario no-root), `docker-entrypoint.sh` (`prisma migrate deploy` → `node src/app.js`) y `render.yaml` (Blueprint Render: web Docker free, rama `main`, healthcheck `/api/v1/health`, env vars con `sync:false` para secretos y `generateValue` para `JWT_SECRET`).
