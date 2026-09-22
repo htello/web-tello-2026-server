@@ -36,6 +36,16 @@
    - Presentar directamente el código, comandos o resultados.
    - Proponer cambios específicos o funciones modificadas en lugar de reimprimir archivos enteros innecesariamente durante la fase de discusión.
    
+## Eficiencia de Tokens (OBLIGATORIO)
+
+* **Índices primero:** para la API, leer `docs/openapi-INDEX.md` y `docs/postman/INDEX.md`. NUNCA leer `docs/openapi.yaml` (1919 líneas) ni el JSON de Postman completos.
+* **Detalle por bloque:** abrir `docs/openapi.yaml` con `offset/limit` usando la línea del índice; en Postman, `jq '.. | objects | select(.name?=="NOMBRE")' docs/postman/portfolio-api.postman_collection.json`.
+* **CHANGELOG.md:** leer solo la sección `[Unreleased]`.
+* **docs/0001 y docs/0002:** leer solo la sección relevante a la tarea.
+* **Buscar antes que leer:** `grep`/`glob` para localizar; `read` con `offset/limit`. No releer archivos ya vistos en la sesión.
+* **Prohibido en escaneos:** `node_modules/`, `.opencode/node_modules/`, `.git/`, `pnpm-lock.yaml`, `.opencode/package-lock.json`. `.opencode/agents/` solo bajo demanda y archivo a archivo.
+* **Sincronización:** si cambia `openapi.yaml` o la colección Postman, regenerar su índice con los comandos incluidos al pie de cada INDEX.
+
 ## Skills del Proyecto
 
 Usar las convenciones de las skills únicamente al generar o modificar el tipo de código correspondiente:
