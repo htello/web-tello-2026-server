@@ -22,7 +22,9 @@ Arquitectura: API Express en **Render** (Web Service free, runtime Docker) + Pos
 | `CLOUDINARY_URL` | `cloudinary://<key>:<secret>@<cloud>` |
 | `CORS_ORIGIN` | Origen del front (mientras no exista: la URL de Render, p. ej. `https://portfolio-api.onrender.com`) |
 | `FRONTEND_URL` | Base del front para enlaces de email (recuperación de contraseña: `${FRONTEND_URL}/reset-password?token=...`). Mientras no exista front, dejar la URL de Render |
-| `SMTP_HOST` / `SMTP_USER` / `SMTP_PASS` | Credenciales SMTP reales (pendiente; sin ellas `POST /contact` y la recuperación de contraseña devuelven fallo de envío: 502 `EMAIL_ERROR` / email no entregado) |
+| `RESEND_API_KEY` | API key de https://resend.com (**obligatoria en Render free**: la plataforma bloquea el tráfico saliente a puertos SMTP 25/465/587 desde sep-2025, Gmail SMTP es inviable allí). Con la key definida el envío va por HTTPS (443). Sin dominio verificado, Resend solo permite enviar a la dirección de tu propia cuenta: crea la cuenta con el email del admin |
+| `EMAIL_FROM` | Remitente en Resend (por defecto `onboarding@resend.dev`; cámbialo cuando verifiques un dominio) |
+| `SMTP_HOST` / `SMTP_USER` / `SMTP_PASS` | Solo desarrollo local (Gmail app password u otro SMTP). En Render free quedan inoperativas por el bloqueo de puertos. `SMTP_USER` se usa además como buzón destino de los emails de contacto |
 | `SENTRY_DSN` | Opcional |
 
    `JWT_SECRET` se genera solo (`generateValue: true`); `NODE_ENV`, `PORT` (Render la inyecta), `SMTP_PORT=587` y `LOG_LEVEL=info` van preconfiguradas.

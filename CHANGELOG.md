@@ -7,6 +7,9 @@ y este proyecto adherido al [Versionado Semántico](https://semver.org/lang/es/)
 
 ## [Unreleased]
 
+### Changed (email vía Resend)
+- `src/services/email.js` soporta dos vías de envío: **Resend (API HTTPS)** cuando `RESEND_API_KEY` está definida, y **SMTP (Nodemailer)** como fallback para desarrollo local. Motivo: Render bloquea el tráfico saliente a puertos SMTP (25/465/587) en instancias free desde 2025-09-26, por lo que Gmail SMTP era inviable en producción. Nuevas env vars `RESEND_API_KEY` y `EMAIL_FROM` (remite por defecto `onboarding@resend.dev`); actualizados `.env.example`, `render.yaml` y `docs/DEPLOY.md`. Timeout de 15 s en la llamada HTTP (`AbortSignal.timeout`). Errores de Resend propagan su mensaje (`detail.message` o `Resend respondió <status>`). Tests: +6 casos (ruta Resend, EMAIL_FROM, reply_to, errores HTTP/no-JSON/red); 439 en total.
+
 ### Added (recuperación de contraseña)
 - Flujo completo de recuperación de contraseña (auto-servicio):
   - `POST /api/v1/auth/forgot-password`: responde siempre 200 genérico (no revela si el email existe, OWASP); si existe, genera token de un solo uso (64 hex, `crypto.randomBytes`), persiste solo su hash SHA-256 con expiración de 1 h (`RESET_TOKEN_EXPIRES_MINUTES`) y envía email con enlace `${FRONTEND_URL}/reset-password?token=...`. Rate limit 5/15 min.
