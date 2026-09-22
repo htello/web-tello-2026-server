@@ -63,7 +63,8 @@ CAMBIOS DE chore/docker-deploy (rama en curso):
 - docs/DEPLOY.md: guía Render + Supabase (URLs de conexión, env checklist, bootstrap, cron-job.org ping cada 10 min a /health/db, ciclo develop→main).
 - DESPLIEGUE REALIZADO (2026-09-22): main = ccb1a1c. Render: https://portfolio-api-u5sx.onrender.com (Live, región Frankfurt vía render.yaml). Supabase: proyecto joyqlaouwxlhwewuyqmr (Frankfurt), migraciones aplicadas vía entrypoint. Admin prod: id=1 hectortello@mac.com (bootstrap-admin).
 - VERIFICADO en prod (2026-09-22): /health y /health/db 200 con latencias 80-130ms (Frankfurt confirmado); login admin OK; GET /admin/users OK; POST /admin/upload OK (Cloudinary dclv58msd); POST /contact 502 EMAIL_ERROR esperado sin SMTP. Nota: PNGs de prueba 1x1 huérfanos en Cloudinary (carpeta general), borrables.
-- PENDIENTES manuales: borrar servicio viejo de Oregon (portfolio-api-tjjy) si aún existe; ROTAR ADMIN_PASS (expuesta en chat y verificada activa); cron-job.org ping cada 10 min a https://portfolio-api-u5sx.onrender.com/api/v1/health/db; SMTP real (contacto da 502 hasta configurarlo); CORS_ORIGIN cuando exista el front; Postman baseUrl prod (aplazado); crear contenido real (colecciones/pinturas/biografía).
+- HECHOS manuales (2026-09-22): servicio viejo de Oregon borrado (404 verificado); cron-job.org activo con ping cada 10 min a /health/db.
+- PENDIENTES manuales: ROTAR ADMIN_PASS — SIGUE ACTIVA la expuesta en chat (verificado: login con la clave antigua aún devuelve token); vía PUT /admin/users/1/password o reejecutar bootstrap-admin. SMTP real (contacto da 502 hasta configurarlo); CORS_ORIGIN cuando exista el front; Postman baseUrl prod (aplazado); crear contenido real (colecciones/pinturas/biografía).
 
 REGLAS DE SESIÓN (ESTRICTAS):
 1. Verificar siempre la rama antes de trabajar (`hu/XX-nombre`). NUNCA escribir código directo en `develop`.
