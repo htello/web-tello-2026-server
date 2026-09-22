@@ -14,7 +14,7 @@ vi.mock('nodemailer', () => ({
   },
 }));
 
-const { sendContactEmail, transporter } = await import('./email.js');
+const { sendContactEmail, sendPasswordResetEmail, transporter } = await import('./email.js');
 
 describe('HU14 - Servicio de Email', () => {
   beforeEach(() => {
@@ -66,6 +66,35 @@ describe('HU14 - Servicio de Email', () => {
         subject: 'Consulta',
         message: 'Me interesa esta obra',
       });
+
+      expect(result).toEqual({ success: false, error: 'SMTP connection error' });
+    });
+  });
+
+  describe('sendPasswordResetEmail', () => {
+    it('should send reset email and return success true', async () => {
+      transporter.sendMail.mockResolvedValue({ messageId: 'reset123' });
+
+      const result = await sendPasswordResetEmail(
+        'admin@test.com',
+        'http://localhost:5173/reset-password?token=abc123'
+      );
+
+      expect(result).toEqual({ success: true });
+      expect(transporter.sendMail).toHaveBeenCalledWith(
+        expect.objectContaining({
+          to: 'admin@test.com',
+          subject: '[Portfolio] Restablecer contraseña',
+        })
+      );
+      const mailOptions = transporter.sendMail.mock.calls[0][0];
+      expect(mailOptions.html).toContain('reset-password?token=abc123');
+    });
+
+    it('should return success false when sending fails', async () => {
+      transporter.sendMail.mockRejectedValue(new Error('SMTP connection error'));
+
+      const result = await sendPasswordResetEmail('admin@test.com', 'http://link');
 
       expect(result).toEqual({ success: false, error: 'SMTP connection error' });
     });

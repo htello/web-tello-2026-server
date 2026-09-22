@@ -23,6 +23,8 @@ jq '.. | objects | select(.name?=="POST /admin/collections")' \
 
 ### Auth
 - POST /auth/login  `{{baseUrl}}/auth/login`
+- POST /auth/forgot-password  `{{baseUrl}}/auth/forgot-password`
+- POST /auth/reset-password  `{{baseUrl}}/auth/reset-password`
 - POST /admin/users/register  `{{baseUrl}}/admin/users/register`
 
 ### Users (Admin)

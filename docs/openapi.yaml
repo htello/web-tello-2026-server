@@ -112,6 +112,29 @@ components:
         password:
           type: string
 
+    ForgotPasswordRequest:
+      type: object
+      required:
+        - email
+      properties:
+        email:
+          type: string
+          format: email
+
+    ResetPasswordRequest:
+      type: object
+      required:
+        - token
+        - password
+      properties:
+        token:
+          type: string
+          description: Token de un solo uso recibido por email
+        password:
+          type: string
+          description: Nueva contraseña (≥8 caracteres, una mayúscula y un símbolo)
+          minLength: 8
+
     AuthResponse:
       type: object
       properties:
@@ -594,6 +617,75 @@ paths:
                 $ref: '#/components/schemas/AuthResponse'
         '401':
           description: Credenciales inválidas
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /auth/forgot-password:
+    post:
+      tags: [Auth]
+      summary: Solicitar enlace de recuperación de contraseña
+      description: >-
+        Responde siempre 200 con mensaje genérico (no revela si el email está
+        registrado). Si existe, envía por email un enlace con token de un solo
+        uso válido durante 1 hora. Rate limit: 5 peticiones / 15 min.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ForgotPasswordRequest'
+      responses:
+        '200':
+          description: Solicitud procesada (mensaje genérico)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
+        '400':
+          description: Solicitud inválida
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '429':
+          description: Rate limit excedido
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /auth/reset-password:
+    post:
+      tags: [Auth]
+      summary: Restablecer contraseña con token
+      description: >-
+        Valida el token (hash SHA-256 + expiración 1 h), actualiza la contraseña
+        y consume el token (un solo uso). Rate limit: 5 peticiones / 15 min.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ResetPasswordRequest'
+      responses:
+        '200':
+          description: Contraseña actualizada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
+        '400':
+          description: Token inválido o expirado / validación fallida
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '429':
+          description: Rate limit excedido
           content:
             application/json:
               schema:

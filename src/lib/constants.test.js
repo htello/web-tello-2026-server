@@ -32,11 +32,28 @@ describe('lib/constants', () => {
     });
   });
 
+  describe('FRONTEND_URL', () => {
+    it('should use process.env.FRONTEND_URL when defined', async () => {
+      vi.stubEnv('FRONTEND_URL', 'https://portfolio.example.com');
+      vi.resetModules();
+      const { FRONTEND_URL } = await import('./constants.js');
+      expect(FRONTEND_URL).toBe('https://portfolio.example.com');
+    });
+
+    it('should fall back to localhost when process.env.FRONTEND_URL is empty', async () => {
+      vi.stubEnv('FRONTEND_URL', '');
+      vi.resetModules();
+      const { FRONTEND_URL } = await import('./constants.js');
+      expect(FRONTEND_URL).toBe('http://localhost:5173');
+    });
+  });
+
   describe('otras constantes', () => {
-    it('should export JWT_EXPIRATION, BCRYPT_ROUNDS and DESIGN_SUBCATEGORIES', async () => {
-      const { JWT_EXPIRATION, BCRYPT_ROUNDS, DESIGN_SUBCATEGORIES } = await import('./constants.js');
+    it('should export JWT_EXPIRATION, BCRYPT_ROUNDS, RESET_TOKEN_EXPIRES_MINUTES and DESIGN_SUBCATEGORIES', async () => {
+      const { JWT_EXPIRATION, BCRYPT_ROUNDS, RESET_TOKEN_EXPIRES_MINUTES, DESIGN_SUBCATEGORIES } = await import('./constants.js');
       expect(JWT_EXPIRATION).toBe('24h');
       expect(BCRYPT_ROUNDS).toBe(12);
+      expect(RESET_TOKEN_EXPIRES_MINUTES).toBe(60);
       expect(DESIGN_SUBCATEGORIES).toEqual([
         'imagen-corporativa',
         'packaging-expositores',

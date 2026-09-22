@@ -30,6 +30,19 @@ export const JWT_EXPIRATION = '24h';
 export const BCRYPT_ROUNDS = 12;
 
 /**
+ * URL base del frontend para enlaces de servicio (p. ej. recuperación de contraseña)
+ * @type {string}
+ * @security Configurar en producción vía FRONTEND_URL env var
+ */
+export const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:5173';
+
+/**
+ * Expiración del token de recuperación de contraseña, en minutos
+ * @type {number}
+ */
+export const RESET_TOKEN_EXPIRES_MINUTES = 60;
+
+/**
  * Subcategorías válidas para proyectos de diseño (campo subcategory)
  * @type {string[]}
  */

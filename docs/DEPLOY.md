@@ -21,7 +21,8 @@ Arquitectura: API Express en **Render** (Web Service free, runtime Docker) + Pos
 | `DATABASE_URL` | Connection string de Supabase (paso 1) |
 | `CLOUDINARY_URL` | `cloudinary://<key>:<secret>@<cloud>` |
 | `CORS_ORIGIN` | Origen del front (mientras no exista: la URL de Render, p. ej. `https://portfolio-api.onrender.com`) |
-| `SMTP_HOST` / `SMTP_USER` / `SMTP_PASS` | Credenciales SMTP reales (pendiente; sin ellas `POST /contact` devuelve 502 `EMAIL_ERROR`) |
+| `FRONTEND_URL` | Base del front para enlaces de email (recuperación de contraseña: `${FRONTEND_URL}/reset-password?token=...`). Mientras no exista front, dejar la URL de Render |
+| `SMTP_HOST` / `SMTP_USER` / `SMTP_PASS` | Credenciales SMTP reales (pendiente; sin ellas `POST /contact` y la recuperación de contraseña devuelven fallo de envío: 502 `EMAIL_ERROR` / email no entregado) |
 | `SENTRY_DSN` | Opcional |
 
    `JWT_SECRET` se genera solo (`generateValue: true`); `NODE_ENV`, `PORT` (Render la inyecta), `SMTP_PORT=587` y `LOG_LEVEL=info` van preconfiguradas.
