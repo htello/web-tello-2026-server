@@ -23,7 +23,7 @@
    - **SÍ son confirmaciones:** "haz commit", "commit", "push", "sube", "guarda", "mergea", "haz merge".
 4. **Flujo de parada**: Cambios → Tests + Lint + Coverage 100% → **DETENERSE Y ESPERAR CONFIRMACIÓN DEL USUARIO**.
 5. **Inspección de archivos y Eficiencia de Tokens**:
-   - **NUNCA leas el repositorio entero** por iniciativa propia.
+   - **NUNCA leas el repositorio entero** por iniciativa propia si necesitas hacerlo pide confirmacion al usuario.
    - **PROHIBIDO PRE-ESCANEAR:** NUNCA leas automáticamente `docs/`, carpetas de `postman`, `SESION.md` ni ejecutes `git log` al inicio de las peticiones.
    - **SOLICITUD DE CONFIRMACIÓN:** Si consideras IMPRESCINDIBLE consultar la documentación para no perder consistencia, SOLICITA CONFIRMACIÓN EXPLÍCITA al usuario antes de leer el archivo indicando cuál necesitas.
    - Lee únicamente las secciones, líneas o archivos estrictamente necesarios y directamente afectados por la tarea.

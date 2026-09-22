@@ -15,7 +15,8 @@ ESTADO DEL PROYECTO:
 - Rama actual: develop
 - Cobertura de tests: 100% obligatorio (Vitest)
 - Última HU completada y mergeada: HU13/HU14/HU15 - Formulario de Contacto + Email + Rate Limiting
-- Última rama mergeada: fix/postman-manual-testing (pruebas manuales de endpoints + correcciones + features faltantes)
+- Última rama mergeada: fix/ci-coverage-jwt-secret (fix cobertura CI - PR #1)
+- gh CLI autenticado en este equipo (cuenta htello)
 
 ESTADO DE LAS HUS POR FASE:
 ✅ Fase 0: Setup del Proyecto
@@ -35,6 +36,13 @@ CAMBIO DE rama fix/postman-manual-testing (mergeado a develop):
 - Biografía: POST /admin/biography (crear + subir imagen); PUT solo actualiza; quitado GET /admin/biography.
 - Fix: create/update persistían position/isPublished; reorder devolvía 500 con IDs inexistentes (ahora 400).
 - Eliminados toggles PUT /admin/paintings/:id/feature y /publish.
+
+CAMBIOS DE fix/ci-coverage-jwt-secret (mergeado a develop vía PR #1):
+- Fix CI: todos los merges a develop fallaban (#46–#51) por cobertura de ramas 99.69% < 100%.
+- Causa: CI define JWT_SECRET (ci.yml), así que la rama fallback de src/lib/constants.js:15 nunca se evaluaba; en local pasaba por no tener la variable definida.
+- Solución: src/lib/constants.test.js cubre ambas ramas (vi.stubEnv + vi.resetModules + import dinámico).
+- Branch protection NO disponible: repo privado en plan Free (requiere GitHub Pro o repo público). Se usa flujo PR + gh pr checks como gate visible.
+- Pendiente: revisar endpoints manualmente en Postman (sesión actual).
 
 REGLAS DE SESIÓN (ESTRICTAS):
 1. Verificar siempre la rama antes de trabajar (`hu/XX-nombre`). NUNCA escribir código directo en `develop`.
