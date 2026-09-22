@@ -72,11 +72,20 @@ CAMBIOS DE feat/password-reset (rama en curso):
 - Nueva env FRONTEND_URL (base del enlace de recuperación; fallback http://localhost:5173). Añadida a .env.example, render.yaml y DEPLOY.md — HAY QUE RELLENARLA en Render al desplegar.
 - Sin SMTP configurado el flujo responde 200 pero el email no se entrega (log de error).
 
-CAMBIOS DE feat/resend-email (rama en curso):
+CAMBIOS DE feat/resend-email + fix/smtp-timeouts (mergeados a develop/main):
 - Render free bloquea SMTP saliente (25/465/587) desde sep-2025 → Gmail SMTP inviable en prod (diagnosticado con "Connection timeout" en logs).
-- src/services/email.js: doble vía — Resend (API HTTPS) si RESEND_API_KEY definida; SMTP Nodemailer como fallback local. Timeout 15s (AbortSignal). Nuevas envs RESEND_API_KEY y EMAIL_FROM (.env.example, render.yaml, DEPLOY.md actualizados).
-- Fix previo desplegado: timeouts SMTP 10-30s + secure automático en 465 (fix/smtp-timeouts, mergeado a main 9a99292).
-- PENDIENTE: crear cuenta en resend.com (con el email del admin como dirección de cuenta), generar API key, añadirla en Render Environment (RESEND_API_KEY) y verificar contacto 201 + emails recibidos.
+- src/services/email.js: doble vía — Resend (API HTTPS) si RESEND_API_KEY definida; SMTP Nodemailer como fallback local. Timeout 15s (AbortSignal) + timeouts SMTP 10-30s y secure automático en puerto 465. Nuevas envs RESEND_API_KEY y EMAIL_FROM (.env.example, render.yaml, DEPLOY.md actualizados).
+- VERIFICADO en prod: POST /contact → 201 vía Resend (email entregado en el Gmail del admin). Cuenta Resend creada con infotelloweb@gmail.com.
+
+CIERRE DEL BACKEND (2026-09-22):
+- Estado final: develop dd65257+ / main desplegado en https://portfolio-api-u5sx.onrender.com (Frankfurt) + Supabase joyqlaouwxlhwewuyqmr (Frankfurt) + Cloudinary dclv58msd + Resend + cron-job.org ping /health/db cada 10 min. 439 tests, lint 0 errores, cobertura 100%, CI verde. Docs (openapi/INDEX/Postman/CHANGELOG/DEPLOY) sincronizadas.
+- PENDIENTES que hereda la fase de front:
+  1. Alinear email del admin en BD prod (hectortello@mac.com → infotelloweb@gmail.com) vía login + PUT /admin/users/1; luego probar POST /auth/forgot-password end-to-end (el email de reset debe llegar al Gmail). Sin esto, la recuperación no entrega emails (Resend sin dominio verificado solo envía a la dirección de su cuenta).
+  2. Rotar ADMIN_PASS (quedó expuesta en el chat de la sesión).
+  3. Postman: baseUrl → https://portfolio-api-u5sx.onrender.com/api/v1 (CURRENT VALUE) y reimportar colección (incluye forgot/reset-password, health/db, reorders design/illustrations).
+  4. Crear contenido real en prod (colecciones → pinturas → diseño/ilustraciones → biografía) para que el front tenga datos.
+  5. Al desplegar el front: CORS_ORIGIN y FRONTEND_URL reales en Render; dominio propio → verificar en Resend y cambiar EMAIL_FROM (permite enviar a cualquier usuario).
+  6. Frontend: Fase 7 (HU17 galería pública + HU18 panel admin); convención acordada: raw JSON siempre + subida de imágenes vía POST /admin/upload (ver bloque "Decisión de diseño: Front ↔ Back").
 
 REGLAS DE SESIÓN (ESTRICTAS):
 1. Verificar siempre la rama antes de trabajar (`hu/XX-nombre`). NUNCA escribir código directo en `develop`.
