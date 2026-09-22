@@ -4,6 +4,7 @@ services:
     runtime: docker
     plan: free
     branch: main
+    region: frankfurt
     dockerfilePath: ./Dockerfile
     healthCheckPath: /api/v1/health
     envVars:
