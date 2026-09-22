@@ -19,6 +19,8 @@ import {
   exhibitionUpdateSchema,
   designUpdateSchema,
   illustrationUpdateSchema,
+  forgotPasswordSchema,
+  resetPasswordSchema,
 } from './validate.js';
 
 describe('HU - Validate Middleware (schemas de actualización)', () => {
@@ -51,6 +53,81 @@ describe('HU - Validate Middleware (schemas de actualización)', () => {
         code: 'VALIDATION_ERROR',
       });
       expect(next).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('forgotPasswordSchema', () => {
+    it('should pass with a valid email', () => {
+      req.body = { email: 'admin@test.com' };
+      validate(forgotPasswordSchema)(req, res, next);
+
+      expect(next).toHaveBeenCalled();
+    });
+
+    it('should return 400 when email is missing', () => {
+      req.body = {};
+      validate(forgotPasswordSchema)(req, res, next);
+
+      expect(res.status).toHaveBeenCalledWith(400);
+      expect(res.json).toHaveBeenCalledWith({
+        error: 'El email es obligatorio',
+        code: 'VALIDATION_ERROR',
+      });
+      expect(next).not.toHaveBeenCalled();
+    });
+
+    it('should return 400 when email is invalid', () => {
+      req.body = { email: 'no-es-un-email' };
+      validate(forgotPasswordSchema)(req, res, next);
+
+      expect(res.status).toHaveBeenCalledWith(400);
+      expect(res.json).toHaveBeenCalledWith({
+        error: 'El email debe ser válido',
+        code: 'VALIDATION_ERROR',
+      });
+    });
+  });
+
+  describe('resetPasswordSchema', () => {
+    it('should pass with valid token and strong password', () => {
+      req.body = { token: 'abc123def456', password: 'NuevaClave1!' };
+      validate(resetPasswordSchema)(req, res, next);
+
+      expect(next).toHaveBeenCalled();
+    });
+
+    it('should return 400 when token is missing', () => {
+      req.body = { password: 'NuevaClave1!' };
+      validate(resetPasswordSchema)(req, res, next);
+
+      expect(res.status).toHaveBeenCalledWith(400);
+      expect(res.json).toHaveBeenCalledWith({
+        error: 'El token es obligatorio',
+        code: 'VALIDATION_ERROR',
+      });
+      expect(next).not.toHaveBeenCalled();
+    });
+
+    it('should return 400 when token is empty', () => {
+      req.body = { token: '', password: 'NuevaClave1!' };
+      validate(resetPasswordSchema)(req, res, next);
+
+      expect(res.status).toHaveBeenCalledWith(400);
+      expect(res.json).toHaveBeenCalledWith({
+        error: 'El token no puede estar vacío',
+        code: 'VALIDATION_ERROR',
+      });
+    });
+
+    it('should return 400 when password is weak', () => {
+      req.body = { token: 'abc123', password: 'debil123' };
+      validate(resetPasswordSchema)(req, res, next);
+
+      expect(res.status).toHaveBeenCalledWith(400);
+      expect(res.json).toHaveBeenCalledWith({
+        error: 'La contraseña debe incluir al menos una letra mayúscula y un símbolo',
+        code: 'VALIDATION_ERROR',
+      });
     });
   });
 

@@ -467,6 +467,28 @@ const contactSchema = Joi.object({
 });
 
 /**
+ * Schema de validación para solicitud de recuperación de contraseña
+ * @type {Joi.ObjectSchema}
+ */
+const forgotPasswordSchema = Joi.object({
+  email: emailField(),
+});
+
+/**
+ * Schema de validación para restablecer contraseña con token
+ * @type {Joi.ObjectSchema}
+ */
+const resetPasswordSchema = Joi.object({
+  token: Joi.string()
+    .required()
+    .messages({
+      'any.required': 'El token es obligatorio',
+      'string.empty': 'El token no puede estar vacío',
+    }),
+  password: passwordField({ strong: true }),
+});
+
+/**
  * Schema de validación para reorder
  * @type {Joi.ObjectSchema}
  */
@@ -499,4 +521,6 @@ export {
   biographySchema,
   contactSchema,
   reorderSchema,
+  forgotPasswordSchema,
+  resetPasswordSchema,
 };
