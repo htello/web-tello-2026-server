@@ -76,6 +76,18 @@ describe('HU13 - Formulario de Contacto', () => {
       expect(res.body).toHaveProperty('code', 'INTERNAL_ERROR');
     });
 
+    it('should return 502 EMAIL_ERROR when sending reports failure', async () => {
+      sendContactEmail.mockResolvedValue({ success: false, error: 'SMTP down' });
+
+      const res = await request(app).post('/api/v1/contact').send(validBody);
+
+      expect(res.status).toBe(502);
+      expect(res.body).toEqual({
+        error: 'No se pudo enviar el mensaje. Inténtalo de nuevo más tarde',
+        code: 'EMAIL_ERROR',
+      });
+    });
+
     it('should return 429 on the 6th request within a minute', async () => {
       for (let i = 0; i < 5; i += 1) {
         const res = await request(app).post('/api/v1/contact').send(validBody);

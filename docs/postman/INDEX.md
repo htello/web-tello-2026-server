@@ -19,6 +19,7 @@ jq '.. | objects | select(.name?=="POST /admin/collections")' \
 
 ### Health
 - GET /health  `{{baseUrl}}/health`
+- GET /health/db  `{{baseUrl}}/health/db`
 
 ### Auth
 - POST /auth/login  `{{baseUrl}}/auth/login`

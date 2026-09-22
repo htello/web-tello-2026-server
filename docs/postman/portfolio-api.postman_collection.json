@@ -29,6 +29,19 @@
               "path": ["health"]
             }
           }
+        },
+        {
+          "name": "GET /health/db",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "description": "Comprueba la conectividad con la BD (SELECT 1). 200 = db up, 503 = no disponible. Úsalo como ping anti-pausa (cron-job.org cada 10 min).",
+            "url": {
+              "raw": "{{baseUrl}}/health/db",
+              "host": ["{{baseUrl}}"],
+              "path": ["health", "db"]
+            }
+          }
         }
       ]
     },
