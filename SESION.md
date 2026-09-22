@@ -72,6 +72,12 @@ CAMBIOS DE feat/password-reset (rama en curso):
 - Nueva env FRONTEND_URL (base del enlace de recuperación; fallback http://localhost:5173). Añadida a .env.example, render.yaml y DEPLOY.md — HAY QUE RELLENARLA en Render al desplegar.
 - Sin SMTP configurado el flujo responde 200 pero el email no se entrega (log de error).
 
+CAMBIOS DE feat/resend-email (rama en curso):
+- Render free bloquea SMTP saliente (25/465/587) desde sep-2025 → Gmail SMTP inviable en prod (diagnosticado con "Connection timeout" en logs).
+- src/services/email.js: doble vía — Resend (API HTTPS) si RESEND_API_KEY definida; SMTP Nodemailer como fallback local. Timeout 15s (AbortSignal). Nuevas envs RESEND_API_KEY y EMAIL_FROM (.env.example, render.yaml, DEPLOY.md actualizados).
+- Fix previo desplegado: timeouts SMTP 10-30s + secure automático en 465 (fix/smtp-timeouts, mergeado a main 9a99292).
+- PENDIENTE: crear cuenta en resend.com (con el email del admin como dirección de cuenta), generar API key, añadirla en Render Environment (RESEND_API_KEY) y verificar contacto 201 + emails recibidos.
+
 REGLAS DE SESIÓN (ESTRICTAS):
 1. Verificar siempre la rama antes de trabajar (`hu/XX-nombre`). NUNCA escribir código directo en `develop`.
 2. Seguir TDD estricto (RED → GREEN → REFACTOR) y mantener 100% de cobertura.
