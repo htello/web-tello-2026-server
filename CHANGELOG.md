@@ -32,6 +32,10 @@ y este proyecto adherido al [Versionado Semántico](https://semver.org/lang/es/)
   - `src/middleware/rateLimiter.js`: añadido `loginLimiter`/`createLoginLimiter`; `src/app.js` lo importa en lugar de definirlo inline.
   - JSDoc homogeneizado (`@fileoverview`, `@module`, `@param`, `@returns`, `@security`) en los controladores que no lo tenían.
 - Registro de administradores: la contraseña ahora debe incluir al menos una letra mayúscula y un símbolo (además del mínimo de 8 caracteres). Solo se aplica al registro (`registerSchema`); el login mantiene únicamente el mínimo de 8. Sincronizado `docs/openapi.yaml` (`RegisterRequest.password`).
+- Seed (`prisma/seed.js`): la contraseña del admin pasa a cumplir la política fuerte (`Admin123!`). Sincronizados los ejemplos de login en la colección Postman, `docs/0001-API-DESIGN.md`, `docs/0002-IMPLEMENTATION-ORDER.md` y `skills/endpoint-tester/SKILL.md`.
+
+### Added (docs tooling)
+- Índices ligeros `docs/openapi-INDEX.md` y `docs/postman/INDEX.md` (mapa de endpoints con nº de línea / comando jq) y sección "Eficiencia de Tokens" en `AGENTS.md`.
 
 ### Fixed
 - Tests de integración flaky (`hu-06`, `hu-10`, `hu-13`, `hu-16`): fallos intermitentes (404/400/429) en suite completa causados por el `AsyncLocalStorage`/OpenTelemetry de `@sentry/node`, que cruzaba contexto entre requests de supertest. Ahora `src/services/sentry.js` carga el SDK de forma perezosa (`await import` solo si `SENTRY_DSN` está definido), evitando su maquinaria en entornos sin DSN (local, tests, CI).

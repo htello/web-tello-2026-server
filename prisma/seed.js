@@ -20,7 +20,7 @@ const main = async () => {
   await prisma.user.deleteMany();
 
   // Crear usuario admin
-  const adminPassword = await hashPassword('admin123');
+  const adminPassword = await hashPassword('Admin123!');
   const admin = await prisma.user.create({
     data: {
       email: 'admin@test.com',
@@ -337,7 +337,7 @@ const main = async () => {
   console.log(`✅ Biografía creada`);
 
   console.log('\n🎉 Seed completado exitosamente!');
-  console.log(`📧 Admin login: admin@test.com / admin123`);
+  console.log(`📧 Admin login: admin@test.com / Admin123!`);
 };
 
 main()
