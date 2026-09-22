@@ -9,5 +9,7 @@
       "**/.git/**",
       "**/prisma/migrations/**"
     ]
-  }
+  },
+  "model": "opencode-go/claude-3-5-sonnet",
+  "small_model": "opencode-go/deepseek-v4-flash"
 }

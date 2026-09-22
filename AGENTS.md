@@ -23,9 +23,10 @@
    - **SÍ son confirmaciones:** "haz commit", "commit", "push", "sube", "guarda", "mergea", "haz merge".
 4. **Flujo de parada**: Cambios → Tests + Lint + Coverage 100% → **DETENERSE Y ESPERAR CONFIRMACIÓN DEL USUARIO**.
 5. **Inspección de archivos y Eficiencia de Tokens**:
-   - **NUNCA leas el repositorio entero.** Lee únicamente las líneas o archivos estrictamente necesarios para la tarea actual.
-   - **NUNCA leas ni escanees `SESION.md`** por iniciativa propia. Solo se edita al finalizar la HU tras confirmación.
-   - Lee únicamente las secciones o archivos directamente afectados por la tarea.
+   - **NUNCA leas el repositorio entero** por iniciativa propia.
+   - **PROHIBIDO PRE-ESCANEAR:** NUNCA leas automáticamente `docs/`, carpetas de `postman`, `SESION.md` ni ejecutes `git log` al inicio de las peticiones.
+   - **SOLICITUD DE CONFIRMACIÓN:** Si consideras IMPRESCINDIBLE consultar la documentación para no perder consistencia, SOLICITA CONFIRMACIÓN EXPLÍCITA al usuario antes de leer el archivo indicando cuál necesitas.
+   - Lee únicamente las secciones, líneas o archivos estrictamente necesarios y directamente afectados por la tarea.
 6. **Bloqueo de Commit por Fallo de Calidad**:
    - NUNCA realizar o proponer un `git commit` o `git merge` si `pnpm test`, `pnpm run lint` o `pnpm run test:coverage` fallan.
    - Si algún test o regla de ESLint falla, el agente DEBE detenerse, informar explícitamente al usuario de los errores y solucionar las fallas antes de proceder. No se permite forzar commits con errores pendientes.
