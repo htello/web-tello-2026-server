@@ -27,16 +27,26 @@ const escapeHtml = (value) => String(value)
 
 /**
  * Transporter SMTP configurado mediante variables de entorno.
+ *
+ * `secure` se activa solo con puerto 465 (TLS implícito); con 587 u
+ * otros se usa STARTTLS. Los timeouts evitan que un SMTP inaccesible
+ * deje peticiones colgadas hasta el límite del proxy.
+ *
  * @type {import('nodemailer').Transporter}
  */
+const smtpPort = Number(process.env.SMTP_PORT) || 587;
+
 const transporter = nodemailer.createTransport({
   host: process.env.SMTP_HOST,
-  port: Number(process.env.SMTP_PORT) || 587,
-  secure: false,
+  port: smtpPort,
+  secure: smtpPort === 465,
   auth: {
     user: process.env.SMTP_USER,
     pass: process.env.SMTP_PASS,
   },
+  connectionTimeout: 10000,
+  greetingTimeout: 10000,
+  socketTimeout: 30000,
 });
 
 /**
