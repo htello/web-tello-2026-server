@@ -20,7 +20,7 @@
 **POST /api/v1/auth/login**
 ```json
 // Request
-{ "email": "admin@test.com", "password": "admin123" }
+{ "email": "admin@test.com", "password": "Admin123!" }
 
 // Response 200
 { "data": { "token": "eyJ...", "user": { "id": 1, "email": "admin@test.com", "role": "ADMIN" } } }
@@ -50,7 +50,7 @@
 **POST /api/v1/auth/login**
 ```json
 // Request
-{ "email": "admin@test.com", "password": "admin123" }
+{ "email": "admin@test.com", "password": "Admin123!" }
 
 // Response 200
 { "data": { "token": "eyJ...", "user": { "id": 1, "email": "admin@test.com", "role": "ADMIN" } } }

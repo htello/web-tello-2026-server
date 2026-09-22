@@ -110,7 +110,7 @@ Fase 1 - Exploración (8 pruebas):
 # Obtener token
 TOKEN=$(curl -s -X POST http://localhost:3000/api/v1/auth/login \
   -H "Content-Type: application/json" \
-  -d '{"email":"admin@test.com","password":"admin123"}' \
+  -d '{"email":"admin@test.com","password":"Admin123!"}' \
   | node -e "process.stdin.on('data', d => console.log(JSON.parse(d).data.token))")
 
 # POST create

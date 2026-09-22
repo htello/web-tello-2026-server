@@ -282,7 +282,7 @@ HU20 → HU22 → HU21 → HU19
 | **Depende de** | — |
 
 **Test cases:**
-1. `POST /api/v1/auth/login` con `{ email: "admin@test.com", password: "admin123" }`
+1. `POST /api/v1/auth/login` con `{ email: "admin@test.com", password: "Admin123!" }`
    → 200, `body.data.token` es string, `body.data.user` tiene `{ id, email, name, role }`
 2. `POST /api/v1/auth/login` con email inexistente
    → 401, `body.error.code === "UNAUTHORIZED"`
