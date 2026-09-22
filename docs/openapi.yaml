@@ -816,6 +816,33 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
 
   /admin/collections:
+    get:
+      tags: [Collections]
+      summary: Listar todas las colecciones (admin)
+      responses:
+        '200':
+          description: Lista de colecciones
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Collection'
+        '401':
+          description: No autenticado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Sin permisos
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
     post:
       tags: [Collections]
       summary: Crear colección
@@ -1016,6 +1043,33 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
 
   /admin/paintings:
+    get:
+      tags: [Paintings]
+      summary: Listar todas las pinturas (admin)
+      responses:
+        '200':
+          description: Lista de pinturas
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/PaintingDetail'
+        '401':
+          description: No autenticado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Sin permisos
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
     post:
       tags: [Paintings]
       summary: Crear pintura
@@ -1170,6 +1224,33 @@ paths:
                       $ref: '#/components/schemas/Exhibition'
 
   /admin/exhibitions:
+    get:
+      tags: [Exhibitions]
+      summary: Listar todas las exposiciones (admin)
+      responses:
+        '200':
+          description: Lista de exposiciones
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Exhibition'
+        '401':
+          description: No autenticado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Sin permisos
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
     post:
       tags: [Exhibitions]
       summary: Crear exposición
@@ -1359,6 +1440,33 @@ paths:
                       $ref: '#/components/schemas/DesignProject'
 
   /admin/design:
+    get:
+      tags: [Design]
+      summary: Listar todos los proyectos de diseño (admin)
+      responses:
+        '200':
+          description: Lista de proyectos de diseño
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/DesignProject'
+        '401':
+          description: No autenticado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Sin permisos
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
     post:
       tags: [Design]
       summary: Crear proyecto de diseño
@@ -1501,6 +1609,33 @@ paths:
                       $ref: '#/components/schemas/Illustration'
 
   /admin/illustrations:
+    get:
+      tags: [Illustrations]
+      summary: Listar todas las ilustraciones (admin)
+      responses:
+        '200':
+          description: Lista de ilustraciones
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Illustration'
+        '401':
+          description: No autenticado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Sin permisos
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
     post:
       tags: [Illustrations]
       summary: Crear ilustración

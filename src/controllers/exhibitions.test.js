@@ -13,7 +13,7 @@ vi.mock('../services/logger.js', () => ({
   default: { info: vi.fn(), error: vi.fn(), warn: vi.fn() },
 }));
 
-const { create, update, remove, reorder, listAll } = await import('./exhibitions.js');
+const { create, update, remove, reorder, listPublished, listAll } = await import('./exhibitions.js');
 const logger = (await import('../services/logger.js')).default;
 
 describe('HU07 - Admin Exposiciones', () => {
@@ -28,7 +28,7 @@ describe('HU07 - Admin Exposiciones', () => {
     vi.clearAllMocks();
   });
 
-  describe('listAll', () => {
+  describe('listPublished', () => {
     describe('given exhibitions exist', () => {
       it('should return 200 with exhibitions ordered by position', async () => {
         mockPrisma.exhibition.findMany.mockResolvedValue([
@@ -36,7 +36,7 @@ describe('HU07 - Admin Exposiciones', () => {
           { id: 2, title: 'Expo Dos', position: 1 },
         ]);
 
-        await listAll(req, res);
+        await listPublished(req, res);
 
         expect(mockPrisma.exhibition.findMany).toHaveBeenCalledWith({
           where: { isPublished: true },
@@ -47,6 +47,55 @@ describe('HU07 - Admin Exposiciones', () => {
           data: [
             { id: 1, title: 'Expo Uno', position: 0 },
             { id: 2, title: 'Expo Dos', position: 1 },
+          ],
+        });
+      });
+    });
+
+    describe('given no exhibitions', () => {
+      it('should return 200 with an empty array', async () => {
+        mockPrisma.exhibition.findMany.mockResolvedValue([]);
+
+        await listPublished(req, res);
+
+        expect(res.status).toHaveBeenCalledWith(200);
+        expect(res.json).toHaveBeenCalledWith({ data: [] });
+      });
+    });
+
+    describe('given a database error', () => {
+      it('should return 500 INTERNAL_ERROR', async () => {
+        mockPrisma.exhibition.findMany.mockRejectedValue(new Error('DB Error'));
+
+        await listPublished(req, res);
+
+        expect(res.status).toHaveBeenCalledWith(500);
+        expect(res.json).toHaveBeenCalledWith({
+          error: 'Error interno del servidor',
+          code: 'INTERNAL_ERROR',
+        });
+      });
+    });
+  });
+
+  describe('listAll', () => {
+    describe('given exhibitions exist (published and unpublished)', () => {
+      it('should return 200 with all exhibitions ordered by position', async () => {
+        mockPrisma.exhibition.findMany.mockResolvedValue([
+          { id: 1, title: 'Expo Uno', position: 0, isPublished: true },
+          { id: 2, title: 'Expo Dos', position: 1, isPublished: false },
+        ]);
+
+        await listAll(req, res);
+
+        expect(mockPrisma.exhibition.findMany).toHaveBeenCalledWith({
+          orderBy: { position: 'asc' },
+        });
+        expect(res.status).toHaveBeenCalledWith(200);
+        expect(res.json).toHaveBeenCalledWith({
+          data: [
+            { id: 1, title: 'Expo Uno', position: 0, isPublished: true },
+            { id: 2, title: 'Expo Dos', position: 1, isPublished: false },
           ],
         });
       });

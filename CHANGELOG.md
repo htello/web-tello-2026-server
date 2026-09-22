@@ -8,6 +8,7 @@ y este proyecto adherido al [Versionado Semántico](https://semver.org/lang/es/)
 ## [Unreleased]
 
 ### Added
+- Listados admin sin filtro de publicación para que el panel pueda mostrar y seleccionar cualquier elemento (publicado o no): `GET /admin/collections`, `GET /admin/paintings`, `GET /admin/exhibitions`, `GET /admin/design` y `GET /admin/illustrations`.
 - Gestión de usuarios (Admin): `GET /admin/users` (paginación con `meta`), `GET /admin/users/:id`, `PUT /admin/users/:id`, `DELETE /admin/users/:id` y `PUT /admin/users/:id/password`. Nuevo `src/controllers/users.js`, `src/routes/users.js`, schemas `userUpdateSchema`/`passwordResetSchema` y helper `sendPaginated`.
 - `GET /paintings` público: lista todas las pinturas publicadas (ordenadas por posición, incluyendo colección).
 - `GET /design/featured` y `GET /illustrations/featured`: listan proyectos/ilustraciones destacados y publicados para la portada de sección.

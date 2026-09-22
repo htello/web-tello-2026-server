@@ -127,14 +127,33 @@ const remove = async (req, res) => {
  *
  * @param {Object} req - Request de Express
  * @param {Object} res - Response de Express
- * @returns {Promise<Object>} 200 con ilustraciones o 500
+ * @returns {Promise<Object>} 200 con ilustraciones publicadas o 500
  * @security Endpoint público (no requiere autenticación)
  */
-const listAll = async (req, res) => {
+const listPublished = async (req, res) => {
   try {
     const illustrations = await prisma.illustration.findMany({
       where: { isPublished: true },
     });
+
+    return sendSuccess(res, illustrations);
+  } catch (error) {
+    return sendInternalError(res, logger, 'Error al listar ilustraciones', error);
+  }
+};
+
+/**
+ * HU10 - Listar todas las ilustraciones (admin)
+ * Endpoint GET /api/v1/admin/illustrations
+ *
+ * @param {Object} req - Request de Express
+ * @param {Object} res - Response de Express
+ * @returns {Promise<Object>} 200 con todas las ilustraciones o 500
+ * @security Requiere Bearer token con rol ADMIN
+ */
+const listAll = async (req, res) => {
+  try {
+    const illustrations = await prisma.illustration.findMany();
 
     return sendSuccess(res, illustrations);
   } catch (error) {
@@ -163,4 +182,4 @@ const listFeatured = async (req, res) => {
   }
 };
 
-export { create, update, remove, listAll, listFeatured };
+export { create, update, remove, listPublished, listAll, listFeatured };

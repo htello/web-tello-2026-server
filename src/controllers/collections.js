@@ -47,6 +47,35 @@ const listPublished = async (req, res) => {
 };
 
 /**
+ * HU06 - Listar todas las colecciones (admin)
+ * Endpoint GET /api/v1/admin/collections
+ *
+ * @param {Object} req - Request de Express
+ * @param {Object} res - Response de Express
+ * @returns {Promise<Object>} 200 con todas las colecciones o 500
+ * @security Requiere Bearer token con rol ADMIN
+ */
+const listAll = async (req, res) => {
+  try {
+    const collections = await prisma.collection.findMany({
+      orderBy: { position: 'asc' },
+      include: {
+        _count: { select: { paintings: true } },
+      },
+    });
+
+    const data = collections.map(({ _count, ...collection }) => ({
+      ...collection,
+      paintingsCount: _count.paintings,
+    }));
+
+    return sendSuccess(res, data);
+  } catch (error) {
+    return sendInternalError(res, logger, 'Error al listar colecciones', error);
+  }
+};
+
+/**
  * HU06 - Crear colección
  * Endpoint POST /api/v1/admin/collections
  *
@@ -195,4 +224,4 @@ const getById = async (req, res) => {
   }
 };
 
-export { listPublished, getById, create, update, remove, reorder };
+export { listPublished, listAll, getById, create, update, remove, reorder };

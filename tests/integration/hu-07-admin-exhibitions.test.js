@@ -18,6 +18,33 @@ describe('HU07 - Admin Exhibitions', () => {
     );
   });
 
+  describe('GET /admin/exhibitions', () => {
+    describe('given admin token', () => {
+      it('should return 200 with all exhibitions including unpublished', async () => {
+        mockPrisma.exhibition.findMany.mockResolvedValue([
+          { id: 1, title: 'Publicada', position: 0, isPublished: true },
+          { id: 2, title: 'Borrador', position: 1, isPublished: false },
+        ]);
+
+        const res = await request(app)
+          .get('/api/v1/admin/exhibitions')
+          .set('Authorization', `Bearer ${adminToken}`);
+
+        expect(res.status).toBe(200);
+        expect(res.body.data).toHaveLength(2);
+        expect(res.body.data[1]).toMatchObject({ id: 2, isPublished: false });
+      });
+    });
+
+    describe('given no token', () => {
+      it('should return 401', async () => {
+        const res = await request(app).get('/api/v1/admin/exhibitions');
+
+        expect(res.status).toBe(401);
+      });
+    });
+  });
+
   describe('POST /admin/exhibitions', () => {
     describe('given admin token and valid data', () => {
       it('should return 201 with created exhibition', async () => {

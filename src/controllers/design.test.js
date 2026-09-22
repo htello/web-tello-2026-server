@@ -18,7 +18,7 @@ vi.mock('../services/logger.js', () => ({
   default: { info: vi.fn(), error: vi.fn(), warn: vi.fn() },
 }));
 
-const { create, update, remove, listFiltered, listFeatured } = await import('./design.js');
+const { create, update, remove, listAll, listFiltered, listFeatured } = await import('./design.js');
 const { resolveImageUrl } = await import('../services/upload.js');
 const logger = (await import('../services/logger.js')).default;
 
@@ -33,6 +33,53 @@ describe('HU09 - Admin Diseño', () => {
     };
     vi.clearAllMocks();
     resolveImageUrl.mockImplementation(async (_file, imageUrl) => imageUrl);
+  });
+
+  describe('listAll', () => {
+    describe('given projects exist (published and unpublished)', () => {
+      it('should return 200 with all projects without published filter', async () => {
+        mockPrisma.designProject.findMany.mockResolvedValue([
+          { id: 1, title: 'Proyecto A', subcategory: 'imagen-corporativa', isPublished: true },
+          { id: 2, title: 'Proyecto B', subcategory: 'editorial', isPublished: false },
+        ]);
+
+        await listAll(req, res);
+
+        expect(mockPrisma.designProject.findMany).toHaveBeenCalledWith();
+        expect(res.status).toHaveBeenCalledWith(200);
+        expect(res.json).toHaveBeenCalledWith({
+          data: [
+            { id: 1, title: 'Proyecto A', subcategory: 'imagen-corporativa', isPublished: true },
+            { id: 2, title: 'Proyecto B', subcategory: 'editorial', isPublished: false },
+          ],
+        });
+      });
+    });
+
+    describe('given no projects', () => {
+      it('should return 200 with an empty array', async () => {
+        mockPrisma.designProject.findMany.mockResolvedValue([]);
+
+        await listAll(req, res);
+
+        expect(res.status).toHaveBeenCalledWith(200);
+        expect(res.json).toHaveBeenCalledWith({ data: [] });
+      });
+    });
+
+    describe('given a database error', () => {
+      it('should return 500 INTERNAL_ERROR', async () => {
+        mockPrisma.designProject.findMany.mockRejectedValue(new Error('DB Error'));
+
+        await listAll(req, res);
+
+        expect(res.status).toHaveBeenCalledWith(500);
+        expect(res.json).toHaveBeenCalledWith({
+          error: 'Error interno del servidor',
+          code: 'INTERNAL_ERROR',
+        });
+      });
+    });
   });
 
   describe('listFiltered', () => {

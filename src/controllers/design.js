@@ -126,6 +126,25 @@ const remove = async (req, res) => {
 };
 
 /**
+ * HU10 - Listar todos los proyectos de diseño (admin)
+ * Endpoint GET /api/v1/admin/design
+ *
+ * @param {Object} req - Request de Express
+ * @param {Object} res - Response de Express
+ * @returns {Promise<Object>} 200 con todos los proyectos o 500
+ * @security Requiere Bearer token con rol ADMIN
+ */
+const listAll = async (req, res) => {
+  try {
+    const projects = await prisma.designProject.findMany();
+
+    return sendSuccess(res, projects);
+  } catch (error) {
+    return sendInternalError(res, logger, 'Error al listar proyectos de diseño', error);
+  }
+};
+
+/**
  * HU08 - Filtrar Diseño
  * Endpoint GET /api/v1/design
  *
@@ -173,4 +192,4 @@ const listFeatured = async (req, res) => {
   }
 };
 
-export { create, update, remove, listFiltered, listFeatured };
+export { create, update, remove, listAll, listFiltered, listFeatured };

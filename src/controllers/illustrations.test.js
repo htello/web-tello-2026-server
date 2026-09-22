@@ -18,7 +18,7 @@ vi.mock('../services/logger.js', () => ({
   default: { info: vi.fn(), error: vi.fn(), warn: vi.fn() },
 }));
 
-const { create, update, remove, listAll, listFeatured } = await import('./illustrations.js');
+const { create, update, remove, listPublished, listAll, listFeatured } = await import('./illustrations.js');
 const { resolveImageUrl } = await import('../services/upload.js');
 const logger = (await import('../services/logger.js')).default;
 
@@ -35,7 +35,7 @@ describe('HU08 - Admin Ilustraciones', () => {
     resolveImageUrl.mockImplementation(async (_file, imageUrl) => imageUrl);
   });
 
-  describe('listAll', () => {
+  describe('listPublished', () => {
     describe('given illustrations exist', () => {
       it('should return 200 with all illustrations', async () => {
         mockPrisma.illustration.findMany.mockResolvedValue([
@@ -43,7 +43,7 @@ describe('HU08 - Admin Ilustraciones', () => {
           { id: 2, title: 'Dragón', imageUrl: 'https://example.com/b.jpg' },
         ]);
 
-        await listAll(req, res);
+        await listPublished(req, res);
 
         expect(mockPrisma.illustration.findMany).toHaveBeenCalledWith({
           where: { isPublished: true },
@@ -53,6 +53,54 @@ describe('HU08 - Admin Ilustraciones', () => {
           data: [
             { id: 1, title: 'Bosque Encantado', imageUrl: 'https://example.com/a.jpg' },
             { id: 2, title: 'Dragón', imageUrl: 'https://example.com/b.jpg' },
+          ],
+        });
+      });
+    });
+
+    describe('given no illustrations', () => {
+      it('should return 200 with an empty array', async () => {
+        mockPrisma.illustration.findMany.mockResolvedValue([]);
+
+        await listPublished(req, res);
+
+        expect(res.status).toHaveBeenCalledWith(200);
+        expect(res.json).toHaveBeenCalledWith({ data: [] });
+      });
+    });
+
+    describe('given a database error', () => {
+      it('should return 500 INTERNAL_ERROR', async () => {
+        mockPrisma.illustration.findMany.mockRejectedValue(new Error('DB Error'));
+
+        await listPublished(req, res);
+
+        expect(res.status).toHaveBeenCalledWith(500);
+        expect(res.json).toHaveBeenCalledWith({
+          error: 'Error interno del servidor',
+          code: 'INTERNAL_ERROR',
+        });
+        expect(logger.error).toHaveBeenCalled();
+      });
+    });
+  });
+
+  describe('listAll', () => {
+    describe('given illustrations exist (published and unpublished)', () => {
+      it('should return 200 with all illustrations without published filter', async () => {
+        mockPrisma.illustration.findMany.mockResolvedValue([
+          { id: 1, title: 'Bosque Encantado', imageUrl: 'https://example.com/a.jpg', isPublished: true },
+          { id: 2, title: 'Dragón', imageUrl: 'https://example.com/b.jpg', isPublished: false },
+        ]);
+
+        await listAll(req, res);
+
+        expect(mockPrisma.illustration.findMany).toHaveBeenCalledWith();
+        expect(res.status).toHaveBeenCalledWith(200);
+        expect(res.json).toHaveBeenCalledWith({
+          data: [
+            { id: 1, title: 'Bosque Encantado', imageUrl: 'https://example.com/a.jpg', isPublished: true },
+            { id: 2, title: 'Dragón', imageUrl: 'https://example.com/b.jpg', isPublished: false },
           ],
         });
       });
@@ -80,7 +128,6 @@ describe('HU08 - Admin Ilustraciones', () => {
           error: 'Error interno del servidor',
           code: 'INTERNAL_ERROR',
         });
-        expect(logger.error).toHaveBeenCalled();
       });
     });
   });

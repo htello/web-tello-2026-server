@@ -15,6 +15,13 @@ publicRouter.get('/', controller.listFiltered);
 
 const router = Router();
 
+router.get(
+  '/',
+  authenticate,
+  requireAdmin,
+  controller.listAll
+);
+
 router.post(
   '/',
   authenticate,

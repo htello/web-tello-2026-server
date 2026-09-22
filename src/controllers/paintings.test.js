@@ -18,7 +18,7 @@ vi.mock('../services/logger.js', () => ({
   default: { info: vi.fn(), error: vi.fn(), warn: vi.fn() },
 }));
 
-const { create, update, remove, reorder, getById, getFeatured, listPublished } = await import('./paintings.js');
+const { create, update, remove, reorder, getById, getFeatured, listPublished, listAll } = await import('./paintings.js');
 const { resolveImageUrl } = await import('../services/upload.js');
 const logger = (await import('../services/logger.js')).default;
 
@@ -538,6 +538,65 @@ describe('HU06 - Admin Pinturas', () => {
         mockPrisma.painting.findMany.mockRejectedValue(new Error('DB Error'));
 
         await listPublished(req, res);
+
+        expect(res.status).toHaveBeenCalledWith(500);
+        expect(res.json).toHaveBeenCalledWith({
+          error: 'Error interno del servidor',
+          code: 'INTERNAL_ERROR',
+        });
+      });
+    });
+  });
+
+  describe('listAll', () => {
+    describe('given paintings exist (published and unpublished)', () => {
+      it('should return 200 with an array including collection', async () => {
+        mockPrisma.painting.findMany.mockResolvedValue([
+          {
+            id: 1,
+            title: 'Atardecer',
+            imageUrl: 'https://example.com/1.jpg',
+            isPublished: true,
+            collection: { id: 3, title: 'Colección Uno' },
+          },
+          {
+            id: 2,
+            title: 'Borrador',
+            imageUrl: 'https://example.com/2.jpg',
+            isPublished: false,
+            collection: { id: 3, title: 'Colección Uno' },
+          },
+        ]);
+
+        await listAll(req, res);
+
+        expect(mockPrisma.painting.findMany).toHaveBeenCalledWith({
+          orderBy: { position: 'asc' },
+          include: { collection: { select: { id: true, title: true } } },
+        });
+        expect(res.status).toHaveBeenCalledWith(200);
+        const { data } = res.json.mock.calls[0][0];
+        expect(data).toHaveLength(2);
+        expect(data[1]).toMatchObject({ id: 2, isPublished: false });
+      });
+    });
+
+    describe('given no paintings', () => {
+      it('should return 200 with an empty array', async () => {
+        mockPrisma.painting.findMany.mockResolvedValue([]);
+
+        await listAll(req, res);
+
+        expect(res.status).toHaveBeenCalledWith(200);
+        expect(res.json).toHaveBeenCalledWith({ data: [] });
+      });
+    });
+
+    describe('given a database error', () => {
+      it('should return 500 INTERNAL_ERROR', async () => {
+        mockPrisma.painting.findMany.mockRejectedValue(new Error('DB Error'));
+
+        await listAll(req, res);
 
         expect(res.status).toHaveBeenCalledWith(500);
         expect(res.json).toHaveBeenCalledWith({
