@@ -20,6 +20,7 @@ y este proyecto adherido al [Versionado Semántico](https://semver.org/lang/es/)
   - `create`/`update` de pinturas, exposiciones, diseño e ilustraciones aceptan `isPublished` (y `isFeatured` donde aplica) en el body.
   - Los listados públicos (`GET /exhibitions`, `GET /design`, `GET /illustrations`) filtran `isPublished: true`.
 - Biografía: `PUT /admin/biography` ahora es solo actualización (404 si no existe) y acepta imagen (multipart); si no se envía imagen, preserva la existente.
+- `POST /admin/paintings`: `year` pasa a ser obligatorio (`400 VALIDATION_ERROR` "El año es obligatorio" si falta o llega vacío por form-data). `PUT /admin/paintings/:id` sigue siendo actualización parcial (`year` opcional). Sincronizado `docs/openapi.yaml`: `PaintingRequest.required` incluye `year` (con rango 1900-2100) y nuevo schema `PaintingUpdateRequest` (sin campos requeridos, `minProperties: 1`) referenciado por el PUT; regenerado `docs/openapi-INDEX.md`.
 
 ### Removed
 - Toggles `PUT /admin/paintings/:id/feature` y `PUT /admin/paintings/:id/publish`; la publicación/destacado se gestiona ahora exclusivamente vía campo en el body de `create`/`update`.
@@ -45,6 +46,7 @@ y este proyecto adherido al [Versionado Semántico](https://semver.org/lang/es/)
 - `PUT /admin/{collections,paintings,exhibitions}/reorder` devolvían `500` cuando `orderedIds` contenía un ID inexistente; ahora devuelven `400 VALIDATION_ERROR` ("Uno o más IDs no existen").
 - Colección Postman: script de login ahora guarda el token en `environment` o `collection` según exista; `PUT /admin/biography` incluye `Content-Type: application/json`; contraseña de ejemplo de registro ajustada a la política de complejidad.
 - CI (GitHub Actions) fallaba en todos los merges a `develop` desde que se activaron los umbrales de cobertura 100%: en CI `JWT_SECRET` está definido (ci.yml), por lo que la rama fallback de `src/lib/constants.js` (`process.env.JWT_SECRET || 'default'`) nunca se evaluaba y la cobertura global de ramas quedaba en 99.69%. Añadido `src/lib/constants.test.js` que cubre ambas ramas con `vi.stubEnv` + `vi.resetModules` + import dinámico; la cobertura es 100% con y sin la variable de entorno definida.
+- Campos numéricos/booleanos/fecha rechazaban el string vacío con `400 VALIDATION_ERROR` al enviar `multipart/form-data` con campos opcionales en blanco (p. ej. `year: ''` en `POST/PUT /admin/paintings` devolvía `"year" must be a number`). Ahora los schemas Joi los tratan como no enviados (`.empty('')`): `year`, `position`, `collectionId`, `isPublished`/`isFeatured` y `date`. Nuevos helpers `positionField()`/`yearField()` en `src/middleware/validate.js` (eliminan la duplicación de `position` en 3 schemas). En schemas de actualización (`.min(1)`), un body con solo campos vacíos devuelve "Debe enviar al menos un campo para actualizar".
 
 ## [0.3.0] - 2026-09-21
 

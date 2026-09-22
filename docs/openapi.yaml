@@ -254,6 +254,7 @@ components:
       required:
         - title
         - collectionId
+        - year
       properties:
         title:
           type: string
@@ -263,6 +264,32 @@ components:
           type: string
         year:
           type: integer
+          minimum: 1900
+          maximum: 2100
+        collectionId:
+          type: integer
+        isFeatured:
+          type: boolean
+        isPublished:
+          type: boolean
+        image:
+          type: string
+          format: binary
+
+    PaintingUpdateRequest:
+      type: object
+      minProperties: 1
+      properties:
+        title:
+          type: string
+        dimensions:
+          type: string
+        technique:
+          type: string
+        year:
+          type: integer
+          minimum: 1900
+          maximum: 2100
         collectionId:
           type: integer
         isFeatured:
@@ -1117,7 +1144,7 @@ paths:
         content:
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/PaintingRequest'
+              $ref: '#/components/schemas/PaintingUpdateRequest'
       responses:
         '200':
           description: Pintura actualizada

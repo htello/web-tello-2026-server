@@ -1,6 +1,6 @@
 # Índice OpenAPI — Portfolio API
 
-> Mapa ligero de `docs/openapi.yaml` (fuente de verdad, 1919 líneas).
+> Mapa ligero de `docs/openapi.yaml` (fuente de verdad, 1946 líneas).
 > Leer ESTE índice y abrir solo el bloque necesario con `offset/limit` ahorra ~85% de tokens.
 
 ## Uso
@@ -11,47 +11,47 @@
 ## Secciones
 - `info` L2 · `servers` L11 · `tags` L17 · `security` L41
 - `components.securitySchemes` L45 · `components.schemas` L52
-- `paths` L505
+- `paths` L532
 
 ## Paths (ruta — métodos @línea)
 | Ruta | Métodos (línea) |
 |---|---|
-| /admin/users/register | POST L507 |
-| /auth/login | POST L547 |
-| /admin/users | GET L572 |
-| /admin/users/{id} | GET L615 · PUT L652 · DELETE L695 |
-| /admin/users/{id}/password | PUT L731 |
-| /collections | GET L773 |
-| /collections/{id} | GET L791 |
-| /admin/collections | GET L819 · POST L846 |
-| /admin/collections/{id} | PUT L879 · DELETE L922 |
-| /admin/collections/reorder | PUT L952 |
-| /paintings | GET L982 |
-| /paintings/featured | GET L1000 |
-| /paintings/{id} | GET L1018 |
-| /admin/paintings | GET L1046 · POST L1073 |
-| /admin/paintings/{id} | PUT L1106 · DELETE L1149 |
-| /admin/paintings/reorder | PUT L1179 |
-| /exhibitions | GET L1209 |
-| /admin/exhibitions | GET L1227 · POST L1254 |
-| /admin/exhibitions/{id} | PUT L1287 · DELETE L1330 |
-| /admin/exhibitions/reorder | PUT L1360 |
-| /design | GET L1390 |
-| /design/featured | GET L1425 |
-| /admin/design | GET L1443 · POST L1470 |
-| /admin/design/{id} | PUT L1503 · DELETE L1546 |
-| /illustrations | GET L1576 |
-| /illustrations/featured | GET L1594 |
-| /admin/illustrations | GET L1612 · POST L1639 |
-| /admin/illustrations/{id} | PUT L1672 · DELETE L1715 |
-| /biography | GET L1745 |
-| /admin/biography | POST L1761 · PUT L1792 |
-| /contact | POST L1831 |
-| /admin/upload | POST L1863 |
-| /health | GET L1909 |
+| /admin/users/register | POST L534 |
+| /auth/login | POST L574 |
+| /admin/users | GET L599 |
+| /admin/users/{id} | GET L642 · PUT L679 · DELETE L722 |
+| /admin/users/{id}/password | PUT L758 |
+| /collections | GET L800 |
+| /collections/{id} | GET L818 |
+| /admin/collections | GET L846 · POST L873 |
+| /admin/collections/{id} | PUT L906 · DELETE L949 |
+| /admin/collections/reorder | PUT L979 |
+| /paintings | GET L1009 |
+| /paintings/featured | GET L1027 |
+| /paintings/{id} | GET L1045 |
+| /admin/paintings | GET L1073 · POST L1100 |
+| /admin/paintings/{id} | PUT L1133 · DELETE L1176 |
+| /admin/paintings/reorder | PUT L1206 |
+| /exhibitions | GET L1236 |
+| /admin/exhibitions | GET L1254 · POST L1281 |
+| /admin/exhibitions/{id} | PUT L1314 · DELETE L1357 |
+| /admin/exhibitions/reorder | PUT L1387 |
+| /design | GET L1417 |
+| /design/featured | GET L1452 |
+| /admin/design | GET L1470 · POST L1497 |
+| /admin/design/{id} | PUT L1530 · DELETE L1573 |
+| /illustrations | GET L1603 |
+| /illustrations/featured | GET L1621 |
+| /admin/illustrations | GET L1639 · POST L1666 |
+| /admin/illustrations/{id} | PUT L1699 · DELETE L1742 |
+| /biography | GET L1772 |
+| /admin/biography | POST L1788 · PUT L1819 |
+| /contact | POST L1858 |
+| /admin/upload | POST L1890 |
+| /health | GET L1936 |
 
 ## Schemas (nombre @línea)
-ErrorResponse L53 · PaginationMeta L74 · RegisterRequest L86 · LoginRequest L103 · AuthResponse L115 · User L126 · UserUpdateRequest L143 · PasswordResetRequest L155 · Collection L164 · CollectionDetail L183 · CollectionRequest L193 · ReorderRequest L210 · PaintingSummary L220 · PaintingDetail L239 · PaintingRequest L252 · PaintingReorderRequest L276 · Exhibition L289 · ExhibitionRequest L308 · DesignProject L328 · DesignRequest L352 · Illustration L377 · IllustrationRequest L394 · Biography L411 · BiographyRequest L425 · ContactRequest L439 · ContactResponse L457 · UploadResponse L467 · HealthResponse L486 · MessageResponse L496
+ErrorResponse L53 · PaginationMeta L74 · RegisterRequest L86 · LoginRequest L103 · AuthResponse L115 · User L126 · UserUpdateRequest L143 · PasswordResetRequest L155 · Collection L164 · CollectionDetail L183 · CollectionRequest L193 · ReorderRequest L210 · PaintingSummary L220 · PaintingDetail L239 · PaintingRequest L252 · PaintingUpdateRequest L279 · PaintingReorderRequest L303 · Exhibition L316 · ExhibitionRequest L335 · DesignProject L355 · DesignRequest L379 · Illustration L404 · IllustrationRequest L421 · Biography L438 · BiographyRequest L452 · ContactRequest L466 · ContactResponse L484 · UploadResponse L494 · HealthResponse L513 · MessageResponse L523
 
 ## Regenerar este índice (si cambia openapi.yaml)
 ```bash
