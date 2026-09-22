@@ -61,7 +61,9 @@ CAMBIOS DE chore/docker-deploy (rama en curso):
 - Dockerización: Dockerfile (node:22-alpine + pnpm 9 + prisma generate, no-root), docker-entrypoint.sh (migrate deploy + start) y render.yaml (Blueprint Render, free, rama main). Imagen verificada en local contra la BD del compose (health, health/db y collections OK).
 - scripts/bootstrap-admin.js: primer ADMIN de producción vía env (ADMIN_EMAIL/ADMIN_PASS fuerte, upsert, sin secretos en logs). NO ejecutar prisma db seed en prod.
 - docs/DEPLOY.md: guía Render + Supabase (URLs de conexión, env checklist, bootstrap, cron-job.org ping cada 10 min a /health/db, ciclo develop→main).
-- PENDIENTES manuales: crear proyecto Supabase (Frankfurt) + Blueprint en Render con envs reales; bootstrap admin; ping cron-job.org; configurar SMTP real (contacto dará 502 hasta entonces); CORS_ORIGIN cuando exista el front.
+- DESPLIEGUE REALIZADO (2026-09-22): main = 789aa43. Render: https://portfolio-api-tjjy.onrender.com (Live). Supabase: proyecto joyqlaouwxlhwewuyqmr (Frankfurt), migraciones aplicadas vía entrypoint. Verificado: /health y /health/db 200, listados públicos 200 vacíos, login admin OK, bootstrap-admin ejecutado (admin id=1 hectortello@mac.com). .gitignore añade .env.prod (archivo de secretos temporal, ya borrado).
+- VERIFICADO en prod (2026-09-22): /health y /health/db 200; login admin OK; GET /admin/users OK; POST /admin/upload OK (Cloudinary dclv58msd configurada en Render y en .env local). Nota: 2 PNG de prueba 1x1 huérfanos en Cloudinary (carpeta general), borrables.
+- PENDIENTES manuales: cambiar ADMIN_PASS expuesta en chat (PUT /admin/users/1/password); ping cron-job.org cada 10 min a /health/db; región Render → Frankfurt (confirmar); SMTP real (contacto da 502 hasta configurarlo); CORS_ORIGIN cuando exista el front; Postman baseUrl prod (aplazado por el usuario); crear contenido real (colecciones/pinturas/biografía).
 
 REGLAS DE SESIÓN (ESTRICTAS):
 1. Verificar siempre la rama antes de trabajar (`hu/XX-nombre`). NUNCA escribir código directo en `develop`.
