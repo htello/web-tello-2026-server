@@ -15,7 +15,7 @@ ESTADO DEL PROYECTO:
 - Rama actual: develop
 - Cobertura de tests: 100% obligatorio (Vitest)
 - Última HU completada y mergeada: HU13/HU14/HU15 - Formulario de Contacto + Email + Rate Limiting
-- Última rama mergeada: fix/ci-coverage-jwt-secret (fix cobertura CI - PR #1)
+- Última rama mergeada: chore/token-efficiency-docs (índices de docs + reglas de eficiencia de tokens + seed Admin123!)
 - gh CLI autenticado en este equipo (cuenta htello)
 
 ESTADO DE LAS HUS POR FASE:
@@ -43,6 +43,11 @@ CAMBIOS DE fix/ci-coverage-jwt-secret (mergeado a develop vía PR #1):
 - Solución: src/lib/constants.test.js cubre ambas ramas (vi.stubEnv + vi.resetModules + import dinámico).
 - Branch protection NO disponible: repo privado en plan Free (requiere GitHub Pro o repo público). Se usa flujo PR + gh pr checks como gate visible.
 - Pendiente: revisar endpoints manualmente en Postman (sesión actual).
+
+CAMBIOS DE chore/token-efficiency-docs (mergeado a develop):
+- docs/openapi-INDEX.md y docs/postman/INDEX.md: índices ligeros de endpoints (ruta → nº de línea / comando jq); leer el índice y abrir solo el bloque necesario ahorra ~85% de tokens.
+- AGENTS.md: nueva sección "Eficiencia de Tokens (OBLIGATORIO)"; escaneos excluyen node_modules/, .opencode/node_modules/, .git/ y lockfiles.
+- prisma/seed.js: contraseña admin → Admin123! (política fuerte); sincronizados colección Postman, docs/0001, docs/0002 y skills/endpoint-tester. Tests mantienen su fixture propio admin123 (autónomo, mockean Prisma).
 
 REGLAS DE SESIÓN (ESTRICTAS):
 1. Verificar siempre la rama antes de trabajar (`hu/XX-nombre`). NUNCA escribir código directo en `develop`.
