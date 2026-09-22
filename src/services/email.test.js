@@ -6,7 +6,7 @@
  * @module services/email.test
  */
 
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
 vi.mock('nodemailer', () => ({
   default: {
@@ -97,6 +97,43 @@ describe('HU14 - Servicio de Email', () => {
       const result = await sendPasswordResetEmail('admin@test.com', 'http://link');
 
       expect(result).toEqual({ success: false, error: 'SMTP connection error' });
+    });
+  });
+
+  describe('configuración del transporter', () => {
+    afterEach(() => {
+      vi.unstubAllEnvs();
+      vi.resetModules();
+    });
+
+    it('should use implicit TLS when SMTP_PORT is 465', async () => {
+      vi.stubEnv('SMTP_PORT', '465');
+      vi.resetModules();
+
+      const nodemailer = (await import('nodemailer')).default;
+      await import('./email.js');
+
+      expect(nodemailer.createTransport).toHaveBeenCalledWith(
+        expect.objectContaining({ port: 465, secure: true })
+      );
+    });
+
+    it('should default to port 587 with STARTTLS when SMTP_PORT is empty', async () => {
+      vi.stubEnv('SMTP_PORT', '');
+      vi.resetModules();
+
+      const nodemailer = (await import('nodemailer')).default;
+      await import('./email.js');
+
+      expect(nodemailer.createTransport).toHaveBeenCalledWith(
+        expect.objectContaining({
+          port: 587,
+          secure: false,
+          connectionTimeout: 10000,
+          greetingTimeout: 10000,
+          socketTimeout: 30000,
+        })
+      );
     });
   });
 });
