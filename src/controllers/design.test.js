@@ -84,24 +84,16 @@ describe('HU09 - Admin Diseño', () => {
 
   describe('listFiltered', () => {
     describe('given no subcategory', () => {
-      it('should return 200 with all projects', async () => {
-        mockPrisma.designProject.findMany.mockResolvedValue([
-          { id: 1, title: 'Proyecto A', subcategory: 'imagen-corporativa' },
-          { id: 2, title: 'Proyecto B', subcategory: 'editorial' },
-        ]);
+      it('should return 400 VALIDATION_ERROR', async () => {
         req.query = {};
 
         await listFiltered(req, res);
 
-        expect(mockPrisma.designProject.findMany).toHaveBeenCalledWith({
-          where: { isPublished: true },
-        });
-        expect(res.status).toHaveBeenCalledWith(200);
+        expect(mockPrisma.designProject.findMany).not.toHaveBeenCalled();
+        expect(res.status).toHaveBeenCalledWith(400);
         expect(res.json).toHaveBeenCalledWith({
-          data: [
-            { id: 1, title: 'Proyecto A', subcategory: 'imagen-corporativa' },
-            { id: 2, title: 'Proyecto B', subcategory: 'editorial' },
-          ],
+          error: 'La subcategoría es obligatoria',
+          code: 'VALIDATION_ERROR',
         });
       });
     });
@@ -158,7 +150,7 @@ describe('HU09 - Admin Diseño', () => {
     describe('given a database error', () => {
       it('should return 500 INTERNAL_ERROR', async () => {
         mockPrisma.designProject.findMany.mockRejectedValue(new Error('DB Error'));
-        req.query = {};
+        req.query = { subcategory: 'editorial' };
 
         await listFiltered(req, res);
 

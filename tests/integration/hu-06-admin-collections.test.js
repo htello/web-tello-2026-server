@@ -321,10 +321,7 @@ describe('HU06 - Admin Colecciones y Pinturas', () => {
   describe('PUT /admin/collections/reorder', () => {
     describe('given admin token and orderedIds', () => {
       it('should return 200 with success message', async () => {
-        mockPrisma.collection.update
-          .mockResolvedValueOnce({ id: 3, position: 0 })
-          .mockResolvedValueOnce({ id: 1, position: 1 })
-          .mockResolvedValueOnce({ id: 2, position: 2 });
+        mockPrisma.collection.update.mockResolvedValue({ position: 0 });
 
         const res = await request(app)
           .put('/api/v1/admin/collections/reorder')
@@ -777,9 +774,7 @@ describe('HU06 - Admin Colecciones y Pinturas', () => {
   describe('PUT /admin/paintings/reorder', () => {
     describe('given admin token and orderedIds with collectionId', () => {
       it('should return 200 with success message', async () => {
-        mockPrisma.painting.update
-          .mockResolvedValueOnce({ id: 2, position: 0 })
-          .mockResolvedValueOnce({ id: 1, position: 1 });
+        mockPrisma.painting.update.mockResolvedValue({ position: 0 });
 
         const res = await request(app)
           .put('/api/v1/admin/paintings/reorder')

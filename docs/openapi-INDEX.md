@@ -1,6 +1,6 @@
 # Índice OpenAPI — Portfolio API
 
-> Mapa ligero de `docs/openapi.yaml` (fuente de verdad, 1946 líneas).
+> Mapa ligero de `docs/openapi.yaml` (fuente de verdad, 1953 líneas).
 > Leer ESTE índice y abrir solo el bloque necesario con `offset/limit` ahorra ~85% de tokens.
 
 ## Uso
@@ -37,18 +37,18 @@
 | /admin/exhibitions/{id} | PUT L1314 · DELETE L1357 |
 | /admin/exhibitions/reorder | PUT L1387 |
 | /design | GET L1417 |
-| /design/featured | GET L1452 |
-| /admin/design | GET L1470 · POST L1497 |
-| /admin/design/{id} | PUT L1530 · DELETE L1573 |
-| /illustrations | GET L1603 |
-| /illustrations/featured | GET L1621 |
-| /admin/illustrations | GET L1639 · POST L1666 |
-| /admin/illustrations/{id} | PUT L1699 · DELETE L1742 |
-| /biography | GET L1772 |
-| /admin/biography | POST L1788 · PUT L1819 |
-| /contact | POST L1858 |
-| /admin/upload | POST L1890 |
-| /health | GET L1936 |
+| /design/featured | GET L1459 |
+| /admin/design | GET L1477 · POST L1504 |
+| /admin/design/{id} | PUT L1537 · DELETE L1580 |
+| /illustrations | GET L1610 |
+| /illustrations/featured | GET L1628 |
+| /admin/illustrations | GET L1646 · POST L1673 |
+| /admin/illustrations/{id} | PUT L1706 · DELETE L1749 |
+| /biography | GET L1779 |
+| /admin/biography | POST L1795 · PUT L1826 |
+| /contact | POST L1865 |
+| /admin/upload | POST L1897 |
+| /health | GET L1943 |
 
 ## Schemas (nombre @línea)
 ErrorResponse L53 · PaginationMeta L74 · RegisterRequest L86 · LoginRequest L103 · AuthResponse L115 · User L126 · UserUpdateRequest L143 · PasswordResetRequest L155 · Collection L164 · CollectionDetail L183 · CollectionRequest L193 · ReorderRequest L210 · PaintingSummary L220 · PaintingDetail L239 · PaintingRequest L252 · PaintingUpdateRequest L279 · PaintingReorderRequest L303 · Exhibition L316 · ExhibitionRequest L335 · DesignProject L355 · DesignRequest L379 · Illustration L404 · IllustrationRequest L421 · Biography L438 · BiographyRequest L452 · ContactRequest L466 · ContactResponse L484 · UploadResponse L494 · HealthResponse L513 · MessageResponse L523

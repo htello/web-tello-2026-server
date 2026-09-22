@@ -148,22 +148,28 @@ const listAll = async (req, res) => {
  * HU08 - Filtrar Diseño
  * Endpoint GET /api/v1/design
  *
+ * Lista proyectos publicados filtrando obligatoriamente por subcategoría.
+ *
  * @param {Object} req - Request de Express
  * @param {Object} res - Response de Express
- * @returns {Promise<Object>} 200 con proyectos, 404 o 500
+ * @returns {Promise<Object>} 200 con proyectos, 400, 404 o 500
  * @security Endpoint público (no requiere autenticación)
  */
 const listFiltered = async (req, res) => {
   try {
     const { subcategory } = req.query;
 
-    if (subcategory && !DESIGN_SUBCATEGORIES.includes(subcategory)) {
+    if (!subcategory) {
+      return sendError(res, 400, 'VALIDATION_ERROR', 'La subcategoría es obligatoria');
+    }
+
+    if (!DESIGN_SUBCATEGORIES.includes(subcategory)) {
       return sendNotFound(res, 'Subcategoría inválida');
     }
 
-    const projects = subcategory
-      ? await prisma.designProject.findMany({ where: { subcategory, isPublished: true } })
-      : await prisma.designProject.findMany({ where: { isPublished: true } });
+    const projects = await prisma.designProject.findMany({
+      where: { subcategory, isPublished: true },
+    });
 
     return sendSuccess(res, projects);
   } catch (error) {

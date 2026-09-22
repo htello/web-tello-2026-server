@@ -229,9 +229,7 @@ describe('HU07 - Admin Exhibitions', () => {
   describe('PUT /admin/exhibitions/reorder', () => {
     describe('given admin token and orderedIds', () => {
       it('should return 200 with success message', async () => {
-        mockPrisma.exhibition.update
-          .mockResolvedValueOnce({ id: 2, position: 0 })
-          .mockResolvedValueOnce({ id: 1, position: 1 });
+        mockPrisma.exhibition.update.mockResolvedValue({ position: 0 });
 
         const res = await request(app)
           .put('/api/v1/admin/exhibitions/reorder')

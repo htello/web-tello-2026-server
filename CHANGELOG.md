@@ -20,6 +20,7 @@ y este proyecto adherido al [Versionado Semántico](https://semver.org/lang/es/)
   - `create`/`update` de pinturas, exposiciones, diseño e ilustraciones aceptan `isPublished` (y `isFeatured` donde aplica) en el body.
   - Los listados públicos (`GET /exhibitions`, `GET /design`, `GET /illustrations`) filtran `isPublished: true`.
 - Biografía: `PUT /admin/biography` ahora es solo actualización (404 si no existe) y acepta imagen (multipart); si no se envía imagen, preserva la existente.
+- `GET /design` (público): `subcategory` pasa a ser obligatorio; sin el parámetro devuelve `400 VALIDATION_ERROR` ("La subcategoría es obligatoria"). Se elimina el listado público "todas" (el admin sigue usando `GET /admin/design` sin filtros). Sincronizados `docs/openapi.yaml` (parámetro `required: true` + respuesta 400), `docs/openapi-INDEX.md` y la colección Postman (request renombrado a "GET /design (sin subcategoría → 400)").
 - `POST /admin/paintings`: `year` pasa a ser obligatorio (`400 VALIDATION_ERROR` "El año es obligatorio" si falta o llega vacío por form-data). `PUT /admin/paintings/:id` sigue siendo actualización parcial (`year` opcional). Sincronizado `docs/openapi.yaml`: `PaintingRequest.required` incluye `year` (con rango 1900-2100) y nuevo schema `PaintingUpdateRequest` (sin campos requeridos, `minProperties: 1`) referenciado por el PUT; regenerado `docs/openapi-INDEX.md`.
 
 ### Removed

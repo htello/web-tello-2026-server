@@ -1,7 +1,7 @@
 /**
  * @fileoverview Tests de integración de HU08 - Filtrar Diseño.
  *
- * Verifica el endpoint público GET /api/v1/design con y sin filtro por subcategoría.
+ * Verifica el endpoint público GET /api/v1/design, que exige filtro por subcategoría.
  *
  * @module tests/integration/hu-08-design-filter
  */
@@ -19,20 +19,15 @@ describe('HU08 - Filtrar Diseño', () => {
 
   describe('GET /api/v1/design', () => {
     describe('given no query params', () => {
-      it('should return 200 with all projects', async () => {
-        mockPrisma.designProject.findMany.mockResolvedValue([
-          { id: 1, title: 'Branding Café Aroma', subcategory: 'imagen-corporativa' },
-          { id: 2, title: 'Packaging', subcategory: 'packaging-expositores' },
-        ]);
-
+      it('should return 400 VALIDATION_ERROR', async () => {
         const res = await request(app).get('/api/v1/design');
 
-        expect(res.status).toBe(200);
-        expect(Array.isArray(res.body.data)).toBe(true);
-        expect(res.body.data).toHaveLength(2);
-        expect(mockPrisma.designProject.findMany).toHaveBeenCalledWith({
-          where: { isPublished: true },
+        expect(res.status).toBe(400);
+        expect(res.body).toEqual({
+          error: 'La subcategoría es obligatoria',
+          code: 'VALIDATION_ERROR',
         });
+        expect(mockPrisma.designProject.findMany).not.toHaveBeenCalled();
       });
     });
 
@@ -87,7 +82,7 @@ describe('HU08 - Filtrar Diseño', () => {
           new Error('Database connection failed')
         );
 
-        const res = await request(app).get('/api/v1/design');
+        const res = await request(app).get('/api/v1/design?subcategory=editorial');
 
         expect(res.status).toBe(500);
         expect(res.body).toHaveProperty('code', 'INTERNAL_ERROR');

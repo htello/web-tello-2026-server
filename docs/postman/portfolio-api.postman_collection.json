@@ -685,10 +685,11 @@
               }
             },
             {
-              "name": "GET /design (todas)",
+              "name": "GET /design (sin subcategoría → 400)",
               "request": {
                 "method": "GET",
                 "header": [],
+                "description": "subcategory es obligatorio: sin el parámetro devuelve 400 VALIDATION_ERROR (\"La subcategoría es obligatoria\").",
                 "url": {
                   "raw": "{{baseUrl}}/design",
                   "host": ["{{baseUrl}}"],

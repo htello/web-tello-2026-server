@@ -1416,11 +1416,12 @@ paths:
   /design:
     get:
       tags: [Design]
-      summary: Listar proyectos de diseño
+      summary: Listar proyectos de diseño por subcategoría
       security: []
       parameters:
         - name: subcategory
           in: query
+          required: true
           schema:
             type: string
             enum:
@@ -1428,10 +1429,10 @@ paths:
               - packaging-expositores
               - carteleria
               - editorial
-          description: Filtrar por subcategoría
+          description: Subcategoría obligatoria para filtrar
       responses:
         '200':
-          description: Lista de proyectos de diseño
+          description: Lista de proyectos de diseño publicados de la subcategoría
           content:
             application/json:
               schema:
@@ -1441,6 +1442,12 @@ paths:
                     type: array
                     items:
                       $ref: '#/components/schemas/DesignProject'
+        '400':
+          description: Subcategoría no proporcionada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
         '404':
           description: Subcategoría inválida
           content:

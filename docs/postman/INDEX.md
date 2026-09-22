@@ -60,7 +60,7 @@ jq '.. | objects | select(.name?=="POST /admin/collections")' \
 
 ### Design
 - Publicas > GET /design/featured  `{{baseUrl}}/design/featured`
-- Publicas > GET /design (todas)  `{{baseUrl}}/design`
+- Publicas > GET /design (sin subcategoría → 400)  `{{baseUrl}}/design`
 - Publicas > GET /design?subcategory=imagen-corporativa  `{{baseUrl}}/design?subcategory=imagen-corporativa`
 - Publicas > GET /design?subcategory=packaging-expositores  `{{baseUrl}}/design?subcategory=packaging-expositores`
 - Publicas > GET /design?subcategory=carteleria  `{{baseUrl}}/design?subcategory=carteleria`
