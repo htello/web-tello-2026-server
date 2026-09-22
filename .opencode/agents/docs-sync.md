@@ -90,25 +90,10 @@ If user approves, auto-update documentation:
 2. **0001-API-DESIGN.md**: Update examples
 3. **README.md**: Update endpoint list
 
-## Commands
-
-```bash
-# Full sync check
-pnpm exec docs-sync
-
-# Check specific endpoint
-pnpm exec docs-sync --endpoint /api/v1/collections
-
-# Auto-fix
-pnpm exec docs-sync --fix
-
-# Dry run (show what would change)
-pnpm exec docs-sync --dry-run
-```
-
 ## Rules
 
 1. **NEVER** auto-fix without user approval
 2. **ALWAYS** verify openapi.yaml is valid YAML after changes
 3. **ALWAYS** maintain backward compatibility
 4. **ALWAYS** update CHANGELOG.md for breaking changes
+5. **ALWAYS** use `grep` commands shown in workflow to verify sync

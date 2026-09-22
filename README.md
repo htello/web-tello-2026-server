@@ -86,23 +86,23 @@ http://localhost:3000/api/v1
 
 | Method | Endpoint | Description | Auth |
 |--------|----------|-------------|------|
-| POST | `/auth/register` | Register new user | No |
-| POST | `/auth/login` | Login | No |
+| POST | `/api/v1/auth/login` | Login, returns JWT | No |
+| POST | `/api/v1/admin/users/register` | Register new admin | Admin JWT |
 
 ### Collections (Public)
 
 | Method | Endpoint | Description | Auth |
 |--------|----------|-------------|------|
 | GET | `/collections` | List published collections | No |
-| GET | `/collections/{id}` | Collection detail with paintings | No |
+| GET | `/collections/:id` | Collection detail with paintings | No |
 
 ### Collections (Admin)
 
 | Method | Endpoint | Description | Auth |
 |--------|----------|-------------|------|
 | POST | `/admin/collections` | Create collection | JWT |
-| PUT | `/admin/collections/{id}` | Update collection | JWT |
-| DELETE | `/admin/collections/{id}` | Delete collection | JWT |
+| PUT | `/admin/collections/:id` | Update collection | JWT |
+| DELETE | `/admin/collections/:id` | Delete collection | JWT |
 | PUT | `/admin/collections/reorder` | Reorder collections | JWT |
 
 ### Paintings
@@ -110,12 +110,12 @@ http://localhost:3000/api/v1
 | Method | Endpoint | Description | Auth |
 |--------|----------|-------------|------|
 | GET | `/paintings/featured` | Featured paintings (homepage) | No |
-| GET | `/paintings/{id}` | Painting detail | No |
+| GET | `/paintings/:id` | Painting detail | No |
 | POST | `/admin/paintings` | Create painting | JWT |
-| PUT | `/admin/paintings/{id}` | Update painting | JWT |
-| DELETE | `/admin/paintings/{id}` | Delete painting | JWT |
-| PUT | `/admin/paintings/{id}/feature` | Toggle featured | JWT |
-| PUT | `/admin/paintings/{id}/publish` | Toggle published | JWT |
+| PUT | `/admin/paintings/:id` | Update painting | JWT |
+| DELETE | `/admin/paintings/:id` | Delete painting | JWT |
+| PUT | `/admin/paintings/:id/feature` | Toggle featured | JWT |
+| PUT | `/admin/paintings/:id/publish` | Toggle published | JWT |
 | PUT | `/admin/paintings/reorder` | Reorder paintings | JWT |
 
 ### Exhibitions
@@ -124,8 +124,8 @@ http://localhost:3000/api/v1
 |--------|----------|-------------|------|
 | GET | `/exhibitions` | List exhibitions | No |
 | POST | `/admin/exhibitions` | Create exhibition | JWT |
-| PUT | `/admin/exhibitions/{id}` | Update exhibition | JWT |
-| DELETE | `/admin/exhibitions/{id}` | Delete exhibition | JWT |
+| PUT | `/admin/exhibitions/:id` | Update exhibition | JWT |
+| DELETE | `/admin/exhibitions/:id` | Delete exhibition | JWT |
 | PUT | `/admin/exhibitions/reorder` | Reorder exhibitions | JWT |
 
 ### Design
@@ -134,8 +134,8 @@ http://localhost:3000/api/v1
 |--------|----------|-------------|------|
 | GET | `/design` | List design projects | No |
 | POST | `/admin/design` | Create design project | JWT |
-| PUT | `/admin/design/{id}` | Update design project | JWT |
-| DELETE | `/admin/design/{id}` | Delete design project | JWT |
+| PUT | `/admin/design/:id` | Update design project | JWT |
+| DELETE | `/admin/design/:id` | Delete design project | JWT |
 
 ### Illustrations
 
@@ -143,8 +143,8 @@ http://localhost:3000/api/v1
 |--------|----------|-------------|------|
 | GET | `/illustrations` | List illustrations | No |
 | POST | `/admin/illustrations` | Create illustration | JWT |
-| PUT | `/admin/illustrations/{id}` | Update illustration | JWT |
-| DELETE | `/admin/illustrations/{id}` | Delete illustration | JWT |
+| PUT | `/admin/illustrations/:id` | Update illustration | JWT |
+| DELETE | `/admin/illustrations/:id` | Delete illustration | JWT |
 
 ### Biography
 

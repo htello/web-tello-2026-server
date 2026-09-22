@@ -60,3 +60,4 @@
 
 * **HU20 - Inicio de Sesión de Administrador:** Como administrador, quiero autenticarme mediante email y contraseña cifrada (`bcryptjs`) para obtener un token de acceso seguro (JWT).
 * **HU21 - Protección de Rutas:** Como sistema, debo bloquear mediante middleware cualquier intento de creación, modificación o eliminación (`POST`, `PUT`, `DELETE`) realizado sin un token JWT válido (respuestas `HTTP 401/403`).
+* **HU22 - Registro de Administradores:** Como administrador autenticado, quiero registrar nuevos usuarios administradores para que también puedan gestionar el contenido del portfolio. Los nuevos usuarios siempre tendrán rol `ADMIN`.

@@ -95,6 +95,8 @@ components:
         password:
           type: string
           minLength: 8
+          pattern: '^(?=.*[A-Z])(?=.*[^a-zA-Z0-9\s]).*$'
+          description: Mínimo 8 caracteres, al menos una mayúscula y un símbolo
         name:
           type: string
 
@@ -252,6 +254,7 @@ components:
       required:
         - title
         - collectionId
+        - year
       properties:
         title:
           type: string
@@ -261,6 +264,32 @@ components:
           type: string
         year:
           type: integer
+          minimum: 1900
+          maximum: 2100
+        collectionId:
+          type: integer
+        isFeatured:
+          type: boolean
+        isPublished:
+          type: boolean
+        image:
+          type: string
+          format: binary
+
+    PaintingUpdateRequest:
+      type: object
+      minProperties: 1
+      properties:
+        title:
+          type: string
+        dimensions:
+          type: string
+        technique:
+          type: string
+        year:
+          type: integer
+          minimum: 1900
+          maximum: 2100
         collectionId:
           type: integer
         isFeatured:
@@ -300,6 +329,8 @@ components:
           type: string
         position:
           type: integer
+        isPublished:
+          type: boolean
 
     ExhibitionRequest:
       type: object
@@ -318,6 +349,8 @@ components:
           type: string
         position:
           type: integer
+        isPublished:
+          type: boolean
 
     DesignProject:
       type: object
@@ -331,8 +364,6 @@ components:
         imageUrl:
           type: string
           format: uri
-        category:
-          type: string
         subcategory:
           type: string
           enum:
@@ -340,19 +371,22 @@ components:
             - packaging-expositores
             - carteleria
             - editorial
+        isPublished:
+          type: boolean
+        isFeatured:
+          type: boolean
+        position:
+          type: integer
 
     DesignRequest:
       type: object
       required:
         - title
-        - category
         - subcategory
       properties:
         title:
           type: string
         description:
-          type: string
-        category:
           type: string
         subcategory:
           type: string
@@ -364,6 +398,10 @@ components:
         image:
           type: string
           format: binary
+        isPublished:
+          type: boolean
+        isFeatured:
+          type: boolean
 
     Illustration:
       type: object
@@ -377,6 +415,12 @@ components:
           format: uri
         description:
           type: string
+        isPublished:
+          type: boolean
+        isFeatured:
+          type: boolean
+        position:
+          type: integer
 
     IllustrationRequest:
       type: object
@@ -390,6 +434,10 @@ components:
         image:
           type: string
           format: binary
+        isPublished:
+          type: boolean
+        isFeatured:
+          type: boolean
 
     Biography:
       type: object
@@ -412,6 +460,9 @@ components:
       properties:
         content:
           type: string
+        imageUrl:
+          type: string
+          format: uri
         image:
           type: string
           format: binary
@@ -483,11 +534,11 @@ components:
               type: string
 
 paths:
-  /auth/register:
+  /admin/users/register:
     post:
       tags: [Auth]
-      summary: Registrar nuevo usuario
-      security: []
+      summary: Registrar nuevo administrador
+      description: "Registra un nuevo usuario con rol ADMIN. Requiere JWT válido de un administrador autenticado."
       requestBody:
         required: true
         content:
@@ -496,7 +547,7 @@ paths:
               $ref: '#/components/schemas/RegisterRequest'
       responses:
         '201':
-          description: Usuario registrado
+          description: Administrador registrado
           content:
             application/json:
               schema:
@@ -505,7 +556,19 @@ paths:
                   data:
                     $ref: '#/components/schemas/User'
         '400':
-          description: Datos inválidos
+          description: Datos inválidos o email duplicado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: No autenticado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Sin permisos (no es admin)
           content:
             application/json:
               schema:
@@ -784,6 +847,33 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
 
   /admin/collections:
+    get:
+      tags: [Collections]
+      summary: Listar todas las colecciones (admin)
+      responses:
+        '200':
+          description: Lista de colecciones
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Collection'
+        '401':
+          description: No autenticado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Sin permisos
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
     post:
       tags: [Collections]
       summary: Crear colección
@@ -919,6 +1009,24 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
 
+  /paintings:
+    get:
+      tags: [Paintings]
+      summary: Listar pinturas publicadas
+      security: []
+      responses:
+        '200':
+          description: Lista de pinturas publicadas
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/PaintingSummary'
+
   /paintings/featured:
     get:
       tags: [Paintings]
@@ -966,6 +1074,33 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
 
   /admin/paintings:
+    get:
+      tags: [Paintings]
+      summary: Listar todas las pinturas (admin)
+      responses:
+        '200':
+          description: Lista de pinturas
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/PaintingDetail'
+        '401':
+          description: No autenticado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Sin permisos
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
     post:
       tags: [Paintings]
       summary: Crear pintura
@@ -1013,7 +1148,7 @@ paths:
         content:
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/PaintingRequest'
+              $ref: '#/components/schemas/PaintingUpdateRequest'
       responses:
         '200':
           description: Pintura actualizada
@@ -1058,78 +1193,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/MessageResponse'
-        '401':
-          description: No autenticado
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '404':
-          description: No encontrado
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-
-  /admin/paintings/{id}/feature:
-    put:
-      tags: [Paintings]
-      summary: Marcar/desmarcar como destacada
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: integer
-      responses:
-        '200':
-          description: Estado de destacado actualizado
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  data:
-                    type: object
-                    properties:
-                      isFeatured:
-                        type: boolean
-        '401':
-          description: No autenticado
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '404':
-          description: No encontrado
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-
-  /admin/paintings/{id}/publish:
-    put:
-      tags: [Paintings]
-      summary: Publicar/ocultar pintura
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: integer
-      responses:
-        '200':
-          description: Estado de publicación actualizado
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  data:
-                    type: object
-                    properties:
-                      isPublished:
-                        type: boolean
         '401':
           description: No autenticado
           content:
@@ -1192,6 +1255,33 @@ paths:
                       $ref: '#/components/schemas/Exhibition'
 
   /admin/exhibitions:
+    get:
+      tags: [Exhibitions]
+      summary: Listar todas las exposiciones (admin)
+      responses:
+        '200':
+          description: Lista de exposiciones
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Exhibition'
+        '401':
+          description: No autenticado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Sin permisos
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
     post:
       tags: [Exhibitions]
       summary: Crear exposición
@@ -1330,11 +1420,12 @@ paths:
   /design:
     get:
       tags: [Design]
-      summary: Listar proyectos de diseño
+      summary: Listar proyectos de diseño por subcategoría
       security: []
       parameters:
         - name: subcategory
           in: query
+          required: true
           schema:
             type: string
             enum:
@@ -1342,7 +1433,54 @@ paths:
               - packaging-expositores
               - carteleria
               - editorial
-          description: Filtrar por subcategoría
+          description: Subcategoría obligatoria para filtrar
+      responses:
+        '200':
+          description: Lista de proyectos de diseño publicados de la subcategoría
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/DesignProject'
+        '400':
+          description: Subcategoría no proporcionada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Subcategoría inválida
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /design/featured:
+    get:
+      tags: [Design]
+      summary: Listar proyectos de diseño destacados
+      security: []
+      responses:
+        '200':
+          description: Lista de proyectos de diseño destacados
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/DesignProject'
+
+  /admin/design:
+    get:
+      tags: [Design]
+      summary: Listar todos los proyectos de diseño (admin)
       responses:
         '200':
           description: Lista de proyectos de diseño
@@ -1355,8 +1493,18 @@ paths:
                     type: array
                     items:
                       $ref: '#/components/schemas/DesignProject'
-
-  /admin/design:
+        '401':
+          description: No autenticado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Sin permisos
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
     post:
       tags: [Design]
       summary: Crear proyecto de diseño
@@ -1462,6 +1610,36 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
 
+  /admin/design/reorder:
+    put:
+      tags: [Design]
+      summary: Reordenar proyectos de diseño
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReorderRequest'
+      responses:
+        '200':
+          description: Proyectos reordenados
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
+        '400':
+          description: Solicitud inválida
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: No autenticado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
   /illustrations:
     get:
       tags: [Illustrations]
@@ -1480,7 +1658,52 @@ paths:
                     items:
                       $ref: '#/components/schemas/Illustration'
 
+  /illustrations/featured:
+    get:
+      tags: [Illustrations]
+      summary: Listar ilustraciones destacadas
+      security: []
+      responses:
+        '200':
+          description: Lista de ilustraciones destacadas
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Illustration'
+
   /admin/illustrations:
+    get:
+      tags: [Illustrations]
+      summary: Listar todas las ilustraciones (admin)
+      responses:
+        '200':
+          description: Lista de ilustraciones
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Illustration'
+        '401':
+          description: No autenticado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Sin permisos
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
     post:
       tags: [Illustrations]
       summary: Crear ilustración
@@ -1586,6 +1809,36 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
 
+  /admin/illustrations/reorder:
+    put:
+      tags: [Illustrations]
+      summary: Reordenar ilustraciones
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReorderRequest'
+      responses:
+        '200':
+          description: Ilustraciones reordenadas
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
+        '400':
+          description: Solicitud inválida
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: No autenticado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
   /biography:
     get:
       tags: [Biography]
@@ -1623,7 +1876,7 @@ paths:
                   data:
                     $ref: '#/components/schemas/Biography'
         '400':
-          description: Solicitud inválida
+          description: Solicitud inválida o biografía ya existente
           content:
             application/json:
               schema:
@@ -1661,6 +1914,12 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
         '401':
           description: No autenticado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Biografía no encontrada
           content:
             application/json:
               schema:
@@ -1715,6 +1974,15 @@ paths:
                   type: string
                   format: binary
                   description: Imagen (JPEG, PNG, WebP)
+                section:
+                  type: string
+                  enum:
+                    - pintura
+                    - ilustracion
+                    - diseno
+                    - general
+                  default: general
+                  description: Subcarpeta de destino en Cloudinary. Si se omite, se usa "general". Un valor fuera del enum devuelve 400.
       responses:
         '200':
           description: Imagen subida
@@ -1747,3 +2015,36 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/HealthResponse'
+
+  /health/db:
+    get:
+      tags: [Health]
+      summary: Estado de la base de datos
+      description: Comprueba la conectividad con PostgreSQL (SELECT 1). Útil para monitorización externa y pings anti-pausa de free tiers.
+      security: []
+      responses:
+        '200':
+          description: Base de datos operativa
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      status:
+                        type: string
+                        example: ok
+                      db:
+                        type: string
+                        example: up
+                      timestamp:
+                        type: string
+                        format: date-time
+        '503':
+          description: Base de datos no disponible
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'

@@ -7,8 +7,15 @@ export default defineConfig({
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html'],
+      reportsDirectory: './coverage',
       include: ['src/**/*.js'],
-      exclude: ['src/**/*.test.js'],
+      exclude: ['src/**/*.test.js', 'src/app.js'],
+      thresholds: {
+        branches: 100,
+        functions: 100,
+        lines: 100,
+        statements: 100,
+      },
     },
   },
 });

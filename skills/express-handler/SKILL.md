@@ -13,14 +13,15 @@ Standard patterns for Express routes in this project.
 src/
 ├── routes/
 │   ├── index.js           # Main router
-│   ├── paintings.js       # /api/paintings
-│   ├── collections.js     # /api/collections
-│   ├── exhibitions.js     # /api/exhibitions
-│   ├── design.js          # /api/design
-│   ├── illustration.js    # /api/illustration
-│   ├── biography.js       # /api/biography
-│   ├── contact.js         # /api/contact
-│   └── auth.js            # /api/auth
+│   ├── paintings.js       # /api/v1/paintings
+│   ├── collections.js     # /api/v1/collections
+│   ├── exhibitions.js     # /api/v1/exhibitions
+│   ├── design.js          # /api/v1/design
+│   ├── illustration.js    # /api/v1/illustrations
+│   ├── biography.js       # /api/v1/biography
+│   ├── contact.js         # /api/v1/contact
+│   ├── auth.js            # /api/v1/auth
+│   └── admin.js           # /api/v1/admin/*
 ├── controllers/           # Business logic
 ├── middleware/            # Auth, validation, rate-limit
 └── services/             # Email, upload
@@ -52,6 +53,7 @@ export default router;
 
 ```javascript
 import { PrismaClient } from '@prisma/client';
+import logger from '../services/logger.js';
 
 const prisma = new PrismaClient();
 
@@ -64,8 +66,8 @@ const getAll = async (req, res) => {
     });
     res.json(items);
   } catch (error) {
-    console.error('Error fetching resources:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    logger.error('Error fetching resources', { error: error.message });
+    res.status(500).json({ error: 'Error interno del servidor', code: 'INTERNAL_ERROR' });
   }
 };
 
@@ -76,12 +78,12 @@ const getById = async (req, res) => {
       where: { id: parseInt(req.params.id) },
     });
     if (!item) {
-      return res.status(404).json({ error: 'Not found' });
+      return res.status(404).json({ error: 'Recurso no encontrado', code: 'NOT_FOUND' });
     }
     res.json(item);
   } catch (error) {
-    console.error('Error fetching resource:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    logger.error('Error fetching resource', { error: error.message });
+    res.status(500).json({ error: 'Error interno del servidor', code: 'INTERNAL_ERROR' });
   }
 };
 
@@ -91,8 +93,8 @@ const create = async (req, res) => {
     const item = await prisma.resource.create({ data: req.body });
     res.status(201).json(item);
   } catch (error) {
-    console.error('Error creating resource:', error);
-    res.status(400).json({ error: error.message });
+    logger.error('Error creating resource', { error: error.message });
+    res.status(400).json({ error: error.message, code: 'VALIDATION_ERROR' });
   }
 };
 
@@ -105,8 +107,8 @@ const update = async (req, res) => {
     });
     res.json(item);
   } catch (error) {
-    console.error('Error updating resource:', error);
-    res.status(400).json({ error: error.message });
+    logger.error('Error updating resource', { error: error.message });
+    res.status(400).json({ error: error.message, code: 'VALIDATION_ERROR' });
   }
 };
 
@@ -118,8 +120,8 @@ const remove = async (req, res) => {
     });
     res.status(204).send();
   } catch (error) {
-    console.error('Error deleting resource:', error);
-    res.status(400).json({ error: error.message });
+    logger.error('Error deleting resource', { error: error.message });
+    res.status(400).json({ error: error.message, code: 'VALIDATION_ERROR' });
   }
 };
 
@@ -181,7 +183,8 @@ export { validate, paintingSchema };
 ```javascript
 import { describe, it, expect } from 'vitest';
 import request from 'supertest';
-import app from '../../src/app.js';
+
+const app = (await import('../../src/app.js')).default;
 
 describe('GET /api/paintings', () => {
   it('should return published paintings', async () => {
@@ -189,7 +192,7 @@ describe('GET /api/paintings', () => {
       .get('/api/paintings')
       .expect(200);
 
-    expect(Array.isArray(res.body)).toBe(true);
+    expect(Array.isArray(res.body.data)).toBe(true);
   });
 });
 ```
@@ -239,21 +242,21 @@ const loginLimiter = rateLimit({
   message: { error: 'Too many login attempts', code: 'RATE_LIMIT' },
 });
 
-app.use('/api/contact', contactLimiter);
-app.use('/api/auth/login', loginLimiter);
+app.use('/api/v1/contact', contactLimiter);
+app.use('/api/v1/auth/login', loginLimiter);
 ```
 
 ### Secure Error Handling (A10)
 
 ```javascript
+import logger from '../services/logger.js';
+
 // NEVER expose stack traces to client
 const errorHandler = (err, req, res, next) => {
-  console.error(err.stack); // Log server-side only
+  logger.error('Unhandled error', { error: err.message });
 
   res.status(err.status || 500).json({
-    error: process.env.NODE_ENV === 'production'
-      ? 'Internal server error'
-      : err.message,
+    error: 'Error interno del servidor',
     code: err.code || 'INTERNAL_ERROR',
   });
 };

@@ -24,7 +24,7 @@ enum Role {
 
 model Collection {
   id          Int       @id @default(autoincrement())
-  title       String
+  title       String    @unique
   description String?
   coverImage  String?
   position    Int       @default(0)
@@ -48,6 +48,8 @@ model Painting {
   collection   Collection @relation(fields: [collectionId], references: [id], onDelete: Cascade)
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
+
+  @@unique([title, collectionId])
 }
 
 model Exhibition {
@@ -57,6 +59,7 @@ model Exhibition {
   location    String?
   description String?
   position    Int      @default(0)
+  isPublished Boolean  @default(true)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 }
@@ -66,8 +69,10 @@ model DesignProject {
   title       String
   description String?
   imageUrl    String
-  category    String
   subcategory String
+  isPublished Boolean  @default(true)
+  isFeatured  Boolean  @default(false)
+  position    Int      @default(0)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 }
@@ -77,6 +82,9 @@ model Illustration {
   title       String
   description String?
   imageUrl    String
+  isPublished Boolean  @default(true)
+  isFeatured  Boolean  @default(false)
+  position    Int      @default(0)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 }

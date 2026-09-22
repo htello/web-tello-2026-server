@@ -1,0 +1,16 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "instructions": ["AGENTS.md"],
+  "watcher": {
+    "ignore": [
+      "**/node_modules/**",
+      "**/dist/**",
+      "**/coverage/**",
+      "**/.git/**",
+      "**/prisma/migrations/**"
+    ]
+  },
+  "model": "opencode-go/qwen3.8-max",
+  "small_model": "opencode-go/qwen3.8-flash",
+  "system_prompt": "CUMPLIMIENTO OBLIGATORIO DE AGENTS.MD: 1. CONCISIÓN (REGLA 7): Prohibido saludos, intros, rodeos o explicaciones teóricas. Presenta directamente el código, comandos o ejecuciones de herramientas sin texto conversacional. 2. LECTURA BAJO CONFIRMACIÓN (REGLA 5): NUNCA pre-escanees docs/, postman, SESION.md ni ejecutes 'git log' al inicio. Si requieres consultar la documentación, SOLICITA CONFIRMACIÓN EXPLÍCITA al usuario antes de leer."
+}

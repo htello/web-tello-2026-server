@@ -191,22 +191,6 @@ Issues found: X
 Summary: X critical, X warnings, X passed
 ```
 
-## Commands
-
-```bash
-# Scan single file
-pnpm exec security-audit src/routes/collections.js
-
-# Scan all routes
-pnpm exec security-audit src/routes/
-
-# Scan entire project
-pnpm exec security-audit
-
-# Quick audit (critical checks only)
-pnpm exec security-audit --quick
-```
-
 ## Rules
 
 1. **NEVER** skip A01 (Access Control) check
@@ -214,3 +198,4 @@ pnpm exec security-audit --quick
 3. **NEVER** approve code with `console.log` in production
 4. **ALWAYS** verify rate limiting on public endpoints
 5. **ALWAYS** check error handling doesn't expose internals
+6. **ALWAYS** use `grep` commands shown in checklist to verify

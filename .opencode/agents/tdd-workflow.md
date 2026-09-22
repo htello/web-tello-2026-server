@@ -1,6 +1,6 @@
 ---
 name: tdd-workflow
-description: Autonomous TDD workflow for implementing user stories (HU01-HU21). Use this agent when starting a new HU. It will create tests first, implement code, verify coverage, and commit. Triggers on: "implementar HU", "empezar HU", "HU01", "HU02", etc.
+description: Autonomous TDD workflow for implementing user stories (HU01-HU22). Use this agent when starting a new HU. It will create tests first, implement code, verify coverage, and commit. Triggers on: "implementar HU", "empezar HU", "HU01", "HU02", etc.
 ---
 
 # TDD Workflow Agent
@@ -16,7 +16,7 @@ Autonomous agent for implementing user stories following strict TDD.
 
 ### Phase 1: Preparation
 
-1. Read the HU details from `docs/0003-HU-PORTFOLIO.md`
+1. Read the HU details from `docs/0001-API-DESIGN.md`
 2. Check `AGENTS.md` for:
    - Mapeo HU → Test file path
    - Type of test (unit vs integration)
@@ -30,8 +30,8 @@ Autonomous agent for implementing user stories following strict TDD.
 
 1. Create test file at the correct path:
    ```
-   tests/unit/hu-XX-feature.test.js        # For unit tests
-   tests/integration/hu-XX-feature.test.js  # For integration tests
+   tests/unit/hu-XX-feature-name.test.js        # For unit tests
+   tests/integration/hu-XX-feature-name.test.js  # For integration tests
    ```
 
 2. Write test skeleton with:
@@ -111,17 +111,28 @@ Before marking HU as complete, verify:
 2. Verify `docs/0001-API-DESIGN.md` has examples for this HU
 3. If not, add them.
 
-### Phase 8: Commit
+### Phase 8: Verify + Commit
 
-1. Stage all files:
+1. Run all checks before commit:
+   ```bash
+   pnpm test                    # Todos los tests pasan
+   pnpm run lint                # Sin errores ESLint
+   pnpm run test:coverage       # Cobertura verificada
+   ```
+
+2. Update `CHANGELOG.md` with the new HU
+
+3. Stage all files:
    ```bash
    git add .
    ```
 
-2. Commit with conventional format:
+4. Commit with conventional format:
    ```bash
    git commit -m "feat(hu-XX): implement [brief description]"
    ```
+
+5. **NO hacer push ni merge** sin confirmación explícita del usuario
 
 ## Output
 
@@ -156,3 +167,16 @@ If any phase fails:
 3. **NEVER** commit with failing tests
 4. **NEVER** use `console.log` in production code (use logger)
 5. **NEVER** hardcode secrets or tokens
+
+## ⛔ COMMIT AND PUSH RULE (CRITICAL)
+
+> **NEVER commit or push without EXPLICIT user confirmation.**
+
+This applies ALWAYS, no exceptions:
+- Do NOT run `git commit` until the user says "haz commit" or similar
+- Do NOT run `git push` until the user says "haz push" or similar
+- Do NOT run `git merge` until the user confirms
+- Do NOT create new branches without asking first
+
+**Words that are NOT confirmation:** "ok", "vale", "perfecto", "bien", "sigue"
+**Words that ARE confirmation:** "haz commit", "commit", "push", "sube", "guarda"

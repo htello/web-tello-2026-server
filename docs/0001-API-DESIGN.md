@@ -10,29 +10,47 @@
 
 ---
 
-## 1. Autenticación (HU20, HU21)
+## 1. Autenticación (HU20, HU21, HU22)
 
 | Método | Endpoint | Descripción | Auth |
 |--------|----------|-------------|------|
-| `POST` | `/api/v1/auth/register` | Registrar nuevo usuario | No |
 | `POST` | `/api/v1/auth/login` | Login, retorna JWT | No |
+| `POST` | `/api/v1/admin/users/register` | Registrar nuevo admin | Admin |
 
-**POST /api/v1/auth/register**
+**POST /api/v1/auth/login**
 ```json
 // Request
-{ "email": "nuevo@test.com", "password": "clave123", "name": "Nuevo Usuario" }
+{ "email": "admin@test.com", "password": "Admin123!" }
+
+// Response 200
+{ "data": { "token": "eyJ...", "user": { "id": 1, "email": "admin@test.com", "role": "ADMIN" } } }
+
+// Error 401
+{ "error": "Credenciales inválidas", "code": "UNAUTHORIZED" }
+```
+
+**POST /api/v1/admin/users/register** (HU22 - Requiere JWT Admin)
+```json
+// Request (requiere header Authorization: Bearer <token>)
+{ "email": "nuevo-admin@test.com", "password": "clave123", "name": "Nuevo Admin" }
 
 // Response 201
-{ "data": { "id": 2, "email": "nuevo@test.com", "name": "Nuevo Usuario", "role": "USER" } }
+{ "data": { "id": 2, "email": "nuevo-admin@test.com", "name": "Nuevo Admin", "role": "ADMIN" } }
 
-// Error 400
+// Error 400 (email duplicado)
 { "error": "El email ya está registrado", "code": "VALIDATION_ERROR" }
+
+// Error 401 (sin token)
+{ "error": "Token de autenticación requerido", "code": "UNAUTHORIZED" }
+
+// Error 403 (token inválido o no admin)
+{ "error": "Acceso denegado. Se requiere rol de administrador", "code": "FORBIDDEN" }
 ```
 
 **POST /api/v1/auth/login**
 ```json
 // Request
-{ "email": "admin@test.com", "password": "admin123" }
+{ "email": "admin@test.com", "password": "Admin123!" }
 
 // Response 200
 { "data": { "token": "eyJ...", "user": { "id": 1, "email": "admin@test.com", "role": "ADMIN" } } }
@@ -98,6 +116,7 @@
 |--------|----------|-------------|------|
 | `GET` | `/api/v1/collections` | Listar colecciones publicadas | No |
 | `GET` | `/api/v1/collections/:id` | Detalle de colección + sus pinturas | No |
+| `GET` | `/api/v1/admin/collections` | Listar todas las colecciones (publicadas y no publicadas) | Admin |
 | `POST` | `/api/v1/admin/collections` | Crear colección | Admin |
 | `PUT` | `/api/v1/admin/collections/:id` | Editar colección | Admin |
 | `DELETE` | `/api/v1/admin/collections/:id` | Eliminar colección | Admin |
@@ -172,6 +191,7 @@
 |--------|----------|-------------|------|
 | `GET` | `/api/v1/paintings/featured` | Obras destacadas (portada) | No |
 | `GET` | `/api/v1/paintings/:id` | Ficha detallada de pintura | No |
+| `GET` | `/api/v1/admin/paintings` | Listar todas las pinturas (publicadas y no publicadas) | Admin |
 | `POST` | `/api/v1/admin/paintings` | Crear pintura | Admin |
 | `PUT` | `/api/v1/admin/paintings/:id` | Editar pintura | Admin |
 | `DELETE` | `/api/v1/admin/paintings/:id` | Eliminar pintura | Admin |
@@ -235,6 +255,7 @@
 | Método | Endpoint | Descripción | Auth |
 |--------|----------|-------------|------|
 | `GET` | `/api/v1/exhibitions` | Listar exposiciones ordenadas por position | No |
+| `GET` | `/api/v1/admin/exhibitions` | Listar todas las exposiciones (publicadas y no publicadas) | Admin |
 | `POST` | `/api/v1/admin/exhibitions` | Crear exposición | Admin |
 | `PUT` | `/api/v1/admin/exhibitions/:id` | Editar exposición | Admin |
 | `DELETE` | `/api/v1/admin/exhibitions/:id` | Eliminar exposición | Admin |
@@ -277,6 +298,7 @@
 |--------|----------|-------------|------|
 | `GET` | `/api/v1/design` | Listar proyectos de diseño | No |
 | `GET` | `/api/v1/design?subcategory=packaging-expositores` | Filtrar por subcategoría | No |
+| `GET` | `/api/v1/admin/design` | Listar todos los proyectos de diseño (publicados y no publicados) | Admin |
 | `POST` | `/api/v1/admin/design` | Crear proyecto de diseño | Admin |
 | `PUT` | `/api/v1/admin/design/:id` | Editar proyecto de diseño | Admin |
 | `DELETE` | `/api/v1/admin/design/:id` | Eliminar proyecto de diseño | Admin |
@@ -291,7 +313,6 @@
     {
       "id": 1,
       "title": "Branding Café Aroma",
-      "category": "imagen-corporativa",
       "subcategory": "imagen-corporativa",
       "imageUrl": "...",
       "description": "Proyecto de identidad visual"
@@ -307,6 +328,7 @@
 | Método | Endpoint | Descripción | Auth |
 |--------|----------|-------------|------|
 | `GET` | `/api/v1/illustrations` | Galería de ilustraciones | No |
+| `GET` | `/api/v1/admin/illustrations` | Listar todas las ilustraciones (publicadas y no publicadas) | Admin |
 | `POST` | `/api/v1/admin/illustrations` | Crear ilustración | Admin |
 | `PUT` | `/api/v1/admin/illustrations/:id` | Editar ilustración | Admin |
 | `DELETE` | `/api/v1/admin/illustrations/:id` | Eliminar ilustración | Admin |
@@ -333,8 +355,8 @@
 | Método | Endpoint | Descripción | Auth |
 |--------|----------|-------------|------|
 | `GET` | `/api/v1/biography` | Obtener biografía | No |
-| `POST` | `/api/v1/admin/biography` | Crear biografía | Admin |
-| `PUT` | `/api/v1/admin/biography` | Actualizar biografía | Admin |
+| `GET` | `/api/v1/admin/biography` | Obtener biografía (admin) | Admin |
+| `PUT` | `/api/v1/admin/biography` | Crear o actualizar biografía | Admin |
 
 **GET /api/v1/biography**
 ```json
@@ -349,21 +371,25 @@
 }
 ```
 
-**POST /api/v1/admin/biography**
+**GET /api/v1/admin/biography**
 ```json
-// Request (multipart/form-data)
+// Response 200
 {
-  "content": "Biografía del artista...",
-  "image": <File>
+  "data": {
+    "id": 1,
+    "content": "Texto plano de la biografía del artista...",
+    "imageUrl": "https://res.cloudinary.com/.../portrait.jpg",
+    "updatedAt": "2024-01-15T10:30:00Z"
+  }
 }
 ```
 
 **PUT /api/v1/admin/biography**
 ```json
-// Request (multipart/form-data)
+// Request (application/json)
 {
-  "content": "Nueva biografía actualizada...",
-  "image": <File>  // opcional, solo si se cambia
+  "content": "Biografía del artista...",
+  "imageUrl": "https://res.cloudinary.com/.../portrait.jpg"  // opcional
 }
 ```
 
@@ -439,8 +465,8 @@
 
 | # | Método | Ruta | HU | Auth |
 |---|--------|------|----|------|
-| 1 | `POST` | `/api/v1/auth/register` | - | No |
-| 2 | `POST` | `/api/v1/auth/login` | HU20 | No |
+| 1 | `POST` | `/api/v1/auth/login` | HU20 | No |
+| 2 | `POST` | `/api/v1/admin/users/register` | HU22 | Admin |
 | 3 | `GET` | `/api/v1/admin/users` | - | Admin |
 | 4 | `GET` | `/api/v1/admin/users/:id` | - | Admin |
 | 5 | `PUT` | `/api/v1/admin/users/:id` | - | Admin |
@@ -544,7 +570,6 @@ model DesignProject {
   title       String
   description String?
   imageUrl    String
-  category    String
   subcategory String
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt

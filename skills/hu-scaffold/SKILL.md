@@ -1,6 +1,6 @@
 ---
 name: hu-scaffold
-description: Scaffold a new user story (HU) implementation with tests first. Use this skill whenever starting a new HU from the product backlog (HU01-HU21). This skill enforces TDD by creating the test file BEFORE any implementation. Triggers on: "empezar HU", "implementar HU01", "HU02", "nueva HU", "siguiente HU", "next HU", or any request to start work on a specific user story.
+description: Scaffold a new user story (HU) implementation with tests first. Use this skill whenever starting a new HU from the product backlog (HU01-HU22). This skill enforces TDD by creating the test file BEFORE any implementation. Triggers on: "empezar HU", "implementar HU01", "HU02", "nueva HU", "siguiente HU", "next HU", or any request to start work on a specific user story.
 ---
 
 # HU Scaffold
@@ -9,7 +9,7 @@ Scaffold new HU implementations following strict TDD.
 
 ## Before Starting
 
-1. Read the HU details from `docs/0003-HU-PORTFOLIO.md`
+1. Read the HU details from `docs/0001-API-DESIGN.md`
 2. Identify what needs to be tested (unit vs integration)
 3. Check the mape HU → Test in AGENTS.md for the correct file path
 
@@ -27,16 +27,7 @@ touch tests/integration/hu-XX-feature-name.test.js
 
 ```javascript
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-
-vi.mock('@prisma/client', () => {
-  const mockPrisma = {
-    // Add models needed for this HU
-  };
-  return { PrismaClient: vi.fn(() => mockPrisma) };
-});
-
-const { PrismaClient } = await import('@prisma/client');
-const prisma = new PrismaClient();
+import { mockPrisma } from '../helpers/prisma-mock.js';
 
 // Import controller/service/route AFTER mocking
 import { getAll } from '../../src/controllers/resource.js';
@@ -57,20 +48,20 @@ describe('HUXX - Nombre de la HU', () => {
   describe('given [condition]', () => {
     it('should [expected behavior]', async () => {
       // Arrange
-      prisma.resource.findMany.mockResolvedValue([]);
+      mockPrisma.resource.findMany.mockResolvedValue([]);
 
       // Act
       await getAll(req, res);
 
       // Assert
-      expect(res.json).toHaveBeenCalledWith([]);
+      expect(res.json).toHaveBeenCalledWith({ data: [] });
     });
   });
 
   describe('given [error condition]', () => {
     it('should return 500 on error', async () => {
       // Arrange
-      prisma.resource.findMany.mockRejectedValue(new Error('DB Error'));
+      mockPrisma.resource.findMany.mockRejectedValue(new Error('DB Error'));
 
       // Act
       await getAll(req, res);
@@ -96,16 +87,14 @@ Create only what's needed to make the test pass:
 
 ```javascript
 // src/controllers/resource.js
-import { PrismaClient } from '@prisma/client';
-
-const prisma = new PrismaClient();
+import prisma from '../lib/prisma.js';
 
 const getAll = async (req, res) => {
   try {
     const items = await prisma.resource.findMany();
-    res.json(items);
+    res.json({ data: items });
   } catch (error) {
-    res.status(500).json({ error: 'Internal server error' });
+    res.status(500).json({ error: 'Error interno del servidor', code: 'INTERNAL_ERROR' });
   }
 };
 
@@ -146,12 +135,26 @@ Before marking a HU as complete, verify:
 - [ ] **A07 - Auth**: Rate limiting on login (10 req/min), password policy enforced
 - [ ] **A10 - Errors**: Try/catch in all handlers, generic error messages to client
 
-## Step 9: Commit
+## Step 9: Verify + Commit
+
+```bash
+# ANTES de commit, verificar:
+pnpm test                    # Todos los tests pasan
+pnpm run lint                # Sin errores ESLint
+pnpm run test:coverage       # Cobertura verificada
+```
+
+**Reglas:**
+- **NO hacer commit** sin que tests + lint pasen
+- **NO hacer push ni merge** sin confirmación explícita del usuario
+- Actualizar `CHANGELOG.md` antes del commit
 
 ```bash
 git add .
 git commit -m "feat(hu-XX): implement [brief description]"
 ```
+
+Después del commit, esperar aprobación del usuario para push/merge.
 
 ## HU Reference Table
 
@@ -178,3 +181,4 @@ git commit -m "feat(hu-XX): implement [brief description]"
 | HU19 | Health Check | Integration | `tests/integration/hu-19-health-check.test.js` |
 | HU20 | Login Admin | Integration | `tests/integration/hu-20-auth-login.test.js` |
 | HU21 | Protección Rutas | Integration | `tests/integration/hu-21-route-protection.test.js` |
+| HU22 | Registro Admin | Integration | `tests/integration/hu-22-admin-register.test.js` |

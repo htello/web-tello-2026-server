@@ -91,15 +91,17 @@ prisma.painting.create.mockRejectedValue(
 ```javascript
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { createPainting } from '../../src/controllers/paintings.js';
-import { PrismaClient } from '@prisma/client';
+import { mockPrisma } from '../../tests/helpers/prisma-mock.js';
 
-vi.mock('@prisma/client');
+vi.mock('@prisma/client', () => {
+  return { PrismaClient: vi.fn(() => mockPrisma) };
+});
 
 describe('HU06 - Gestión de Colecciones', () => {
-  let req, res, prisma;
+  let req, res;
 
   beforeEach(() => {
-    prisma = new PrismaClient();
+    vi.clearAllMocks();
     req = {
       body: { title: 'Test', technique: 'Óleo' },
       params: {},
@@ -111,7 +113,7 @@ describe('HU06 - Gestión de Colecciones', () => {
   });
 
   it('should create a painting', async () => {
-    prisma.painting.create.mockResolvedValue({ id: 1, ...req.body });
+    mockPrisma.painting.create.mockResolvedValue({ id: 1, ...req.body });
 
     await createPainting(req, res);
 
