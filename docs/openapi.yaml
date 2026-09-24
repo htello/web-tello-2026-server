@@ -327,14 +327,11 @@ components:
       type: object
       required:
         - orderedIds
-        - collectionId
       properties:
         orderedIds:
           type: array
           items:
             type: integer
-        collectionId:
-          type: integer
 
     Exhibition:
       type: object
