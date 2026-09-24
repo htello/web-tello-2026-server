@@ -574,7 +574,7 @@
                 ],
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"orderedIds\": [3, 1, 2],\n  \"collectionId\": 1\n}"
+                  "raw": "{\n  \"orderedIds\": [3, 1, 2]\n}"
                 },
                 "url": {
                   "raw": "{{baseUrl}}/admin/paintings/reorder",

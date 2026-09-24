@@ -772,14 +772,14 @@ describe('HU06 - Admin Colecciones y Pinturas', () => {
   });
 
   describe('PUT /admin/paintings/reorder', () => {
-    describe('given admin token and orderedIds with collectionId', () => {
+    describe('given admin token and orderedIds', () => {
       it('should return 200 with success message', async () => {
         mockPrisma.painting.update.mockResolvedValue({ position: 0 });
 
         const res = await request(app)
           .put('/api/v1/admin/paintings/reorder')
           .set('Authorization', `Bearer ${adminToken}`)
-          .send({ orderedIds: [2, 1], collectionId: 1 });
+          .send({ orderedIds: [2, 1] });
 
         expect(res.status).toBe(200);
         expect(res.body.data).toHaveProperty('message');

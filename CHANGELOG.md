@@ -26,6 +26,7 @@ y este proyecto adherido al [Versionado Semántico](https://semver.org/lang/es/)
 - `docs/DEPLOY.md`: guía completa de despliegue Render + Supabase (connection strings, env checklist, bootstrap admin, ping anti-pausa, ciclo de despliegue).
 
 ### Fixed
+- Documentación de `PUT /admin/paintings/reorder`: `PaintingReorderRequest` declaraba `collectionId` como requerido, pero el endpoint nunca lo usó (el controller solo consume `orderedIds` y `reorderSchema` lo descarta con `stripUnknown`). Eliminado del schema en `docs/openapi.yaml`, del body del request en la colección Postman y del test de integración; `docs/openapi-INDEX.md` regenerado.
 - `POST /contact` devolvía `201 "Mensaje enviado correctamente"` aunque el envío SMTP fallara (`sendContactEmail` retorna `{success:false}` sin lanzar excepción). Ahora responde `502 EMAIL_ERROR` "No se pudo enviar el mensaje. Inténtalo de nuevo más tarde" y registra el fallo con Winston.
 - Transporter SMTP (`src/services/email.js`): timeouts explícitos (`connectionTimeout`/`greetingTimeout` 10 s, `socketTimeout` 30 s) y `secure` automático cuando `SMTP_PORT=465` (TLS implícito; 587 u otros usan STARTTLS). Antes, un SMTP inaccesible o configurado en 465 dejaba `POST /contact` y `POST /auth/forgot-password` colgados ~120 s (hasta el límite del proxy de Render) antes del 502; ahora fallan en ~10-30 s.
 
