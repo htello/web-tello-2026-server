@@ -32,21 +32,21 @@ describe('HU07 - Admin Exposiciones', () => {
     describe('given exhibitions exist', () => {
       it('should return 200 with exhibitions ordered by position', async () => {
         mockPrisma.exhibition.findMany.mockResolvedValue([
-          { id: 1, title: 'Expo Uno', position: 0 },
-          { id: 2, title: 'Expo Dos', position: 1 },
+          { id: 1, title: 'Expo Uno', date: new Date('2024-06-01T00:00:00Z'), endDate: null, position: 0 },
+          { id: 2, title: 'Expo Dos', date: new Date('2024-07-01T00:00:00Z'), endDate: new Date('2024-07-15T00:00:00Z'), position: 1 },
         ]);
 
         await listPublished(req, res);
 
         expect(mockPrisma.exhibition.findMany).toHaveBeenCalledWith({
           where: { isPublished: true },
-          orderBy: { position: 'asc' },
+          orderBy: [{ position: 'asc' }, { id: 'asc' }],
         });
         expect(res.status).toHaveBeenCalledWith(200);
         expect(res.json).toHaveBeenCalledWith({
           data: [
-            { id: 1, title: 'Expo Uno', position: 0 },
-            { id: 2, title: 'Expo Dos', position: 1 },
+            { id: 1, title: 'Expo Uno', date: '2024-06-01', endDate: null, position: 0 },
+            { id: 2, title: 'Expo Dos', date: '2024-07-01', endDate: '2024-07-15', position: 1 },
           ],
         });
       });
@@ -82,20 +82,20 @@ describe('HU07 - Admin Exposiciones', () => {
     describe('given exhibitions exist (published and unpublished)', () => {
       it('should return 200 with all exhibitions ordered by position', async () => {
         mockPrisma.exhibition.findMany.mockResolvedValue([
-          { id: 1, title: 'Expo Uno', position: 0, isPublished: true },
-          { id: 2, title: 'Expo Dos', position: 1, isPublished: false },
+          { id: 1, title: 'Expo Uno', date: new Date('2024-06-01T00:00:00Z'), endDate: null, position: 0, isPublished: true },
+          { id: 2, title: 'Expo Dos', date: new Date('2024-07-01T00:00:00Z'), endDate: null, position: 1, isPublished: false },
         ]);
 
         await listAll(req, res);
 
         expect(mockPrisma.exhibition.findMany).toHaveBeenCalledWith({
-          orderBy: { position: 'asc' },
+          orderBy: [{ position: 'asc' }, { id: 'asc' }],
         });
         expect(res.status).toHaveBeenCalledWith(200);
         expect(res.json).toHaveBeenCalledWith({
           data: [
-            { id: 1, title: 'Expo Uno', position: 0, isPublished: true },
-            { id: 2, title: 'Expo Dos', position: 1, isPublished: false },
+            { id: 1, title: 'Expo Uno', date: '2024-06-01', endDate: null, position: 0, isPublished: true },
+            { id: 2, title: 'Expo Dos', date: '2024-07-01', endDate: null, position: 1, isPublished: false },
           ],
         });
       });
@@ -109,6 +109,37 @@ describe('HU07 - Admin Exposiciones', () => {
 
         expect(res.status).toHaveBeenCalledWith(200);
         expect(res.json).toHaveBeenCalledWith({ data: [] });
+      });
+    });
+
+    describe('given exhibitions with string dates', () => {
+      it('should serialize date/endDate defensively from strings', async () => {
+        mockPrisma.exhibition.findMany.mockResolvedValue([
+          {
+            id: 3,
+            title: 'Expo String',
+            date: '2024-06-01T00:00:00.000Z',
+            endDate: '2024-06-30',
+            position: 0,
+            isPublished: true,
+          },
+        ]);
+
+        await listAll(req, res);
+
+        expect(res.status).toHaveBeenCalledWith(200);
+        expect(res.json).toHaveBeenCalledWith({
+          data: [
+            {
+              id: 3,
+              title: 'Expo String',
+              date: '2024-06-01',
+              endDate: '2024-06-30',
+              position: 0,
+              isPublished: true,
+            },
+          ],
+        });
       });
     });
 
@@ -159,13 +190,87 @@ describe('HU07 - Admin Exposiciones', () => {
           data: {
             id: 1,
             title: 'Exposición 2024',
-            date: new Date('2024-06-01'),
+            date: '2024-06-01',
+            endDate: null,
             location: 'Madrid',
             description: null,
             position: 0,
           },
         });
         expect(logger.info).toHaveBeenCalled();
+      });
+    });
+
+    describe('given valid data with endDate', () => {
+      it('should persist endDate and return it serialized', async () => {
+        mockPrisma.exhibition.create.mockResolvedValue({
+          id: 1,
+          title: 'Exposición 2024',
+          date: new Date('2024-06-01'),
+          endDate: new Date('2024-06-30'),
+          location: null,
+          description: null,
+          position: 0,
+        });
+        req.body = {
+          title: 'Exposición 2024',
+          date: '2024-06-01',
+          endDate: '2024-06-30',
+        };
+
+        await create(req, res);
+
+        expect(mockPrisma.exhibition.create).toHaveBeenCalledWith({
+          data: {
+            title: 'Exposición 2024',
+            date: new Date('2024-06-01'),
+            endDate: new Date('2024-06-30'),
+            location: null,
+            description: null,
+          },
+        });
+        expect(res.status).toHaveBeenCalledWith(201);
+        expect(res.json).toHaveBeenCalledWith({
+          data: {
+            id: 1,
+            title: 'Exposición 2024',
+            date: '2024-06-01',
+            endDate: '2024-06-30',
+            location: null,
+            description: null,
+            position: 0,
+          },
+        });
+      });
+    });
+
+    describe('given endDate null on create', () => {
+      it('should not persist endDate', async () => {
+        mockPrisma.exhibition.create.mockResolvedValue({
+          id: 1,
+          title: 'Exposición 2024',
+          date: new Date('2024-06-01'),
+          endDate: null,
+          location: null,
+          description: null,
+          position: 0,
+        });
+        req.body = {
+          title: 'Exposición 2024',
+          date: '2024-06-01',
+          endDate: null,
+        };
+
+        await create(req, res);
+
+        expect(mockPrisma.exhibition.create).toHaveBeenCalledWith({
+          data: {
+            title: 'Exposición 2024',
+            date: new Date('2024-06-01'),
+            location: null,
+            description: null,
+          },
+        });
       });
     });
 
@@ -268,12 +373,59 @@ describe('HU07 - Admin Exposiciones', () => {
           data: {
             id: 1,
             title: 'Nuevo',
-            date: new Date('2024-06-01'),
+            date: '2024-06-01',
+            endDate: null,
             location: null,
             description: null,
           },
         });
         expect(logger.info).toHaveBeenCalled();
+      });
+
+      it('should persist endDate when provided', async () => {
+        mockPrisma.exhibition.update.mockResolvedValue({
+          id: 1,
+          title: 'Nuevo',
+          date: new Date('2024-06-01'),
+          endDate: new Date('2024-06-30'),
+        });
+        req.params = { id: '1' };
+        req.body = { endDate: '2024-06-30' };
+
+        await update(req, res);
+
+        expect(mockPrisma.exhibition.update).toHaveBeenCalledWith({
+          where: { id: 1 },
+          data: { endDate: new Date('2024-06-30') },
+        });
+        expect(res.status).toHaveBeenCalledWith(200);
+        expect(res.json).toHaveBeenCalledWith({
+          data: {
+            id: 1,
+            title: 'Nuevo',
+            date: '2024-06-01',
+            endDate: '2024-06-30',
+          },
+        });
+      });
+
+      it('should clear endDate when null', async () => {
+        mockPrisma.exhibition.update.mockResolvedValue({
+          id: 1,
+          title: 'Nuevo',
+          date: new Date('2024-06-01'),
+          endDate: null,
+        });
+        req.params = { id: '1' };
+        req.body = { endDate: null };
+
+        await update(req, res);
+
+        expect(mockPrisma.exhibition.update).toHaveBeenCalledWith({
+          where: { id: 1 },
+          data: { endDate: null },
+        });
+        expect(res.status).toHaveBeenCalledWith(200);
       });
 
       it('should update all optional fields', async () => {

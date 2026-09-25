@@ -343,6 +343,11 @@ components:
         date:
           type: string
           format: date
+        endDate:
+          type: string
+          format: date
+          nullable: true
+          description: Fecha de fin de la exposición (null si es de un solo día o no consta)
         location:
           type: string
         description:
@@ -363,6 +368,11 @@ components:
         date:
           type: string
           format: date
+        endDate:
+          type: string
+          format: date
+          nullable: true
+          description: Opcional; no puede ser anterior a `date`. En PUT, `null` la borra.
         location:
           type: string
         description:
@@ -910,7 +920,7 @@ paths:
   /collections/{id}:
     get:
       tags: [Collections]
-      summary: Detalle de colección con sus pinturas
+      summary: Detalle de colección con sus pinturas publicadas (404 si la colección no está publicada)
       security: []
       parameters:
         - name: id

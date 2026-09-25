@@ -315,6 +315,49 @@ describe('HU - Strings vacíos en campos opcionales (multipart/form-data)', () =
       });
       expect(next).not.toHaveBeenCalled();
     });
+
+    it('should pass with a valid endDate', () => {
+      req.body = { title: 'Exposición', date: '2024-06-01', endDate: '2024-06-30' };
+      validate(exhibitionSchema)(req, res, next);
+
+      expect(next).toHaveBeenCalled();
+    });
+
+    it('should return 400 when endDate is before date', () => {
+      req.body = { title: 'Exposición', date: '2024-06-01', endDate: '2024-05-01' };
+      validate(exhibitionSchema)(req, res, next);
+
+      expect(res.status).toHaveBeenCalledWith(400);
+      expect(res.json).toHaveBeenCalledWith({
+        error: 'La fecha de fin no puede ser anterior a la fecha de inicio',
+        code: 'VALIDATION_ERROR',
+      });
+      expect(next).not.toHaveBeenCalled();
+    });
+
+    it('should return 400 when endDate is not a valid date', () => {
+      req.body = { title: 'Exposición', date: '2024-06-01', endDate: 'no-es-fecha' };
+      validate(exhibitionSchema)(req, res, next);
+
+      expect(res.status).toHaveBeenCalledWith(400);
+      expect(res.json).toHaveBeenCalledWith({
+        error: 'La fecha de fin debe ser válida',
+        code: 'VALIDATION_ERROR',
+      });
+      expect(next).not.toHaveBeenCalled();
+    });
+
+    it('should return 400 when date is not a valid ISO date', () => {
+      req.body = { title: 'Exposición', date: 'no-es-fecha' };
+      validate(exhibitionSchema)(req, res, next);
+
+      expect(res.status).toHaveBeenCalledWith(400);
+      expect(res.json).toHaveBeenCalledWith({
+        error: 'La fecha debe ser válida',
+        code: 'VALIDATION_ERROR',
+      });
+      expect(next).not.toHaveBeenCalled();
+    });
   });
 
   describe('exhibitionUpdateSchema (PUT /admin/exhibitions/:id)', () => {
@@ -324,6 +367,20 @@ describe('HU - Strings vacíos en campos opcionales (multipart/form-data)', () =
 
       expect(next).toHaveBeenCalled();
       expect(req.body).toEqual({ title: 'Exposición' });
+    });
+
+    it('should allow endDate null to clear it', () => {
+      req.body = { endDate: null };
+      validate(exhibitionUpdateSchema)(req, res, next);
+
+      expect(next).toHaveBeenCalled();
+    });
+
+    it('should pass with endDate alone (sin date en el payload)', () => {
+      req.body = { endDate: '2024-06-30' };
+      validate(exhibitionUpdateSchema)(req, res, next);
+
+      expect(next).toHaveBeenCalled();
     });
   });
 });
