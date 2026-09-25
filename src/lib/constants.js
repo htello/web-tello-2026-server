@@ -52,3 +52,11 @@ export const DESIGN_SUBCATEGORIES = [
   'carteleria',
   'editorial',
 ];
+
+/**
+ * Orden estable para listados: position asc con desempate por id asc.
+ * Sin el desempate, filas con position duplicado cambian de orden de forma
+ * no determinista tras un UPDATE (orden físico de Postgres).
+ * @type {Array<{ position: 'asc' | 'desc', id: 'asc' | 'desc' }>}
+ */
+export const STABLE_POSITION_ORDER = [{ position: 'asc' }, { id: 'asc' }];

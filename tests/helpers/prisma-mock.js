@@ -11,6 +11,7 @@ const createPrismaMock = () => ({
   },
   collection: {
     findUnique: vi.fn(),
+    findFirst: vi.fn(),
     findMany: vi.fn(),
     create: vi.fn(),
     update: vi.fn(),
@@ -29,6 +30,11 @@ const createPrismaMock = () => ({
     create: vi.fn(),
     update: vi.fn(),
     delete: vi.fn(),
+  },
+  exhibitionImage: {
+    findMany: vi.fn(),
+    createMany: vi.fn(),
+    deleteMany: vi.fn(),
   },
   designProject: {
     findUnique: vi.fn(),

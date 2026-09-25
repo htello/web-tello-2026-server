@@ -47,7 +47,7 @@ describe('HU08 - Admin Ilustraciones', () => {
 
         expect(mockPrisma.illustration.findMany).toHaveBeenCalledWith({
           where: { isPublished: true },
-          orderBy: { position: 'asc' },
+          orderBy: [{ position: 'asc' }, { id: 'asc' }],
         });
         expect(res.status).toHaveBeenCalledWith(200);
         expect(res.json).toHaveBeenCalledWith({
@@ -97,7 +97,7 @@ describe('HU08 - Admin Ilustraciones', () => {
         await listAll(req, res);
 
         expect(mockPrisma.illustration.findMany).toHaveBeenCalledWith({
-          orderBy: { position: 'asc' },
+          orderBy: [{ position: 'asc' }, { id: 'asc' }],
         });
         expect(res.status).toHaveBeenCalledWith(200);
         expect(res.json).toHaveBeenCalledWith({
@@ -146,7 +146,7 @@ describe('HU08 - Admin Ilustraciones', () => {
 
         expect(mockPrisma.illustration.findMany).toHaveBeenCalledWith({
           where: { isFeatured: true, isPublished: true },
-          orderBy: { position: 'asc' },
+          orderBy: [{ position: 'asc' }, { id: 'asc' }],
         });
         expect(res.status).toHaveBeenCalledWith(200);
         expect(res.json).toHaveBeenCalledWith({

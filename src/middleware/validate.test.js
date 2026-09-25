@@ -315,6 +315,49 @@ describe('HU - Strings vacíos en campos opcionales (multipart/form-data)', () =
       });
       expect(next).not.toHaveBeenCalled();
     });
+
+    it('should pass with a valid endDate', () => {
+      req.body = { title: 'Exposición', date: '2024-06-01', endDate: '2024-06-30' };
+      validate(exhibitionSchema)(req, res, next);
+
+      expect(next).toHaveBeenCalled();
+    });
+
+    it('should return 400 when endDate is before date', () => {
+      req.body = { title: 'Exposición', date: '2024-06-01', endDate: '2024-05-01' };
+      validate(exhibitionSchema)(req, res, next);
+
+      expect(res.status).toHaveBeenCalledWith(400);
+      expect(res.json).toHaveBeenCalledWith({
+        error: 'La fecha de fin no puede ser anterior a la fecha de inicio',
+        code: 'VALIDATION_ERROR',
+      });
+      expect(next).not.toHaveBeenCalled();
+    });
+
+    it('should return 400 when endDate is not a valid date', () => {
+      req.body = { title: 'Exposición', date: '2024-06-01', endDate: 'no-es-fecha' };
+      validate(exhibitionSchema)(req, res, next);
+
+      expect(res.status).toHaveBeenCalledWith(400);
+      expect(res.json).toHaveBeenCalledWith({
+        error: 'La fecha de fin debe ser válida',
+        code: 'VALIDATION_ERROR',
+      });
+      expect(next).not.toHaveBeenCalled();
+    });
+
+    it('should return 400 when date is not a valid ISO date', () => {
+      req.body = { title: 'Exposición', date: 'no-es-fecha' };
+      validate(exhibitionSchema)(req, res, next);
+
+      expect(res.status).toHaveBeenCalledWith(400);
+      expect(res.json).toHaveBeenCalledWith({
+        error: 'La fecha debe ser válida',
+        code: 'VALIDATION_ERROR',
+      });
+      expect(next).not.toHaveBeenCalled();
+    });
   });
 
   describe('exhibitionUpdateSchema (PUT /admin/exhibitions/:id)', () => {
@@ -324,6 +367,96 @@ describe('HU - Strings vacíos en campos opcionales (multipart/form-data)', () =
 
       expect(next).toHaveBeenCalled();
       expect(req.body).toEqual({ title: 'Exposición' });
+    });
+
+    it('should allow endDate null to clear it', () => {
+      req.body = { endDate: null };
+      validate(exhibitionUpdateSchema)(req, res, next);
+
+      expect(next).toHaveBeenCalled();
+    });
+
+    it('should pass with endDate alone (sin date en el payload)', () => {
+      req.body = { endDate: '2024-06-30' };
+      validate(exhibitionUpdateSchema)(req, res, next);
+
+      expect(next).toHaveBeenCalled();
+    });
+  });
+
+  describe('exhibition images field', () => {
+    it('should pass with valid images (url, thumbnail, width, height)', () => {
+      req.body = {
+        title: 'Exposición',
+        date: '2024-06-01',
+        images: [{ url: 'https://cdn/1.jpg', thumbnail: 'https://cdn/1t.jpg', width: 800, height: 600 }],
+      };
+      validate(exhibitionSchema)(req, res, next);
+
+      expect(next).toHaveBeenCalled();
+    });
+
+    it('should allow null thumbnail, width and height', () => {
+      req.body = {
+        images: [{ url: 'https://cdn/1.jpg', thumbnail: null, width: null, height: null }],
+      };
+      validate(exhibitionUpdateSchema)(req, res, next);
+
+      expect(next).toHaveBeenCalled();
+    });
+
+    it('should allow an empty images array', () => {
+      req.body = { images: [] };
+      validate(exhibitionUpdateSchema)(req, res, next);
+
+      expect(next).toHaveBeenCalled();
+      expect(req.body).toEqual({ images: [] });
+    });
+
+    it('should return 400 when an image url is missing', () => {
+      req.body = { images: [{ thumbnail: 'https://cdn/1t.jpg' }] };
+      validate(exhibitionUpdateSchema)(req, res, next);
+
+      expect(res.status).toHaveBeenCalledWith(400);
+      expect(res.json).toHaveBeenCalledWith({
+        error: 'La url de la imagen es obligatoria',
+        code: 'VALIDATION_ERROR',
+      });
+      expect(next).not.toHaveBeenCalled();
+    });
+
+    it('should return 400 when an image url is not a valid URI', () => {
+      req.body = { images: [{ url: 'no-es-url' }] };
+      validate(exhibitionUpdateSchema)(req, res, next);
+
+      expect(res.status).toHaveBeenCalledWith(400);
+      expect(res.json).toHaveBeenCalledWith({
+        error: 'La imagen debe ser una URL válida',
+        code: 'VALIDATION_ERROR',
+      });
+      expect(next).not.toHaveBeenCalled();
+    });
+
+    it('should return 400 when more than 50 images are sent', () => {
+      req.body = {
+        images: Array.from({ length: 51 }, (_, i) => ({ url: `https://cdn/${i}.jpg` })),
+      };
+      validate(exhibitionUpdateSchema)(req, res, next);
+
+      expect(res.status).toHaveBeenCalledWith(400);
+      expect(res.json).toHaveBeenCalledWith({
+        error: 'Máximo 50 imágenes por exposición',
+        code: 'VALIDATION_ERROR',
+      });
+      expect(next).not.toHaveBeenCalled();
+    });
+
+    it('should return 400 when width is not a positive integer', () => {
+      req.body = { images: [{ url: 'https://cdn/1.jpg', width: -5 }] };
+      validate(exhibitionUpdateSchema)(req, res, next);
+
+      expect(res.status).toHaveBeenCalledWith(400);
+      expect(next).not.toHaveBeenCalled();
     });
   });
 });

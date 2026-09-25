@@ -505,7 +505,7 @@ describe('HU06 - Admin Pinturas', () => {
 
         expect(mockPrisma.painting.findMany).toHaveBeenCalledWith({
           where: { isPublished: true },
-          orderBy: { position: 'asc' },
+          orderBy: [{ position: 'asc' }, { id: 'asc' }],
           include: { collection: { select: { id: true, title: true } } },
         });
         expect(res.status).toHaveBeenCalledWith(200);
@@ -571,7 +571,7 @@ describe('HU06 - Admin Pinturas', () => {
         await listAll(req, res);
 
         expect(mockPrisma.painting.findMany).toHaveBeenCalledWith({
-          orderBy: { position: 'asc' },
+          orderBy: [{ position: 'asc' }, { id: 'asc' }],
           include: { collection: { select: { id: true, title: true } } },
         });
         expect(res.status).toHaveBeenCalledWith(200);

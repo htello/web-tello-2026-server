@@ -343,6 +343,11 @@ components:
         date:
           type: string
           format: date
+        endDate:
+          type: string
+          format: date
+          nullable: true
+          description: Fecha de fin de la exposición (null si es de un solo día o no consta)
         location:
           type: string
         description:
@@ -351,6 +356,53 @@ components:
           type: integer
         isPublished:
           type: boolean
+        images:
+          type: array
+          description: Imágenes de la exposición ordenadas por `position`.
+          items:
+            $ref: '#/components/schemas/ExhibitionImage'
+
+    ExhibitionImage:
+      type: object
+      description: Imagen de una exposición (URL ya subida vía POST /admin/upload).
+      properties:
+        id:
+          type: integer
+        url:
+          type: string
+          format: uri
+        thumbnail:
+          type: string
+          format: uri
+          nullable: true
+        width:
+          type: integer
+          nullable: true
+        height:
+          type: integer
+          nullable: true
+        position:
+          type: integer
+
+    ExhibitionImageInput:
+      type: object
+      required:
+        - url
+      properties:
+        url:
+          type: string
+          format: uri
+          description: URL devuelta por POST /admin/upload.
+        thumbnail:
+          type: string
+          format: uri
+          nullable: true
+        width:
+          type: integer
+          nullable: true
+        height:
+          type: integer
+          nullable: true
 
     ExhibitionRequest:
       type: object
@@ -363,6 +415,11 @@ components:
         date:
           type: string
           format: date
+        endDate:
+          type: string
+          format: date
+          nullable: true
+          description: Opcional; no puede ser anterior a `date`. En PUT, `null` la borra.
         location:
           type: string
         description:
@@ -371,6 +428,16 @@ components:
           type: integer
         isPublished:
           type: boolean
+        images:
+          type: array
+          maxItems: 50
+          description: >-
+            Lista de imágenes. El orden del array define el `position` de cada
+            imagen. En POST crea las imágenes anidadas; en PUT reemplaza la
+            lista completa (un array vacío la limpia). Si se omite en PUT, las
+            imágenes existentes no se modifican.
+          items:
+            $ref: '#/components/schemas/ExhibitionImageInput'
 
     DesignProject:
       type: object
@@ -892,7 +959,7 @@ paths:
   /collections:
     get:
       tags: [Collections]
-      summary: Listar colecciones publicadas
+      summary: Listar colecciones publicadas con alguna obra publicada
       security: []
       responses:
         '200':
@@ -910,7 +977,7 @@ paths:
   /collections/{id}:
     get:
       tags: [Collections]
-      summary: Detalle de colección con sus pinturas
+      summary: Detalle de colección con sus pinturas publicadas (404 si la colección no está publicada)
       security: []
       parameters:
         - name: id

@@ -123,6 +123,48 @@ describe('HU07 - Admin Exhibitions', () => {
         expect(res.body).toHaveProperty('code', 'INTERNAL_ERROR');
       });
     });
+
+    describe('given admin token and images', () => {
+      it('should return 201 with created images', async () => {
+        mockPrisma.exhibition.create.mockResolvedValue({
+          id: 1,
+          title: 'Muestra Colectiva',
+          date: new Date('2025-06-15'),
+          location: null,
+          description: null,
+          position: 0,
+          isPublished: true,
+          images: [
+            { id: 10, url: 'https://cdn/1.jpg', thumbnail: 'https://cdn/1t.jpg', width: 800, height: 600, position: 0 },
+          ],
+        });
+
+        const res = await request(app)
+          .post('/api/v1/admin/exhibitions')
+          .set('Authorization', `Bearer ${adminToken}`)
+          .send({
+            title: 'Muestra Colectiva',
+            date: '2025-06-15',
+            images: [{ url: 'https://cdn/1.jpg', thumbnail: 'https://cdn/1t.jpg', width: 800, height: 600 }],
+          });
+
+        expect(res.status).toBe(201);
+        expect(res.body.data.images).toHaveLength(1);
+        expect(res.body.data.images[0]).toMatchObject({ url: 'https://cdn/1.jpg', position: 0 });
+      });
+    });
+
+    describe('given an invalid image url', () => {
+      it('should return 400 VALIDATION_ERROR', async () => {
+        const res = await request(app)
+          .post('/api/v1/admin/exhibitions')
+          .set('Authorization', `Bearer ${adminToken}`)
+          .send({ title: 'Test', date: '2025-06-15', images: [{ url: 'no-es-url' }] });
+
+        expect(res.status).toBe(400);
+        expect(res.body).toHaveProperty('code', 'VALIDATION_ERROR');
+      });
+    });
   });
 
   describe('PUT /admin/exhibitions/:id', () => {
@@ -177,6 +219,38 @@ describe('HU07 - Admin Exhibitions', () => {
 
         expect(res.status).toBe(500);
         expect(res.body).toHaveProperty('code', 'INTERNAL_ERROR');
+      });
+    });
+
+    describe('given admin token and images', () => {
+      it('should return 200 replacing images', async () => {
+        mockPrisma.exhibition.update.mockResolvedValue({ id: 1 });
+        mockPrisma.exhibitionImage.deleteMany.mockResolvedValue({ count: 1 });
+        mockPrisma.exhibitionImage.createMany.mockResolvedValue({ count: 2 });
+        mockPrisma.exhibition.findUnique.mockResolvedValue({
+          id: 1,
+          title: 'Actualizada',
+          date: new Date('2025-07-20'),
+          endDate: null,
+          location: null,
+          description: null,
+          position: 0,
+          isPublished: true,
+          images: [
+            { id: 20, url: 'https://cdn/a.jpg', thumbnail: null, width: null, height: null, position: 0 },
+            { id: 21, url: 'https://cdn/b.jpg', thumbnail: null, width: null, height: null, position: 1 },
+          ],
+        });
+
+        const res = await request(app)
+          .put('/api/v1/admin/exhibitions/1')
+          .set('Authorization', `Bearer ${adminToken}`)
+          .send({ images: [{ url: 'https://cdn/a.jpg' }, { url: 'https://cdn/b.jpg' }] });
+
+        expect(res.status).toBe(200);
+        expect(mockPrisma.exhibitionImage.deleteMany).toHaveBeenCalled();
+        expect(mockPrisma.exhibitionImage.createMany).toHaveBeenCalled();
+        expect(res.body.data.images).toHaveLength(2);
       });
     });
   });

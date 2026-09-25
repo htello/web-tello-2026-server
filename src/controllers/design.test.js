@@ -46,7 +46,7 @@ describe('HU09 - Admin Diseño', () => {
         await listAll(req, res);
 
         expect(mockPrisma.designProject.findMany).toHaveBeenCalledWith({
-          orderBy: { position: 'asc' },
+          orderBy: [{ position: 'asc' }, { id: 'asc' }],
         });
         expect(res.status).toHaveBeenCalledWith(200);
         expect(res.json).toHaveBeenCalledWith({
@@ -111,7 +111,7 @@ describe('HU09 - Admin Diseño', () => {
 
         expect(mockPrisma.designProject.findMany).toHaveBeenCalledWith({
           where: { subcategory: 'imagen-corporativa', isPublished: true },
-          orderBy: { position: 'asc' },
+          orderBy: [{ position: 'asc' }, { id: 'asc' }],
         });
         expect(res.status).toHaveBeenCalledWith(200);
         expect(res.json).toHaveBeenCalledWith({
@@ -129,7 +129,7 @@ describe('HU09 - Admin Diseño', () => {
 
         expect(mockPrisma.designProject.findMany).toHaveBeenCalledWith({
           where: { subcategory: 'packaging-expositores', isPublished: true },
-          orderBy: { position: 'asc' },
+          orderBy: [{ position: 'asc' }, { id: 'asc' }],
         });
         expect(res.status).toHaveBeenCalledWith(200);
         expect(res.json).toHaveBeenCalledWith({ data: [] });
@@ -179,7 +179,7 @@ describe('HU09 - Admin Diseño', () => {
 
         expect(mockPrisma.designProject.findMany).toHaveBeenCalledWith({
           where: { isFeatured: true, isPublished: true },
-          orderBy: { position: 'asc' },
+          orderBy: [{ position: 'asc' }, { id: 'asc' }],
         });
         expect(res.status).toHaveBeenCalledWith(200);
         expect(res.json).toHaveBeenCalledWith({

@@ -1,7 +1,8 @@
 /**
  * @fileoverview Tests unitarios del controller de exposiciones.
  *
- * Cubre HU07 - Admin Exposiciones: create, update, remove, reorder.
+ * Cubre HU07 - Admin Exposiciones: create, update, remove, reorder,
+ * y la gestión de imágenes múltiples (create/update anidados).
  *
  * @module controllers/exhibitions.test
  */
@@ -15,6 +16,9 @@ vi.mock('../services/logger.js', () => ({
 
 const { create, update, remove, reorder, listPublished, listAll } = await import('./exhibitions.js');
 const logger = (await import('../services/logger.js')).default;
+
+const ORDER = [{ position: 'asc' }, { id: 'asc' }];
+const IMAGES_INCLUDE = { images: { orderBy: ORDER } };
 
 describe('HU07 - Admin Exposiciones', () => {
   let req, res;
@@ -32,21 +36,58 @@ describe('HU07 - Admin Exposiciones', () => {
     describe('given exhibitions exist', () => {
       it('should return 200 with exhibitions ordered by position', async () => {
         mockPrisma.exhibition.findMany.mockResolvedValue([
-          { id: 1, title: 'Expo Uno', position: 0 },
-          { id: 2, title: 'Expo Dos', position: 1 },
+          { id: 1, title: 'Expo Uno', date: new Date('2024-06-01T00:00:00Z'), endDate: null, position: 0 },
+          { id: 2, title: 'Expo Dos', date: new Date('2024-07-01T00:00:00Z'), endDate: new Date('2024-07-15T00:00:00Z'), position: 1 },
         ]);
 
         await listPublished(req, res);
 
         expect(mockPrisma.exhibition.findMany).toHaveBeenCalledWith({
           where: { isPublished: true },
-          orderBy: { position: 'asc' },
+          orderBy: ORDER,
+          include: IMAGES_INCLUDE,
         });
         expect(res.status).toHaveBeenCalledWith(200);
         expect(res.json).toHaveBeenCalledWith({
           data: [
-            { id: 1, title: 'Expo Uno', position: 0 },
-            { id: 2, title: 'Expo Dos', position: 1 },
+            { id: 1, title: 'Expo Uno', date: '2024-06-01', endDate: null, position: 0, images: [] },
+            { id: 2, title: 'Expo Dos', date: '2024-07-01', endDate: '2024-07-15', position: 1, images: [] },
+          ],
+        });
+      });
+    });
+
+    describe('given exhibitions with images', () => {
+      it('should serialize images ordered by position', async () => {
+        mockPrisma.exhibition.findMany.mockResolvedValue([
+          {
+            id: 1,
+            title: 'Expo Uno',
+            date: new Date('2024-06-01T00:00:00Z'),
+            endDate: null,
+            position: 0,
+            images: [
+              { id: 10, url: 'https://cdn/1.jpg', thumbnail: 'https://cdn/1t.jpg', width: 800, height: 600, position: 0 },
+              { id: 11, url: 'https://cdn/2.jpg', thumbnail: null, width: null, height: null, position: 1 },
+            ],
+          },
+        ]);
+
+        await listPublished(req, res);
+
+        expect(res.json).toHaveBeenCalledWith({
+          data: [
+            {
+              id: 1,
+              title: 'Expo Uno',
+              date: '2024-06-01',
+              endDate: null,
+              position: 0,
+              images: [
+                { id: 10, url: 'https://cdn/1.jpg', thumbnail: 'https://cdn/1t.jpg', width: 800, height: 600, position: 0 },
+                { id: 11, url: 'https://cdn/2.jpg', thumbnail: null, width: null, height: null, position: 1 },
+              ],
+            },
           ],
         });
       });
@@ -82,20 +123,21 @@ describe('HU07 - Admin Exposiciones', () => {
     describe('given exhibitions exist (published and unpublished)', () => {
       it('should return 200 with all exhibitions ordered by position', async () => {
         mockPrisma.exhibition.findMany.mockResolvedValue([
-          { id: 1, title: 'Expo Uno', position: 0, isPublished: true },
-          { id: 2, title: 'Expo Dos', position: 1, isPublished: false },
+          { id: 1, title: 'Expo Uno', date: new Date('2024-06-01T00:00:00Z'), endDate: null, position: 0, isPublished: true },
+          { id: 2, title: 'Expo Dos', date: new Date('2024-07-01T00:00:00Z'), endDate: null, position: 1, isPublished: false },
         ]);
 
         await listAll(req, res);
 
         expect(mockPrisma.exhibition.findMany).toHaveBeenCalledWith({
-          orderBy: { position: 'asc' },
+          orderBy: ORDER,
+          include: IMAGES_INCLUDE,
         });
         expect(res.status).toHaveBeenCalledWith(200);
         expect(res.json).toHaveBeenCalledWith({
           data: [
-            { id: 1, title: 'Expo Uno', position: 0, isPublished: true },
-            { id: 2, title: 'Expo Dos', position: 1, isPublished: false },
+            { id: 1, title: 'Expo Uno', date: '2024-06-01', endDate: null, position: 0, isPublished: true, images: [] },
+            { id: 2, title: 'Expo Dos', date: '2024-07-01', endDate: null, position: 1, isPublished: false, images: [] },
           ],
         });
       });
@@ -109,6 +151,38 @@ describe('HU07 - Admin Exposiciones', () => {
 
         expect(res.status).toHaveBeenCalledWith(200);
         expect(res.json).toHaveBeenCalledWith({ data: [] });
+      });
+    });
+
+    describe('given exhibitions with string dates', () => {
+      it('should serialize date/endDate defensively from strings', async () => {
+        mockPrisma.exhibition.findMany.mockResolvedValue([
+          {
+            id: 3,
+            title: 'Expo String',
+            date: '2024-06-01T00:00:00.000Z',
+            endDate: '2024-06-30',
+            position: 0,
+            isPublished: true,
+          },
+        ]);
+
+        await listAll(req, res);
+
+        expect(res.status).toHaveBeenCalledWith(200);
+        expect(res.json).toHaveBeenCalledWith({
+          data: [
+            {
+              id: 3,
+              title: 'Expo String',
+              date: '2024-06-01',
+              endDate: '2024-06-30',
+              position: 0,
+              isPublished: true,
+              images: [],
+            },
+          ],
+        });
       });
     });
 
@@ -153,19 +227,98 @@ describe('HU07 - Admin Exposiciones', () => {
             location: 'Madrid',
             description: null,
           },
+          include: IMAGES_INCLUDE,
         });
         expect(res.status).toHaveBeenCalledWith(201);
         expect(res.json).toHaveBeenCalledWith({
           data: {
             id: 1,
             title: 'Exposición 2024',
-            date: new Date('2024-06-01'),
+            date: '2024-06-01',
+            endDate: null,
             location: 'Madrid',
             description: null,
             position: 0,
+            images: [],
           },
         });
         expect(logger.info).toHaveBeenCalled();
+      });
+    });
+
+    describe('given valid data with endDate', () => {
+      it('should persist endDate and return it serialized', async () => {
+        mockPrisma.exhibition.create.mockResolvedValue({
+          id: 1,
+          title: 'Exposición 2024',
+          date: new Date('2024-06-01'),
+          endDate: new Date('2024-06-30'),
+          location: null,
+          description: null,
+          position: 0,
+        });
+        req.body = {
+          title: 'Exposición 2024',
+          date: '2024-06-01',
+          endDate: '2024-06-30',
+        };
+
+        await create(req, res);
+
+        expect(mockPrisma.exhibition.create).toHaveBeenCalledWith({
+          data: {
+            title: 'Exposición 2024',
+            date: new Date('2024-06-01'),
+            endDate: new Date('2024-06-30'),
+            location: null,
+            description: null,
+          },
+          include: IMAGES_INCLUDE,
+        });
+        expect(res.status).toHaveBeenCalledWith(201);
+        expect(res.json).toHaveBeenCalledWith({
+          data: {
+            id: 1,
+            title: 'Exposición 2024',
+            date: '2024-06-01',
+            endDate: '2024-06-30',
+            location: null,
+            description: null,
+            position: 0,
+            images: [],
+          },
+        });
+      });
+    });
+
+    describe('given endDate null on create', () => {
+      it('should not persist endDate', async () => {
+        mockPrisma.exhibition.create.mockResolvedValue({
+          id: 1,
+          title: 'Exposición 2024',
+          date: new Date('2024-06-01'),
+          endDate: null,
+          location: null,
+          description: null,
+          position: 0,
+        });
+        req.body = {
+          title: 'Exposición 2024',
+          date: '2024-06-01',
+          endDate: null,
+        };
+
+        await create(req, res);
+
+        expect(mockPrisma.exhibition.create).toHaveBeenCalledWith({
+          data: {
+            title: 'Exposición 2024',
+            date: new Date('2024-06-01'),
+            location: null,
+            description: null,
+          },
+          include: IMAGES_INCLUDE,
+        });
       });
     });
 
@@ -195,6 +348,7 @@ describe('HU07 - Admin Exposiciones', () => {
             description: null,
             position: 5,
           },
+          include: IMAGES_INCLUDE,
         });
       });
     });
@@ -222,6 +376,68 @@ describe('HU07 - Admin Exposiciones', () => {
             location: null,
             description: null,
             isPublished: false,
+          },
+          include: IMAGES_INCLUDE,
+        });
+      });
+    });
+
+    describe('given valid data with images', () => {
+      it('should create nested images with position by array order', async () => {
+        mockPrisma.exhibition.create.mockResolvedValue({
+          id: 1,
+          title: 'Exposición 2024',
+          date: new Date('2024-06-01'),
+          location: null,
+          description: null,
+          position: 0,
+          isPublished: true,
+          images: [
+            { id: 10, url: 'https://cdn/1.jpg', thumbnail: 'https://cdn/1t.jpg', width: 800, height: 600, position: 0 },
+            { id: 11, url: 'https://cdn/2.jpg', thumbnail: null, width: null, height: null, position: 1 },
+          ],
+        });
+        req.body = {
+          title: 'Exposición 2024',
+          date: '2024-06-01',
+          images: [
+            { url: 'https://cdn/1.jpg', thumbnail: 'https://cdn/1t.jpg', width: 800, height: 600 },
+            { url: 'https://cdn/2.jpg' },
+          ],
+        };
+
+        await create(req, res);
+
+        expect(mockPrisma.exhibition.create).toHaveBeenCalledWith({
+          data: {
+            title: 'Exposición 2024',
+            date: new Date('2024-06-01'),
+            location: null,
+            description: null,
+            images: {
+              create: [
+                { url: 'https://cdn/1.jpg', thumbnail: 'https://cdn/1t.jpg', width: 800, height: 600, position: 0 },
+                { url: 'https://cdn/2.jpg', position: 1 },
+              ],
+            },
+          },
+          include: IMAGES_INCLUDE,
+        });
+        expect(res.status).toHaveBeenCalledWith(201);
+        expect(res.json).toHaveBeenCalledWith({
+          data: {
+            id: 1,
+            title: 'Exposición 2024',
+            date: '2024-06-01',
+            endDate: null,
+            location: null,
+            description: null,
+            position: 0,
+            isPublished: true,
+            images: [
+              { id: 10, url: 'https://cdn/1.jpg', thumbnail: 'https://cdn/1t.jpg', width: 800, height: 600, position: 0 },
+              { id: 11, url: 'https://cdn/2.jpg', thumbnail: null, width: null, height: null, position: 1 },
+            ],
           },
         });
       });
@@ -262,18 +478,70 @@ describe('HU07 - Admin Exposiciones', () => {
         expect(mockPrisma.exhibition.update).toHaveBeenCalledWith({
           where: { id: 1 },
           data: { title: 'Nuevo' },
+          include: IMAGES_INCLUDE,
         });
         expect(res.status).toHaveBeenCalledWith(200);
         expect(res.json).toHaveBeenCalledWith({
           data: {
             id: 1,
             title: 'Nuevo',
-            date: new Date('2024-06-01'),
+            date: '2024-06-01',
+            endDate: null,
             location: null,
             description: null,
+            images: [],
           },
         });
         expect(logger.info).toHaveBeenCalled();
+      });
+
+      it('should persist endDate when provided', async () => {
+        mockPrisma.exhibition.update.mockResolvedValue({
+          id: 1,
+          title: 'Nuevo',
+          date: new Date('2024-06-01'),
+          endDate: new Date('2024-06-30'),
+        });
+        req.params = { id: '1' };
+        req.body = { endDate: '2024-06-30' };
+
+        await update(req, res);
+
+        expect(mockPrisma.exhibition.update).toHaveBeenCalledWith({
+          where: { id: 1 },
+          data: { endDate: new Date('2024-06-30') },
+          include: IMAGES_INCLUDE,
+        });
+        expect(res.status).toHaveBeenCalledWith(200);
+        expect(res.json).toHaveBeenCalledWith({
+          data: {
+            id: 1,
+            title: 'Nuevo',
+            date: '2024-06-01',
+            endDate: '2024-06-30',
+            images: [],
+          },
+        });
+      });
+
+      it('should clear endDate when null', async () => {
+        mockPrisma.exhibition.update.mockResolvedValue({
+          id: 1,
+          title: 'Nuevo',
+          date: new Date('2024-06-01'),
+          endDate: null,
+        });
+        req.params = { id: '1' };
+        req.body = { endDate: null };
+
+        await update(req, res);
+
+        expect(mockPrisma.exhibition.update).toHaveBeenCalledWith({
+          where: { id: 1 },
+          data: { endDate: null },
+          include: IMAGES_INCLUDE,
+        });
+        expect(res.status).toHaveBeenCalledWith(200);
       });
 
       it('should update all optional fields', async () => {
@@ -302,6 +570,7 @@ describe('HU07 - Admin Exposiciones', () => {
             location: 'Barcelona',
             description: 'Descripción',
           },
+          include: IMAGES_INCLUDE,
         });
         expect(res.status).toHaveBeenCalledWith(200);
       });
@@ -321,6 +590,7 @@ describe('HU07 - Admin Exposiciones', () => {
         expect(mockPrisma.exhibition.update).toHaveBeenCalledWith({
           where: { id: 1 },
           data: { position: 3 },
+          include: IMAGES_INCLUDE,
         });
         expect(res.status).toHaveBeenCalledWith(200);
       });
@@ -340,8 +610,119 @@ describe('HU07 - Admin Exposiciones', () => {
         expect(mockPrisma.exhibition.update).toHaveBeenCalledWith({
           where: { id: 1 },
           data: { isPublished: false },
+          include: IMAGES_INCLUDE,
         });
         expect(res.status).toHaveBeenCalledWith(200);
+      });
+    });
+
+    describe('given images are provided', () => {
+      it('should replace images in a transaction and reload the exhibition', async () => {
+        mockPrisma.exhibition.update.mockResolvedValue({ id: 1 });
+        mockPrisma.exhibitionImage.deleteMany.mockResolvedValue({ count: 1 });
+        mockPrisma.exhibitionImage.createMany.mockResolvedValue({ count: 2 });
+        mockPrisma.exhibition.findUnique.mockResolvedValue({
+          id: 1,
+          title: 'Expo',
+          date: new Date('2024-06-01'),
+          endDate: null,
+          location: null,
+          description: null,
+          position: 0,
+          isPublished: true,
+          images: [
+            { id: 20, url: 'https://cdn/a.jpg', thumbnail: 'https://cdn/at.jpg', width: 100, height: 50, position: 0 },
+            { id: 21, url: 'https://cdn/b.jpg', thumbnail: null, width: null, height: null, position: 1 },
+          ],
+        });
+        req.params = { id: '1' };
+        req.body = { images: [{ url: 'https://cdn/a.jpg' }, { url: 'https://cdn/b.jpg' }] };
+
+        await update(req, res);
+
+        expect(mockPrisma.$transaction).toHaveBeenCalledWith(expect.any(Array));
+        expect(mockPrisma.exhibitionImage.deleteMany).toHaveBeenCalledWith({
+          where: { exhibitionId: 1 },
+        });
+        expect(mockPrisma.exhibitionImage.createMany).toHaveBeenCalledWith({
+          data: [
+            { url: 'https://cdn/a.jpg', exhibitionId: 1, position: 0 },
+            { url: 'https://cdn/b.jpg', exhibitionId: 1, position: 1 },
+          ],
+        });
+        expect(res.status).toHaveBeenCalledWith(200);
+        expect(res.json).toHaveBeenCalledWith({
+          data: {
+            id: 1,
+            title: 'Expo',
+            date: '2024-06-01',
+            endDate: null,
+            location: null,
+            description: null,
+            position: 0,
+            isPublished: true,
+            images: [
+              { id: 20, url: 'https://cdn/a.jpg', thumbnail: 'https://cdn/at.jpg', width: 100, height: 50, position: 0 },
+              { id: 21, url: 'https://cdn/b.jpg', thumbnail: null, width: null, height: null, position: 1 },
+            ],
+          },
+        });
+      });
+
+      it('should clear images when an empty array is provided', async () => {
+        mockPrisma.exhibition.update.mockResolvedValue({ id: 1 });
+        mockPrisma.exhibitionImage.deleteMany.mockResolvedValue({ count: 2 });
+        mockPrisma.exhibitionImage.createMany.mockResolvedValue({ count: 0 });
+        mockPrisma.exhibition.findUnique.mockResolvedValue({
+          id: 1,
+          title: 'Expo',
+          date: new Date('2024-06-01'),
+          endDate: null,
+          location: null,
+          description: null,
+          position: 0,
+          isPublished: true,
+          images: [],
+        });
+        req.params = { id: '1' };
+        req.body = { images: [] };
+
+        await update(req, res);
+
+        expect(mockPrisma.exhibitionImage.deleteMany).toHaveBeenCalledWith({
+          where: { exhibitionId: 1 },
+        });
+        expect(mockPrisma.exhibitionImage.createMany).toHaveBeenCalledWith({ data: [] });
+        expect(res.status).toHaveBeenCalledWith(200);
+        expect(res.json).toHaveBeenCalledWith({
+          data: {
+            id: 1,
+            title: 'Expo',
+            date: '2024-06-01',
+            endDate: null,
+            location: null,
+            description: null,
+            position: 0,
+            isPublished: true,
+            images: [],
+          },
+        });
+      });
+
+      it('should return 404 when the exhibition does not exist', async () => {
+        const notFoundError = new Error('Record to update not found');
+        notFoundError.code = 'P2025';
+        mockPrisma.exhibition.update.mockRejectedValue(notFoundError);
+        req.params = { id: '999' };
+        req.body = { images: [{ url: 'https://cdn/a.jpg' }] };
+
+        await update(req, res);
+
+        expect(res.status).toHaveBeenCalledWith(404);
+        expect(res.json).toHaveBeenCalledWith({
+          error: 'Exposición no encontrada',
+          code: 'NOT_FOUND',
+        });
       });
     });
 

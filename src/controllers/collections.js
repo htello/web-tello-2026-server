@@ -15,6 +15,7 @@ import prisma from '../lib/prisma.js';
 import logger from '../services/logger.js';
 import { parseId, isNotFoundError, isDuplicateError, reorderByPosition } from '../lib/prisma-utils.js';
 import { sendSuccess, sendError, sendNotFound, sendDuplicate, sendInternalError } from '../lib/http-response.js';
+import { STABLE_POSITION_ORDER } from '../lib/constants.js';
 
 /**
  * HU01 - Listar colecciones publicadas
@@ -27,9 +28,14 @@ import { sendSuccess, sendError, sendNotFound, sendDuplicate, sendInternalError 
  */
 const listPublished = async (req, res) => {
   try {
+    // Solo colecciones publicadas que tengan al menos una pintura publicada:
+    // las galerías públicas no muestran colecciones vacías.
     const collections = await prisma.collection.findMany({
-      where: { isPublished: true },
-      orderBy: { position: 'asc' },
+      where: {
+        isPublished: true,
+        paintings: { some: { isPublished: true } },
+      },
+      orderBy: STABLE_POSITION_ORDER,
       include: {
         _count: { select: { paintings: { where: { isPublished: true } } } },
       },
@@ -58,7 +64,7 @@ const listPublished = async (req, res) => {
 const listAll = async (req, res) => {
   try {
     const collections = await prisma.collection.findMany({
-      orderBy: { position: 'asc' },
+      orderBy: STABLE_POSITION_ORDER,
       include: {
         _count: { select: { paintings: true } },
       },
@@ -200,6 +206,10 @@ const reorder = async (req, res) => {
  * HU02 - Detalle de colección
  * Endpoint GET /api/v1/collections/:id
  *
+ * Solo expone colecciones publicadas y, dentro de ellas, las pinturas
+ * publicadas, recortadas a los campos del contrato (CollectionDetail /
+ * PaintingSummary del openapi).
+ *
  * @param {Object} req - Request de Express
  * @param {Object} res - Response de Express
  * @returns {Promise<Object>} 200 con colección, 404 o 500
@@ -209,16 +219,39 @@ const getById = async (req, res) => {
   try {
     const { id } = req.params;
 
-    const collection = await prisma.collection.findUnique({
-      where: { id: parseId(id) },
+    const collection = await prisma.collection.findFirst({
+      where: { id: parseId(id), isPublished: true },
       include: {
-        paintings: { orderBy: { position: 'asc' } },
+        paintings: {
+          where: { isPublished: true },
+          orderBy: STABLE_POSITION_ORDER,
+        },
       },
     });
 
     if (!collection) return sendNotFound(res, 'Colección no encontrada');
 
-    return sendSuccess(res, collection);
+    const data = {
+      id: collection.id,
+      title: collection.title,
+      description: collection.description,
+      coverImage: collection.coverImage,
+      position: collection.position,
+      isPublished: collection.isPublished,
+      paintings: collection.paintings.map(
+        ({ id: paintingId, title, imageUrl, dimensions, technique, year, isFeatured }) => ({
+          id: paintingId,
+          title,
+          imageUrl,
+          dimensions,
+          technique,
+          year,
+          isFeatured,
+        }),
+      ),
+    };
+
+    return sendSuccess(res, data);
   } catch (error) {
     return sendInternalError(res, logger, 'Error al obtener colección', error);
   }
