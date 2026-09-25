@@ -33,7 +33,31 @@ describe('HU05 - Exposiciones', () => {
         expect(mockPrisma.exhibition.findMany).toHaveBeenCalledWith({
           where: { isPublished: true },
           orderBy: [{ position: 'asc' }, { id: 'asc' }],
+          include: { images: { orderBy: [{ position: 'asc' }, { id: 'asc' }] } },
         });
+      });
+    });
+
+    describe('given exhibitions with images', () => {
+      it('should return 200 including serialized images', async () => {
+        mockPrisma.exhibition.findMany.mockResolvedValue([
+          {
+            id: 1,
+            title: 'Expo Uno',
+            date: new Date('2024-06-01T00:00:00Z'),
+            endDate: null,
+            position: 0,
+            images: [
+              { id: 10, url: 'https://cdn/1.jpg', thumbnail: null, width: null, height: null, position: 0 },
+            ],
+          },
+        ]);
+
+        const res = await request(app).get('/api/v1/exhibitions');
+
+        expect(res.status).toBe(200);
+        expect(res.body.data[0].images).toHaveLength(1);
+        expect(res.body.data[0].images[0]).toMatchObject({ url: 'https://cdn/1.jpg', position: 0 });
       });
     });
 
