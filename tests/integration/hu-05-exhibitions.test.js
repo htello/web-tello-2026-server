@@ -32,7 +32,7 @@ describe('HU05 - Exposiciones', () => {
         expect(res.body.data[0]).toMatchObject({ id: 1, title: 'Expo Uno' });
         expect(mockPrisma.exhibition.findMany).toHaveBeenCalledWith({
           where: { isPublished: true },
-          orderBy: { position: 'asc' },
+          orderBy: [{ position: 'asc' }, { id: 'asc' }],
         });
       });
     });

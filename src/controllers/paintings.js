@@ -17,6 +17,7 @@ import logger from '../services/logger.js';
 import { resolveImageUrl } from '../services/upload.js';
 import { parseId, isNotFoundError, isDuplicateError, reorderByPosition } from '../lib/prisma-utils.js';
 import { sendSuccess, sendError, sendNotFound, sendDuplicate, sendInternalError } from '../lib/http-response.js';
+import { STABLE_POSITION_ORDER } from '../lib/constants.js';
 
 /**
  * HU06 - Listar todas las pinturas (admin)
@@ -30,7 +31,7 @@ import { sendSuccess, sendError, sendNotFound, sendDuplicate, sendInternalError 
 const listAll = async (req, res) => {
   try {
     const paintings = await prisma.painting.findMany({
-      orderBy: { position: 'asc' },
+      orderBy: STABLE_POSITION_ORDER,
       include: { collection: { select: { id: true, title: true } } },
     });
 
@@ -244,7 +245,7 @@ const listPublished = async (req, res) => {
   try {
     const paintings = await prisma.painting.findMany({
       where: { isPublished: true },
-      orderBy: { position: 'asc' },
+      orderBy: STABLE_POSITION_ORDER,
       include: { collection: { select: { id: true, title: true } } },
     });
 

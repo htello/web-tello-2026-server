@@ -204,6 +204,24 @@ const dateField = ({ required = false } = {}) => {
   return field.messages({
     ...(required && { 'any.required': 'La fecha es obligatoria' }),
     'date.base': 'La fecha debe ser válida',
+    'date.format': 'La fecha debe ser válida',
+  });
+};
+
+/**
+ * Campo de fecha de fin (opcional). `minDateRef` añade la regla de no ser
+ * anterior a `date` (solo se usa en creación, donde `date` es obligatoria;
+ * en PUT parciales sin `date` no hay referencia contra la que comparar).
+ * @param {{ minDateRef?: boolean }} [options]
+ * @returns {Joi.DateSchema}
+ */
+const endDateField = ({ minDateRef = false } = {}) => {
+  const base = Joi.date().iso().empty('');
+  const field = minDateRef ? base.min(Joi.ref('date')) : base;
+  return field.messages({
+    'date.base': 'La fecha de fin debe ser válida',
+    'date.format': 'La fecha de fin debe ser válida',
+    'date.min': 'La fecha de fin no puede ser anterior a la fecha de inicio',
   });
 };
 
@@ -347,6 +365,7 @@ const paintingUpdateSchema = Joi.object({
 const exhibitionSchema = Joi.object({
   title: titleField({ required: true }),
   date: dateField({ required: true }),
+  endDate: endDateField({ minDateRef: true }),
   location: optionalTextField(),
   description: optionalTextField(),
   position: positionField(),
@@ -360,6 +379,7 @@ const exhibitionSchema = Joi.object({
 const exhibitionUpdateSchema = Joi.object({
   title: titleField(),
   date: dateField(),
+  endDate: endDateField().allow(null),
   location: optionalTextField(),
   description: optionalTextField(),
   position: positionField(),

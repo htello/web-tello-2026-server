@@ -7,6 +7,13 @@ y este proyecto adherido al [Versionado Semántico](https://semver.org/lang/es/)
 
 ## [Unreleased]
 
+### Fixed (galería pública y orden estable)
+- `GET /collections/:id` (público) solo expone colecciones **publicadas** (404 en caso contrario) e incluye únicamente sus pinturas **publicadas**, recortando la respuesta a los campos del contrato (`Collection`/`PaintingSummary`, sin `createdAt`/`updatedAt` ni `isPublished` de pinturas). Antes devolvía pinturas sin publicar y campos no documentados.
+- Orden estable en todos los listados (públicos y admin) de colecciones, pinturas, exposiciones, diseño e ilustraciones: `orderBy: [{ position: 'asc' }, { id: 'asc' }]` vía constante `STABLE_POSITION_ORDER`. Sin el desempate por `id`, las filas con `position` duplicado intercambiaban su orden de forma no determinista tras un UPDATE.
+
+### Added (endDate en exposiciones)
+- Campo opcional `endDate` en `Exhibition` (migración `add_exhibition_end_date`): `POST /admin/exhibitions` lo acepta (no puede ser anterior a `date`) y `PUT /admin/exhibitions/:id` admite actualización parcial y borrado con `endDate: null`. Todos los endpoints de exposiciones serializan ahora `date`/`endDate` como `yyyy-mm-dd` (coherente con `format: date` del contrato) y responden solo con los campos del schema `Exhibition`. Sincronizados `docs/openapi.yaml` y `docs/openapi-INDEX.md`. Tests: 449 en total, cobertura 100%.
+
 ### Changed (email vía Resend)
 - `src/services/email.js` soporta dos vías de envío: **Resend (API HTTPS)** cuando `RESEND_API_KEY` está definida, y **SMTP (Nodemailer)** como fallback para desarrollo local. Motivo: Render bloquea el tráfico saliente a puertos SMTP (25/465/587) en instancias free desde 2025-09-26, por lo que Gmail SMTP era inviable en producción. Nuevas env vars `RESEND_API_KEY` y `EMAIL_FROM` (remite por defecto `onboarding@resend.dev`); actualizados `.env.example`, `render.yaml` y `docs/DEPLOY.md`. Timeout de 15 s en la llamada HTTP (`AbortSignal.timeout`). Errores de Resend propagan su mensaje (`detail.message` o `Resend respondió <status>`). Tests: +6 casos (ruta Resend, EMAIL_FROM, reply_to, errores HTTP/no-JSON/red); 439 en total.
 
