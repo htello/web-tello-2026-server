@@ -69,13 +69,16 @@ describe('HU01 - Galería de Colecciones', () => {
         expect(data[0]).not.toHaveProperty('_count');
       });
 
-      it('should query only published collections ordered by position', async () => {
+      it('should query only published collections with published paintings ordered by position', async () => {
         mockPrisma.collection.findMany.mockResolvedValue([]);
 
         await listPublished(req, res);
 
         expect(mockPrisma.collection.findMany).toHaveBeenCalledWith({
-          where: { isPublished: true },
+          where: {
+            isPublished: true,
+            paintings: { some: { isPublished: true } },
+          },
           orderBy: [{ position: 'asc' }, { id: 'asc' }],
           include: {
             _count: { select: { paintings: { where: { isPublished: true } } } },

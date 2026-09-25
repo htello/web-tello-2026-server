@@ -8,6 +8,7 @@ y este proyecto adherido al [Versionado Semántico](https://semver.org/lang/es/)
 ## [Unreleased]
 
 ### Fixed (galería pública y orden estable)
+- `GET /collections` (público) excluye también las colecciones publicadas **sin ninguna pintura publicada** (`paintings: { some: { isPublished: true } }`): la galería pública no muestra colecciones vacías. El listado admin sigue devolviendo todo.
 - `GET /collections/:id` (público) solo expone colecciones **publicadas** (404 en caso contrario) e incluye únicamente sus pinturas **publicadas**, recortando la respuesta a los campos del contrato (`Collection`/`PaintingSummary`, sin `createdAt`/`updatedAt` ni `isPublished` de pinturas). Antes devolvía pinturas sin publicar y campos no documentados.
 - Orden estable en todos los listados (públicos y admin) de colecciones, pinturas, exposiciones, diseño e ilustraciones: `orderBy: [{ position: 'asc' }, { id: 'asc' }]` vía constante `STABLE_POSITION_ORDER`. Sin el desempate por `id`, las filas con `position` duplicado intercambiaban su orden de forma no determinista tras un UPDATE.
 

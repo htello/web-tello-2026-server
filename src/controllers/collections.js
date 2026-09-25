@@ -28,8 +28,13 @@ import { STABLE_POSITION_ORDER } from '../lib/constants.js';
  */
 const listPublished = async (req, res) => {
   try {
+    // Solo colecciones publicadas que tengan al menos una pintura publicada:
+    // las galerías públicas no muestran colecciones vacías.
     const collections = await prisma.collection.findMany({
-      where: { isPublished: true },
+      where: {
+        isPublished: true,
+        paintings: { some: { isPublished: true } },
+      },
       orderBy: STABLE_POSITION_ORDER,
       include: {
         _count: { select: { paintings: { where: { isPublished: true } } } },

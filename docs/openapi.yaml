@@ -902,7 +902,7 @@ paths:
   /collections:
     get:
       tags: [Collections]
-      summary: Listar colecciones publicadas
+      summary: Listar colecciones publicadas con alguna obra publicada
       security: []
       responses:
         '200':
