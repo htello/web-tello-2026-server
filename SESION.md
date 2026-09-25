@@ -96,6 +96,10 @@ CIERRE DEL BACKEND (2026-09-22):
   5. Al desplegar el front: CORS_ORIGIN y FRONTEND_URL reales en Render; dominio propio → verificar en Resend y cambiar EMAIL_FROM (permite enviar a cualquier usuario).
   6. Frontend: Fase 7 (HU17 galería pública + HU18 panel admin); convención acordada: raw JSON siempre + subida de imágenes vía POST /admin/upload (ver bloque "Decisión de diseño: Front ↔ Back").
 
+PENDIENTE DEL SERVER (2026-09-25, detectado en la Fase 15 del front — refactor admin):
+- openapi.yaml documenta los POST/PUT de paintings/design/illustrations SOLO como multipart/form-data con campo binario `image`. La convención acordada (raw JSON + subida en 2 pasos) hace que el front envíe `imageUrl` (obtenida de POST /admin/upload) en el JSON del create/update; el server lo acepta y funciona (verificado con E2E Playwright del front contra server real), pero esa variante NO está documentada en el contrato.
+- Acción propuesta: documentar la variante application/json con `imageUrl` (string, format uri) en PaintingRequest/PaintingUpdateRequest/DesignRequest/IllustrationRequest (o en el requestBody de sus endpoints POST/PUT) y regenerar openapi-INDEX.md. El front no necesita cambios.
+
 REGLAS DE SESIÓN (ESTRICTAS):
 1. Verificar siempre la rama antes de trabajar (`hu/XX-nombre`). NUNCA escribir código directo en `develop`.
 2. Seguir TDD estricto (RED → GREEN → REFACTOR) y mantener 100% de cobertura.
