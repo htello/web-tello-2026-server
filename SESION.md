@@ -77,6 +77,15 @@ CAMBIOS DE feat/resend-email + fix/smtp-timeouts (mergeados a develop/main):
 - src/services/email.js: doble vía — Resend (API HTTPS) si RESEND_API_KEY definida; SMTP Nodemailer como fallback local. Timeout 15s (AbortSignal) + timeouts SMTP 10-30s y secure automático en puerto 465. Nuevas envs RESEND_API_KEY y EMAIL_FROM (.env.example, render.yaml, DEPLOY.md actualizados).
 - VERIFICADO en prod: POST /contact → 201 vía Resend (email entregado en el Gmail del admin). Cuenta Resend creada con infotelloweb@gmail.com.
 
+CAMBIOS DE feat/exhibition-images (mergeado a develop):
+- Requisito previo del front (Fase 13 client): exposiciones con subida MÚLTIPLE de imágenes. Diseño aprobado "Opción A" (images como array en el JSON, sin endpoints nuevos; reutiliza el flujo en 2 pasos POST /admin/upload → url).
+- Prisma: nuevo modelo ExhibitionImage (url, thumbnail?, width?, height?, position; relación 1-N con Exhibition onDelete Cascade; índice por exhibitionId). Migración add_exhibition_images (aplicada en local; PENDIENTE en prod vía migrate deploy al desplegar).
+- POST /admin/exhibitions acepta images:[{url,thumbnail?,width?,height?}] y las crea anidadas (el orden del array = position). PUT /admin/exhibitions/:id con images REEMPLAZA la lista en transacción atómica (update+deleteMany+createMany+recarga); [] la limpia; omitido no la toca. GET público y admin serializan images ordenadas.
+- Validación Joi imagesField() (src/middleware/validate.js) en exhibitionSchema y exhibitionUpdateSchema: url URI obligatoria, thumbnail/width/height opcionales null, máx 50.
+- Docs sincronizadas: openapi.yaml (schemas ExhibitionImage + ExhibitionImageInput + campo images en Exhibition y ExhibitionRequest), openapi-INDEX.md regenerado (paths +57 líneas, total 2206), colección Postman (bodies + descriptions de POST/PUT exhibitions) y CHANGELOG [Unreleased].
+- Tests: 466 en total (antes 449), cobertura 100%, lint 0 errores.
+- Nota: archivos huérfanos en Cloudinary al borrar/sustituir imágenes (sin endpoint de borrado; riesgo ya aceptado, ver bloque fix/endpoints).
+
 CIERRE DEL BACKEND (2026-09-22):
 - Estado final: develop dd65257+ / main desplegado en https://portfolio-api-u5sx.onrender.com (Frankfurt) + Supabase joyqlaouwxlhwewuyqmr (Frankfurt) + Cloudinary dclv58msd + Resend + cron-job.org ping /health/db cada 10 min. 439 tests, lint 0 errores, cobertura 100%, CI verde. Docs (openapi/INDEX/Postman/CHANGELOG/DEPLOY) sincronizadas.
 - PENDIENTES que hereda la fase de front:

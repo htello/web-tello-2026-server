@@ -643,13 +643,14 @@
                 ],
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"title\": \"Muestra Colectiva 2025\",\n  \"date\": \"2025-06-15\",\n  \"location\": \"Galeria Central, Madrid\",\n  \"description\": \"Exposicion colectiva de arte contemporaneo\",\n  \"position\": 1,\n  \"isPublished\": true\n}"
+                  "raw": "{\n  \"title\": \"Muestra Colectiva 2025\",\n  \"date\": \"2025-06-15\",\n  \"location\": \"Galeria Central, Madrid\",\n  \"description\": \"Exposicion colectiva de arte contemporaneo\",\n  \"position\": 1,\n  \"isPublished\": true,\n  \"images\": [\n    {\n      \"url\": \"https://res.cloudinary.com/demo/image/upload/v1/exposicion-1.jpg\",\n      \"thumbnail\": \"https://res.cloudinary.com/demo/image/upload/v1/exposicion-1_thumb.jpg\",\n      \"width\": 1600,\n      \"height\": 1200\n    },\n    {\n      \"url\": \"https://res.cloudinary.com/demo/image/upload/v1/exposicion-2.jpg\"\n    }\n  ]\n}"
                 },
                 "url": {
                   "raw": "{{baseUrl}}/admin/exhibitions",
                   "host": ["{{baseUrl}}"],
                   "path": ["admin", "exhibitions"]
-                }
+                },
+                "description": "Crea una exposición. `images` es opcional: el orden del array define el `position` de cada imagen. Cada `url` debe obtenerse antes con POST /admin/upload (flujo en 2 pasos); `thumbnail`, `width` y `height` son opcionales. Máximo 50 imágenes."
               }
             },
             {
@@ -668,13 +669,14 @@
                 ],
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"title\": \"Muestra Actualizada 2025\",\n  \"date\": \"2025-07-20\",\n  \"location\": \"Galeria Norte, Barcelona\",\n  \"description\": \"Nueva descripcion de la exposicion\",\n  \"position\": 2,\n  \"isPublished\": false\n}"
+                  "raw": "{\n  \"title\": \"Muestra Actualizada 2025\",\n  \"date\": \"2025-07-20\",\n  \"location\": \"Galeria Norte, Barcelona\",\n  \"description\": \"Nueva descripcion de la exposicion\",\n  \"position\": 2,\n  \"isPublished\": false,\n  \"images\": [\n    {\n      \"url\": \"https://res.cloudinary.com/demo/image/upload/v1/exposicion-nueva-1.jpg\"\n    }\n  ]\n}"
                 },
                 "url": {
                   "raw": "{{baseUrl}}/admin/exhibitions/1",
                   "host": ["{{baseUrl}}"],
                   "path": ["admin", "exhibitions", "1"]
-                }
+                },
+                "description": "Actualización parcial. Si se envía `images`, REEMPLAZA la lista completa en una transacción atómica (un array vacío la limpia); si se omite, las imágenes existentes no se modifican. El orden del array define el `position`."
               }
             },
             {

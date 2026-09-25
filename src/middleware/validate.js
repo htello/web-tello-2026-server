@@ -150,6 +150,33 @@ const positionField = () => Joi.number()
   });
 
 /**
+ * Campo `images` de exposiciones: array de URLs ya subidas vía
+ * POST /admin/upload. El orden del array define el `position` de cada
+ * imagen. En POST crea las imágenes anidadas; en PUT reemplaza la lista
+ * completa (un array vacío la limpia). Cada elemento admite `thumbnail`,
+ * `width` y `height` opcionales (null permitidos).
+ *
+ * @returns {Joi.ArraySchema} Campo Joi
+ */
+const imagesField = () => Joi.array()
+  .items(
+    Joi.object({
+      url: Joi.string().uri().required().messages({
+        'string.uri': 'La imagen debe ser una URL válida',
+        'any.required': 'La url de la imagen es obligatoria',
+      }),
+      thumbnail: Joi.string().uri().optional().allow('', null),
+      width: Joi.number().integer().positive().optional().allow(null),
+      height: Joi.number().integer().positive().optional().allow(null),
+    })
+  )
+  .max(50)
+  .optional()
+  .messages({
+    'array.max': 'Máximo 50 imágenes por exposición',
+  });
+
+/**
  * Campo `year` numérico (1900-2100), requerido u opcional.
  *
  * Acepta strings numéricos (multipart/form-data) y trata el string
@@ -370,6 +397,7 @@ const exhibitionSchema = Joi.object({
   description: optionalTextField(),
   position: positionField(),
   isPublished: booleanField(),
+  images: imagesField(),
 });
 
 /**
@@ -384,6 +412,7 @@ const exhibitionUpdateSchema = Joi.object({
   description: optionalTextField(),
   position: positionField(),
   isPublished: booleanField(),
+  images: imagesField(),
 }).min(1).messages({
   'object.min': 'Debe enviar al menos un campo para actualizar',
 });
