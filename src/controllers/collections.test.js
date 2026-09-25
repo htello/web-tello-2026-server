@@ -76,7 +76,7 @@ describe('HU01 - Galería de Colecciones', () => {
 
         expect(mockPrisma.collection.findMany).toHaveBeenCalledWith({
           where: { isPublished: true },
-          orderBy: { position: 'asc' },
+          orderBy: [{ position: 'asc' }, { id: 'asc' }],
           include: {
             _count: { select: { paintings: { where: { isPublished: true } } } },
           },
@@ -156,7 +156,7 @@ describe('HU01 - Galería de Colecciones', () => {
         await listAll(req, res);
 
         expect(mockPrisma.collection.findMany).toHaveBeenCalledWith({
-          orderBy: { position: 'asc' },
+          orderBy: [{ position: 'asc' }, { id: 'asc' }],
           include: {
             _count: { select: { paintings: true } },
           },
@@ -191,15 +191,33 @@ describe('HU01 - Galería de Colecciones', () => {
   });
 
   describe('getById', () => {
-    describe('given an existing collection', () => {
-      it('should return 200 with the collection and its paintings', async () => {
+    describe('given an existing published collection', () => {
+      it('should return 200 with the collection and only its published paintings as PaintingSummary', async () => {
         req = { params: { id: '1' } };
-        mockPrisma.collection.findUnique.mockResolvedValue({
+        mockPrisma.collection.findFirst.mockResolvedValue({
           id: 1,
           title: 'Colección Uno',
+          description: 'Descripción',
+          coverImage: null,
+          position: 0,
+          isPublished: true,
+          createdAt: new Date('2026-01-01T00:00:00Z'),
+          updatedAt: new Date('2026-01-02T00:00:00Z'),
           paintings: [
-            { id: 10, title: 'Pintura A', position: 0 },
-            { id: 11, title: 'Pintura B', position: 1 },
+            {
+              id: 10,
+              title: 'Pintura A',
+              imageUrl: 'https://example.com/a.jpg',
+              dimensions: '100x80',
+              technique: 'Óleo',
+              year: 2001,
+              isFeatured: false,
+              isPublished: true,
+              position: 0,
+              collectionId: 1,
+              createdAt: new Date('2026-01-01T00:00:00Z'),
+              updatedAt: new Date('2026-01-02T00:00:00Z'),
+            },
           ],
         });
 
@@ -210,15 +228,31 @@ describe('HU01 - Galería de Colecciones', () => {
           data: {
             id: 1,
             title: 'Colección Uno',
+            description: 'Descripción',
+            coverImage: null,
+            position: 0,
+            isPublished: true,
             paintings: [
-              { id: 10, title: 'Pintura A', position: 0 },
-              { id: 11, title: 'Pintura B', position: 1 },
+              {
+                id: 10,
+                title: 'Pintura A',
+                imageUrl: 'https://example.com/a.jpg',
+                dimensions: '100x80',
+                technique: 'Óleo',
+                year: 2001,
+                isFeatured: false,
+              },
             ],
           },
         });
-        expect(mockPrisma.collection.findUnique).toHaveBeenCalledWith({
-          where: { id: 1 },
-          include: { paintings: { orderBy: { position: 'asc' } } },
+        expect(mockPrisma.collection.findFirst).toHaveBeenCalledWith({
+          where: { id: 1, isPublished: true },
+          include: {
+            paintings: {
+              where: { isPublished: true },
+              orderBy: [{ position: 'asc' }, { id: 'asc' }],
+            },
+          },
         });
       });
     });
@@ -226,7 +260,7 @@ describe('HU01 - Galería de Colecciones', () => {
     describe('given a non-existent collection', () => {
       it('should return 404 NOT_FOUND', async () => {
         req = { params: { id: '999' } };
-        mockPrisma.collection.findUnique.mockResolvedValue(null);
+        mockPrisma.collection.findFirst.mockResolvedValue(null);
 
         await getById(req, res);
 
@@ -241,7 +275,7 @@ describe('HU01 - Galería de Colecciones', () => {
     describe('given a database error', () => {
       it('should return 500 INTERNAL_ERROR', async () => {
         req = { params: { id: '1' } };
-        mockPrisma.collection.findUnique.mockRejectedValue(new Error('DB Error'));
+        mockPrisma.collection.findFirst.mockRejectedValue(new Error('DB Error'));
 
         await getById(req, res);
 
