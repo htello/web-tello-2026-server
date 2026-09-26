@@ -96,6 +96,28 @@ CIERRE DEL BACKEND (2026-09-22):
   5. Al desplegar el front: CORS_ORIGIN y FRONTEND_URL reales en Render; dominio propio → verificar en Resend y cambiar EMAIL_FROM (permite enviar a cualquier usuario).
   6. Frontend: Fase 7 (HU17 galería pública + HU18 panel admin); convención acordada: raw JSON siempre + subida de imágenes vía POST /admin/upload (ver bloque "Decisión de diseño: Front ↔ Back").
 
+PENDIENTE DEL SERVER (2026-09-25, detectado en la Fase 15 del front — refactor admin):
+- openapi.yaml documenta los POST/PUT de paintings/design/illustrations SOLO como multipart/form-data con campo binario `image`. La convención acordada (raw JSON + subida en 2 pasos) hace que el front envíe `imageUrl` (obtenida de POST /admin/upload) en el JSON del create/update; el server lo acepta y funciona (verificado con E2E Playwright del front contra server real), pero esa variante NO está documentada en el contrato.
+- Acción propuesta: documentar la variante application/json con `imageUrl` (string, format uri) en PaintingRequest/PaintingUpdateRequest/DesignRequest/IllustrationRequest (o en el requestBody de sus endpoints POST/PUT) y regenerar openapi-INDEX.md. El front no necesita cambios.
+
+CAMBIOS DE fix/23-cloudinary-image-deletion (2026-09-26):
+- Las eliminaciones y reemplazos de pinturas, proyectos de diseño, ilustraciones, colecciones, exposiciones y biografía limpian sus imágenes de Cloudinary cuando corresponda.
+- Se almacenan identificadores `publicId` con fallback para URLs legacy; las URLs externas no se eliminan.
+- Nueva migración `add_cloudinary_public_ids` y servicio `src/services/cloudinary.js`.
+- Verificado: 500 tests, lint correcto y cobertura 100%. Migración pendiente de aplicar en entornos con PostgreSQL disponible.
+
+CAMBIOS DE fix/24-cloudinary-public-id (2026-09-26):
+- Las subidas persisten el `public_id` real devuelto por Cloudinary en pinturas.
+- `destroy` especifica `resource_type: image`; las respuestas `not found` se tratan como borrado idempotente.
+- Verificación local: migración aplicada en PostgreSQL, health DB OK y tests de integración de HU06/HU10 OK.
+
+CAMBIOS DE fix/25-cloudinary-public-id-all-resources (2026-09-26):
+- Ilustraciones, proyectos de diseño y biografía persisten el `public_id` real de las subidas, manteniendo fallback para URLs Cloudinary legacy.
+- El resultado `not found` de Cloudinary se trata como borrado idempotente; evita 500 aleatorios al eliminar recursos cuya imagen ya no existe.
+- Colecciones y sus pinturas quedan cubiertas por el mismo comportamiento de borrado idempotente.
+- Las actualizaciones que reciben `imageUrl: null` o vacío sin archivo devuelven `400 VALIDATION_ERROR`; no se intenta guardar `null` en campos de imagen obligatorios.
+- `PUT /admin/biography` usa validación parcial: permite cambiar solo la imagen y conserva el contenido existente; `POST` mantiene `content` obligatorio.
+
 REGLAS DE SESIÓN (ESTRICTAS):
 1. Verificar siempre la rama antes de trabajar (`hu/XX-nombre`). NUNCA escribir código directo en `develop`.
 2. Seguir TDD estricto (RED → GREEN → REFACTOR) y mantener 100% de cobertura.

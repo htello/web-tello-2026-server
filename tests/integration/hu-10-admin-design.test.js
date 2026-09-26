@@ -15,6 +15,11 @@ vi.mock('../../src/services/upload.js', async (importOriginal) => {
       const result = await uploadToCloudinary(file, section);
       return result.url;
     }),
+    resolveImageAsset: vi.fn(async (file, imageUrl, section) => {
+      if (!file) return { url: imageUrl, publicId: null };
+      const result = await uploadToCloudinary(file, section);
+      return { url: result.url, publicId: result.publicId };
+    }),
   };
 });
 

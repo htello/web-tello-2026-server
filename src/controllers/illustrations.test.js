@@ -11,6 +11,7 @@ import { mockPrisma } from '../../tests/helpers/prisma-mock.js';
 
 vi.mock('../services/upload.js', () => ({
   resolveImageUrl: vi.fn(),
+  resolveImageAsset: vi.fn(),
   ALLOWED_SECTIONS: ['pintura', 'ilustracion', 'diseno', 'general'],
 }));
 
@@ -18,9 +19,15 @@ vi.mock('../services/logger.js', () => ({
   default: { info: vi.fn(), error: vi.fn(), warn: vi.fn() },
 }));
 
+vi.mock('../services/cloudinary.js', () => ({
+  deleteCloudinaryImage: vi.fn(),
+  extractPublicId: vi.fn(() => null),
+}));
+
 const { create, update, remove, reorder, listPublished, listAll, listFeatured } = await import('./illustrations.js');
-const { resolveImageUrl } = await import('../services/upload.js');
+const { resolveImageUrl, resolveImageAsset } = await import('../services/upload.js');
 const logger = (await import('../services/logger.js')).default;
+const { deleteCloudinaryImage, extractPublicId } = await import('../services/cloudinary.js');
 
 describe('HU08 - Admin Ilustraciones', () => {
   let req, res;
@@ -32,7 +39,12 @@ describe('HU08 - Admin Ilustraciones', () => {
       json: vi.fn(),
     };
     vi.clearAllMocks();
+    extractPublicId.mockReturnValue(null);
     resolveImageUrl.mockImplementation(async (_file, imageUrl) => imageUrl);
+    resolveImageAsset.mockImplementation(async (file, imageUrl, section) => ({
+      url: await resolveImageUrl(file, imageUrl, section),
+      publicId: null,
+    }));
   });
 
   describe('listPublished', () => {
@@ -305,6 +317,34 @@ describe('HU08 - Admin Ilustraciones', () => {
     });
   });
 
+  it('should persist the public id for a Cloudinary image', async () => {
+    extractPublicId.mockReturnValue('portfolio/new');
+    mockPrisma.illustration.create.mockResolvedValue({ id: 1, imageUrl: 'https://res.cloudinary.com/demo/new.jpg' });
+    req.body = { title: 'Nueva', imageUrl: 'https://res.cloudinary.com/demo/new.jpg' };
+
+    await create(req, res);
+
+    expect(mockPrisma.illustration.create).toHaveBeenCalledWith({
+      data: expect.objectContaining({ imagePublicId: 'portfolio/new' }),
+    });
+  });
+
+  it('should persist the public id returned by the upload asset', async () => {
+    resolveImageAsset.mockResolvedValue({
+      url: 'https://res.cloudinary.com/demo/image/upload/v1/portfolio/new.jpg',
+      publicId: 'portfolio/new-real-id',
+    });
+    mockPrisma.illustration.create.mockResolvedValue({ id: 1 });
+    req.file = { buffer: Buffer.from('image') };
+    req.body = { title: 'Nueva' };
+
+    await create(req, res);
+
+    expect(mockPrisma.illustration.create).toHaveBeenCalledWith({
+      data: expect.objectContaining({ imagePublicId: 'portfolio/new-real-id' }),
+    });
+  });
+
   describe('update', () => {
     describe('given valid data', () => {
       it('should return 200 with updated illustration', async () => {
@@ -355,6 +395,49 @@ describe('HU08 - Admin Ilustraciones', () => {
         });
         expect(res.status).toHaveBeenCalledWith(200);
       });
+
+      it('should persist the public id when updating with a Cloudinary URL', async () => {
+        extractPublicId.mockReturnValue('portfolio/new');
+        mockPrisma.illustration.update.mockResolvedValue({ id: 1, imageUrl: 'https://res.cloudinary.com/demo/new.jpg' });
+        req.params = { id: '1' };
+        req.body = { imageUrl: 'https://res.cloudinary.com/demo/new.jpg' };
+
+        await update(req, res);
+
+        expect(mockPrisma.illustration.update).toHaveBeenCalledWith({
+          where: { id: 1 },
+          data: expect.objectContaining({ imagePublicId: 'portfolio/new' }),
+        });
+      });
+
+      it('should reject removing the image without a replacement', async () => {
+        req.params = { id: '1' };
+        req.body = { imageUrl: null };
+
+        await update(req, res);
+
+        expect(res.status).toHaveBeenCalledWith(400);
+        expect(res.json).toHaveBeenCalledWith({
+          error: 'La imagen es obligatoria (archivo o URL)',
+          code: 'VALIDATION_ERROR',
+        });
+        expect(mockPrisma.illustration.update).not.toHaveBeenCalled();
+        expect(deleteCloudinaryImage).not.toHaveBeenCalled();
+      });
+    });
+
+    it('should delete the previous image when updating the image', async () => {
+      mockPrisma.illustration.findUnique.mockResolvedValue({
+        imageUrl: 'https://res.cloudinary.com/demo/old.jpg',
+        imagePublicId: 'portfolio/old',
+      });
+      mockPrisma.illustration.update.mockResolvedValue({ id: 1, imageUrl: 'https://example.com/new.jpg' });
+      req.params = { id: '1' };
+      req.body = { imageUrl: 'https://example.com/new.jpg' };
+
+      await update(req, res);
+
+      expect(deleteCloudinaryImage).toHaveBeenCalledWith('portfolio/old', expect.any(String));
     });
 
     describe('given isPublished and isFeatured', () => {
@@ -393,6 +476,15 @@ describe('HU08 - Admin Ilustraciones', () => {
           error: 'Ilustración no encontrada',
           code: 'NOT_FOUND',
         });
+      });
+
+      it('should return 404 when the illustration lookup returns null', async () => {
+        mockPrisma.illustration.findUnique.mockResolvedValue(null);
+        req.params = { id: '999' };
+
+        await remove(req, res);
+
+        expect(res.status).toHaveBeenCalledWith(404);
       });
     });
 
@@ -434,6 +526,7 @@ describe('HU08 - Admin Ilustraciones', () => {
   describe('remove', () => {
     describe('given existing illustration', () => {
       it('should return 200 with success message', async () => {
+        mockPrisma.illustration.findUnique.mockResolvedValue(undefined);
         mockPrisma.illustration.delete.mockResolvedValue({ id: 1 });
         req.params = { id: '1' };
 
@@ -446,6 +539,20 @@ describe('HU08 - Admin Ilustraciones', () => {
         });
         expect(logger.info).toHaveBeenCalled();
       });
+    });
+
+    it('should delete the Cloudinary image before the illustration', async () => {
+      mockPrisma.illustration.findUnique.mockResolvedValue({
+        imageUrl: 'https://res.cloudinary.com/demo/image/upload/v1/obra.jpg',
+        imagePublicId: 'portfolio/obra',
+      });
+      mockPrisma.illustration.delete.mockResolvedValue({ id: 1 });
+      req.params = { id: '1' };
+
+      await remove(req, res);
+
+      expect(deleteCloudinaryImage).toHaveBeenCalledWith('portfolio/obra', expect.any(String));
+      expect(mockPrisma.illustration.delete).toHaveBeenCalledWith({ where: { id: 1 } });
     });
 
     describe('given illustration does not exist', () => {

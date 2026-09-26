@@ -102,11 +102,28 @@ const uploadToCloudinary = async (file, section = 'general') => {
 
   return {
     url: result.secure_url,
+    publicId: result.public_id,
     thumbnail: cloudinary.url(result.public_id, { width: 300, crop: 'limit' }),
     width: result.width,
     height: result.height,
     format: result.format,
   };
+};
+
+const uploadImageAsset = uploadToCloudinary;
+
+/**
+ * Resuelve la imagen y conserva el identificador de Cloudinary.
+ *
+ * @param {Object} [file] - Archivo de Multer.
+ * @param {string} [imageUrl] - URL proporcionada en el body.
+ * @param {string} section - Sección para subcarpeta.
+ * @returns {Promise<Object>} URL y public_id.
+ */
+const resolveImageAsset = async (file, imageUrl, section) => {
+  if (!file) return { url: imageUrl, publicId: null };
+
+  return uploadToCloudinary(file, section);
 };
 
 /**
@@ -121,12 +138,18 @@ const uploadToCloudinary = async (file, section = 'general') => {
  * @returns {Promise<string|undefined>} URL final o undefined si no hay ni archivo ni URL
  */
 const resolveImageUrl = async (file, imageUrl, section) => {
-  if (!file) {
-    return imageUrl;
-  }
-
-  const result = await uploadToCloudinary(file, section);
+  const result = await resolveImageAsset(file, imageUrl, section);
   return result.url;
 };
 
-export { upload, uploadToCloudinary, resolveImageUrl, fileFilter, ALLOWED_TYPES, MAX_SIZE, ALLOWED_SECTIONS };
+export {
+  upload,
+  uploadToCloudinary,
+  uploadImageAsset,
+  resolveImageAsset,
+  resolveImageUrl,
+  fileFilter,
+  ALLOWED_TYPES,
+  MAX_SIZE,
+  ALLOWED_SECTIONS,
+};

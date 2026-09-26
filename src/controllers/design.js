@@ -15,7 +15,8 @@
 
 import prisma from '../lib/prisma.js';
 import logger from '../services/logger.js';
-import { resolveImageUrl } from '../services/upload.js';
+import { resolveImageAsset } from '../services/upload.js';
+import { deleteCloudinaryImage, extractPublicId } from '../services/cloudinary.js';
 import { parseId, isNotFoundError, isDuplicateError, reorderByPosition } from '../lib/prisma-utils.js';
 import { sendSuccess, sendError, sendNotFound, sendDuplicate, sendInternalError } from '../lib/http-response.js';
 import { DESIGN_SUBCATEGORIES, STABLE_POSITION_ORDER } from '../lib/constants.js';
@@ -33,7 +34,8 @@ const create = async (req, res) => {
   try {
     const { title, description, imageUrl, subcategory, isPublished, isFeatured } = req.body;
 
-    const finalImageUrl = await resolveImageUrl(req.file, imageUrl, 'diseno');
+    const imageAsset = await resolveImageAsset(req.file, imageUrl, 'diseno');
+    const finalImageUrl = imageAsset.url;
 
     if (!finalImageUrl) {
       return sendError(res, 400, 'VALIDATION_ERROR', 'La imagen es obligatoria (archivo o URL)');
@@ -44,6 +46,9 @@ const create = async (req, res) => {
         title,
         description: description || null,
         imageUrl: finalImageUrl,
+        ...((imageAsset.publicId || extractPublicId(finalImageUrl)) && {
+          imagePublicId: imageAsset.publicId || extractPublicId(finalImageUrl),
+        }),
         subcategory,
         ...(isPublished !== undefined && { isPublished }),
         ...(isFeatured !== undefined && { isFeatured }),
@@ -75,7 +80,23 @@ const update = async (req, res) => {
     const { id } = req.params;
     const { title, description, imageUrl, subcategory, isPublished, isFeatured } = req.body;
 
-    const finalImageUrl = await resolveImageUrl(req.file, imageUrl, 'diseno');
+    const imageAsset = await resolveImageAsset(req.file, imageUrl, 'diseno');
+    const finalImageUrl = imageAsset.url;
+
+    if (Object.prototype.hasOwnProperty.call(req.body, 'imageUrl') && !req.file && !finalImageUrl) {
+      return sendError(res, 400, 'VALIDATION_ERROR', 'La imagen es obligatoria (archivo o URL)');
+    }
+
+    if (finalImageUrl) {
+      const previousProject = await prisma.designProject.findUnique({
+        where: { id: parseId(id) },
+        select: { imageUrl: true, imagePublicId: true },
+      });
+
+      if (previousProject && previousProject.imageUrl !== finalImageUrl) {
+        await deleteCloudinaryImage(previousProject.imagePublicId, previousProject.imageUrl);
+      }
+    }
 
     const project = await prisma.designProject.update({
       where: { id: parseId(id) },
@@ -83,6 +104,9 @@ const update = async (req, res) => {
         ...(title !== undefined && { title }),
         ...(description !== undefined && { description }),
         ...(finalImageUrl !== undefined && { imageUrl: finalImageUrl }),
+        ...(finalImageUrl && (imageAsset.publicId || extractPublicId(finalImageUrl)) && {
+          imagePublicId: imageAsset.publicId || extractPublicId(finalImageUrl),
+        }),
         ...(subcategory !== undefined && { subcategory }),
         ...(isPublished !== undefined && { isPublished }),
         ...(isFeatured !== undefined && { isFeatured }),
@@ -111,6 +135,19 @@ const update = async (req, res) => {
 const remove = async (req, res) => {
   try {
     const { id } = req.params;
+
+    const project = await prisma.designProject.findUnique({
+      where: { id: parseId(id) },
+      select: { imageUrl: true, imagePublicId: true },
+    });
+
+    if (project === null) {
+      return sendNotFound(res, 'Proyecto de diseño no encontrado');
+    }
+
+    if (project) {
+      await deleteCloudinaryImage(project.imagePublicId, project.imageUrl);
+    }
 
     await prisma.designProject.delete({
       where: { id: parseId(id) },

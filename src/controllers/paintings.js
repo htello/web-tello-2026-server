@@ -14,7 +14,8 @@
 
 import prisma from '../lib/prisma.js';
 import logger from '../services/logger.js';
-import { resolveImageUrl } from '../services/upload.js';
+import { resolveImageAsset } from '../services/upload.js';
+import { deleteCloudinaryImage } from '../services/cloudinary.js';
 import { parseId, isNotFoundError, isDuplicateError, reorderByPosition } from '../lib/prisma-utils.js';
 import { sendSuccess, sendError, sendNotFound, sendDuplicate, sendInternalError } from '../lib/http-response.js';
 import { STABLE_POSITION_ORDER } from '../lib/constants.js';
@@ -54,7 +55,8 @@ const create = async (req, res) => {
   try {
     const { title, imageUrl, collectionId, dimensions, technique, year, isPublished, isFeatured } = req.body;
 
-    const finalImageUrl = await resolveImageUrl(req.file, imageUrl, 'pintura');
+    const imageAsset = await resolveImageAsset(req.file, imageUrl, 'pintura');
+    const finalImageUrl = imageAsset.url;
 
     if (!finalImageUrl) {
       return sendError(res, 400, 'VALIDATION_ERROR', 'La imagen es obligatoria (archivo o URL)');
@@ -72,6 +74,7 @@ const create = async (req, res) => {
       data: {
         title,
         imageUrl: finalImageUrl,
+        ...(imageAsset.publicId && { imagePublicId: imageAsset.publicId }),
         collectionId: parseId(collectionId),
         dimensions: dimensions || null,
         technique: technique || null,
@@ -106,13 +109,30 @@ const update = async (req, res) => {
     const { id } = req.params;
     const { title, imageUrl, collectionId, dimensions, technique, year, isPublished, isFeatured } = req.body;
 
-    const finalImageUrl = await resolveImageUrl(req.file, imageUrl, 'pintura');
+    const imageAsset = await resolveImageAsset(req.file, imageUrl, 'pintura');
+    const finalImageUrl = imageAsset.url;
+
+    if (Object.prototype.hasOwnProperty.call(req.body, 'imageUrl') && !req.file && !finalImageUrl) {
+      return sendError(res, 400, 'VALIDATION_ERROR', 'La imagen es obligatoria (archivo o URL)');
+    }
+
+    if (finalImageUrl) {
+      const previousPainting = await prisma.painting.findUnique({
+        where: { id: parseId(id) },
+        select: { imageUrl: true, imagePublicId: true },
+      });
+
+      if (previousPainting && previousPainting.imageUrl !== finalImageUrl) {
+        await deleteCloudinaryImage(previousPainting.imagePublicId, previousPainting.imageUrl);
+      }
+    }
 
     const painting = await prisma.painting.update({
       where: { id: parseId(id) },
       data: {
         ...(title !== undefined && { title }),
         ...(finalImageUrl !== undefined && { imageUrl: finalImageUrl }),
+        ...(imageAsset.publicId && { imagePublicId: imageAsset.publicId }),
         ...(collectionId !== undefined && { collectionId: parseId(collectionId) }),
         ...(dimensions !== undefined && { dimensions }),
         ...(technique !== undefined && { technique }),
@@ -144,6 +164,19 @@ const update = async (req, res) => {
 const remove = async (req, res) => {
   try {
     const { id } = req.params;
+
+    const painting = await prisma.painting.findUnique({
+      where: { id: parseId(id) },
+      select: { imageUrl: true, imagePublicId: true },
+    });
+
+    if (painting === null) {
+      return sendNotFound(res, 'Pintura no encontrada');
+    }
+
+    if (painting) {
+      await deleteCloudinaryImage(painting.imagePublicId, painting.imageUrl);
+    }
 
     await prisma.painting.delete({
       where: { id: parseId(id) },

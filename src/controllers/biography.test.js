@@ -11,15 +11,22 @@ import { mockPrisma } from '../../tests/helpers/prisma-mock.js';
 
 vi.mock('../services/upload.js', () => ({
   resolveImageUrl: vi.fn(),
+  resolveImageAsset: vi.fn(),
 }));
 
 vi.mock('../services/logger.js', () => ({
   default: { info: vi.fn(), error: vi.fn(), warn: vi.fn() },
 }));
 
+vi.mock('../services/cloudinary.js', () => ({
+  deleteCloudinaryImage: vi.fn(),
+  extractPublicId: vi.fn(() => null),
+}));
+
 const { get, create, update } = await import('./biography.js');
-const { resolveImageUrl } = await import('../services/upload.js');
+const { resolveImageUrl, resolveImageAsset } = await import('../services/upload.js');
 const logger = (await import('../services/logger.js')).default;
+const { deleteCloudinaryImage, extractPublicId } = await import('../services/cloudinary.js');
 
 describe('HU12 - Admin Biografía', () => {
   let req, res;
@@ -31,7 +38,12 @@ describe('HU12 - Admin Biografía', () => {
       json: vi.fn(),
     };
     vi.clearAllMocks();
+    extractPublicId.mockReturnValue(null);
     resolveImageUrl.mockImplementation(async (_file, imageUrl) => imageUrl);
+    resolveImageAsset.mockImplementation(async (file, imageUrl, section) => ({
+      url: await resolveImageUrl(file, imageUrl, section),
+      publicId: null,
+    }));
   });
 
   describe('get', () => {
@@ -166,6 +178,73 @@ describe('HU12 - Admin Biografía', () => {
         expect(logger.info).toHaveBeenCalled();
       });
 
+      it('should update only the image and preserve the existing content', async () => {
+        mockPrisma.biography.findFirst.mockResolvedValue({
+          id: 1,
+          content: 'Contenido existente de la biografía',
+          imageUrl: 'https://example.com/old.jpg',
+          imagePublicId: null,
+        });
+        mockPrisma.biography.update.mockResolvedValue({
+          id: 1,
+          content: 'Contenido existente de la biografía',
+          imageUrl: 'https://example.com/new.jpg',
+        });
+        req.body = { imageUrl: 'https://example.com/new.jpg' };
+
+        await update(req, res);
+
+        expect(mockPrisma.biography.update).toHaveBeenCalledWith({
+          where: { id: 1 },
+          data: { imageUrl: 'https://example.com/new.jpg' },
+        });
+        expect(res.status).toHaveBeenCalledWith(200);
+      });
+
+      it('should persist the public id when the replacement image is Cloudinary-hosted', async () => {
+        extractPublicId.mockReturnValue('portfolio/new');
+        mockPrisma.biography.findFirst.mockResolvedValue({ id: 1, imageUrl: null, imagePublicId: null });
+        mockPrisma.biography.update.mockResolvedValue({ id: 1, content: 'Nueva' });
+        req.body = { content: 'Nueva', imageUrl: 'https://res.cloudinary.com/demo/new.jpg' };
+
+        await update(req, res);
+
+        expect(mockPrisma.biography.update).toHaveBeenCalledWith({
+          where: { id: 1 },
+          data: { content: 'Nueva', imageUrl: 'https://res.cloudinary.com/demo/new.jpg', imagePublicId: 'portfolio/new' },
+        });
+      });
+
+      it('should persist the public id when creating a Cloudinary biography image', async () => {
+        extractPublicId.mockReturnValue('portfolio/biography');
+        mockPrisma.biography.findFirst.mockResolvedValue(null);
+        mockPrisma.biography.create.mockResolvedValue({ id: 1, content: 'Nueva' });
+        req.body = { content: 'Nueva', imageUrl: 'https://res.cloudinary.com/demo/bio.jpg' };
+
+        await create(req, res);
+
+        expect(mockPrisma.biography.create).toHaveBeenCalledWith({
+          data: expect.objectContaining({ imagePublicId: 'portfolio/biography' }),
+        });
+      });
+
+      it('should persist the public id returned by the upload asset', async () => {
+        resolveImageAsset.mockResolvedValue({
+          url: 'https://res.cloudinary.com/demo/image/upload/v1/portfolio/biography.jpg',
+          publicId: 'portfolio/biography-real-id',
+        });
+        mockPrisma.biography.findFirst.mockResolvedValue(null);
+        mockPrisma.biography.create.mockResolvedValue({ id: 1, content: 'Nueva' });
+        req.file = { buffer: Buffer.from('image') };
+        req.body = { content: 'Nueva' };
+
+        await create(req, res);
+
+        expect(mockPrisma.biography.create).toHaveBeenCalledWith({
+          data: expect.objectContaining({ imagePublicId: 'portfolio/biography-real-id' }),
+        });
+      });
+
       it('should update content only when no image provided', async () => {
         mockPrisma.biography.findFirst.mockResolvedValue({ id: 1 });
         mockPrisma.biography.update.mockResolvedValue({
@@ -182,6 +261,23 @@ describe('HU12 - Admin Biografía', () => {
           data: { content: 'Actualizada' },
         });
         expect(res.status).toHaveBeenCalledWith(200);
+      });
+
+      it('should delete the previous biography image when replacing it', async () => {
+        mockPrisma.biography.findFirst.mockResolvedValue({
+          id: 1,
+          imageUrl: 'https://res.cloudinary.com/demo/old.jpg',
+          imagePublicId: 'portfolio/old',
+        });
+        mockPrisma.biography.update.mockResolvedValue({ id: 1, content: 'Nueva' });
+        req.body = { content: 'Nueva', imageUrl: 'https://example.com/new.jpg' };
+
+        await update(req, res);
+
+        expect(deleteCloudinaryImage).toHaveBeenCalledWith(
+          'portfolio/old',
+          'https://res.cloudinary.com/demo/old.jpg',
+        );
       });
     });
 

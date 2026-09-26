@@ -7,6 +7,19 @@ y este proyecto adherido al [Versionado Semántico](https://semver.org/lang/es/)
 
 ## [Unreleased]
 
+### Fixed (limpieza de imágenes en Cloudinary)
+- Las eliminaciones y reemplazos de pinturas, proyectos de diseño, ilustraciones, colecciones, exposiciones y biografía eliminan también sus imágenes de Cloudinary cuando la URL pertenece a Cloudinary.
+- Se persiste el `publicId` de Cloudinary en los recursos con imágenes y se añade fallback para URLs legacy; las URLs externas no se eliminan.
+- Si Cloudinary falla, se conserva el registro de Prisma y la API devuelve error interno.
+- Nueva migración `add_cloudinary_public_ids` y servicio `src/services/cloudinary.js`. Tests: 500 en total, cobertura 100%.
+
+### Fixed (identificador real de Cloudinary)
+- Las subidas persisten el `public_id` devuelto por Cloudinary, evitando derivar identificadores potencialmente incorrectos desde la URL.
+- El borrado usa `resource_type: image` y acepta `ok` o `not found` como resultado idempotente; otros errores conservan el registro en Prisma.
+- Se extiende la persistencia del `public_id` real a ilustraciones, proyectos de diseño y biografía; colecciones mantiene fallback para URLs introducidas en dos pasos.
+- Las actualizaciones de pinturas, ilustraciones y proyectos de diseño rechazan quitar la imagen sin aportar otra con `400 VALIDATION_ERROR` y el mensaje `La imagen es obligatoria (archivo o URL)`.
+- La actualización de biografía admite cambiar solo la imagen y conserva el contenido existente; la creación sigue exigiendo contenido.
+
 ### Added (imágenes múltiples en exposiciones)
 - Nuevo modelo `ExhibitionImage` (migración `add_exhibition_images`): relación 1-N con `Exhibition` (`onDelete: Cascade`), campos `url`, `thumbnail?`, `width?`, `height?` y `position`, e índice por `exhibitionId`. Permite adjuntar varias imágenes a una exposición.
 - `POST /admin/exhibitions` acepta `images: [{ url, thumbnail?, width?, height? }]` y las crea anidadas; el orden del array define el `position` de cada imagen.
@@ -14,7 +27,7 @@ y este proyecto adherido al [Versionado Semántico](https://semver.org/lang/es/)
 - Todos los endpoints de exposiciones (público `GET /exhibitions` y admin `GET/POST/PUT`) serializan ahora `images` ordenadas por `position`.
 - Validación Joi (`imagesField` en `src/middleware/validate.js`): `url` URI obligatoria por elemento, `thumbnail`/`width`/`height` opcionales (null permitidos), máximo 50 imágenes.
 - Las URLs provienen del flujo existente en 2 pasos (`POST /admin/upload` → `url` en el JSON); no se añaden endpoints nuevos. Sincronizados `docs/openapi.yaml` (schemas `ExhibitionImage`, `ExhibitionImageInput`, campo `images` en `Exhibition` y `ExhibitionRequest`) y `docs/openapi-INDEX.md`. Tests: 466 en total, cobertura 100%.
-- Nota: al borrar una exposición o sustituir imágenes, los archivos previos quedan huérfanos en Cloudinary (sin endpoint de borrado; aceptado a escala de portfolio).
+- Las imágenes antiguas de exposiciones se eliminan de Cloudinary al sustituirlas o borrar la exposición; las URLs externas se conservan.
 
 ### Fixed (galería pública y orden estable)
 - `GET /collections` (público) excluye también las colecciones publicadas **sin ninguna pintura publicada** (`paintings: { some: { isPublished: true } }`): la galería pública no muestra colecciones vacías. El listado admin sigue devolviendo todo.
