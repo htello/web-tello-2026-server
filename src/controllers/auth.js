@@ -27,6 +27,7 @@ import {
   BCRYPT_ROUNDS,
   FRONTEND_URL,
   RESET_TOKEN_EXPIRES_MINUTES,
+  RESET_TOKEN_BYTES,
 } from '../lib/constants.js';
 import { sendSuccess, sendError, sendInternalError } from '../lib/http-response.js';
 
@@ -148,7 +149,7 @@ const forgotPassword = async (req, res) => {
     const user = await prisma.user.findUnique({ where: { email } });
 
     if (user) {
-      const rawToken = randomBytes(32).toString('hex');
+      const rawToken = randomBytes(RESET_TOKEN_BYTES).toString('hex');
       const passwordResetExpires = new Date(Date.now() + RESET_TOKEN_EXPIRES_MINUTES * 60 * 1000);
 
       await prisma.user.update({

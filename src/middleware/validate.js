@@ -11,7 +11,13 @@
  */
 
 import Joi from 'joi';
-import { DESIGN_SUBCATEGORIES } from '../lib/constants.js';
+import {
+  DESIGN_SUBCATEGORIES,
+  MAX_EXHIBITION_IMAGES,
+  EXHIBITION_YEAR_MIN,
+  EXHIBITION_YEAR_MAX,
+  MIN_TEXT_LENGTH,
+} from '../lib/constants.js';
 
 /**
  * Middleware de validación de input
@@ -170,10 +176,10 @@ const imagesField = () => Joi.array()
       height: Joi.number().integer().positive().optional().allow(null),
     })
   )
-  .max(50)
+  .max(MAX_EXHIBITION_IMAGES)
   .optional()
   .messages({
-    'array.max': 'Máximo 50 imágenes por exposición',
+    'array.max': `Máximo ${MAX_EXHIBITION_IMAGES} imágenes por exposición`,
   });
 
 /**
@@ -190,8 +196,8 @@ const imagesField = () => Joi.array()
 const yearField = ({ required = false } = {}) => {
   const base = Joi.number()
     .integer()
-    .min(1900)
-    .max(2100)
+    .min(EXHIBITION_YEAR_MIN)
+    .max(EXHIBITION_YEAR_MAX)
     .empty('');
   const field = required ? base.required() : base.optional().allow(null);
   return field.messages({
@@ -477,11 +483,11 @@ const illustrationUpdateSchema = Joi.object({
  */
 const biographySchema = Joi.object({
   content: Joi.string()
-    .min(10)
+    .min(MIN_TEXT_LENGTH)
     .required()
     .messages({
       'any.required': 'El contenido es obligatorio',
-      'string.min': 'El contenido debe tener al menos 10 caracteres',
+      'string.min': `El contenido debe tener al menos ${MIN_TEXT_LENGTH} caracteres`,
       'string.empty': 'El contenido no puede estar vacío',
     }),
   imageUrl: imageUrlField(),
@@ -493,10 +499,10 @@ const biographySchema = Joi.object({
  */
 const biographyUpdateSchema = Joi.object({
   content: Joi.string()
-    .min(10)
+    .min(MIN_TEXT_LENGTH)
     .optional()
     .messages({
-      'string.min': 'El contenido debe tener al menos 10 caracteres',
+      'string.min': `El contenido debe tener al menos ${MIN_TEXT_LENGTH} caracteres`,
       'string.empty': 'El contenido no puede estar vacío',
     }),
   imageUrl: imageUrlField(),
@@ -523,11 +529,11 @@ const contactSchema = Joi.object({
       'string.empty': 'El asunto no puede estar vacío',
     }),
   message: Joi.string()
-    .min(10)
+    .min(MIN_TEXT_LENGTH)
     .required()
     .messages({
       'any.required': 'El mensaje es obligatorio',
-      'string.min': 'El mensaje debe tener al menos 10 caracteres',
+      'string.min': `El mensaje debe tener al menos ${MIN_TEXT_LENGTH} caracteres`,
       'string.empty': 'El mensaje no puede estar vacío',
     }),
 });

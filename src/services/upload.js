@@ -11,6 +11,7 @@
 
 import { v2 as cloudinary } from 'cloudinary';
 import multer from 'multer';
+import { IMAGE_MAX_WIDTH, IMAGE_THUMBNAIL_WIDTH } from '../lib/constants.js';
 
 /**
  * Tipos MIME permitidos para upload
@@ -106,13 +107,13 @@ const uploadToCloudinary = async (file, section = 'general') => {
   const result = await cloudinary.uploader.upload(dataURI, {
     folder,
     public_id: publicId,
-    transformation: [{ width: 1200, crop: 'limit' }],
+    transformation: [{ width: IMAGE_MAX_WIDTH, crop: 'limit' }],
   });
 
   return {
     url: result.secure_url,
     publicId: result.public_id,
-    thumbnail: cloudinary.url(result.public_id, { width: 300, crop: 'limit' }),
+    thumbnail: cloudinary.url(result.public_id, { width: IMAGE_THUMBNAIL_WIDTH, crop: 'limit' }),
     width: result.width,
     height: result.height,
     format: result.format,

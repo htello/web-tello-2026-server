@@ -62,4 +62,83 @@ describe('lib/constants', () => {
       ]);
     });
   });
+
+  describe('constantes de paginación', () => {
+    it('should export pagination defaults and bounds', async () => {
+      const {
+        PAGINATION_DEFAULT_PAGE,
+        PAGINATION_DEFAULT_LIMIT,
+        PAGINATION_MIN_LIMIT,
+        PAGINATION_MAX_LIMIT,
+      } = await import('./constants.js');
+      expect(PAGINATION_DEFAULT_PAGE).toBe(1);
+      expect(PAGINATION_DEFAULT_LIMIT).toBe(20);
+      expect(PAGINATION_MIN_LIMIT).toBe(1);
+      expect(PAGINATION_MAX_LIMIT).toBe(100);
+    });
+  });
+
+  describe('constantes de rate limiting', () => {
+    it('should export rate limit windows and maximums', async () => {
+      const {
+        RATE_LIMIT_WINDOW_MS,
+        RATE_LIMIT_CONTACT_MAX,
+        RATE_LIMIT_LOGIN_MAX,
+        RATE_LIMIT_PASSWORD_RESET_WINDOW_MS,
+        RATE_LIMIT_PASSWORD_RESET_MAX,
+      } = await import('./constants.js');
+      expect(RATE_LIMIT_WINDOW_MS).toBe(60 * 1000);
+      expect(RATE_LIMIT_CONTACT_MAX).toBe(5);
+      expect(RATE_LIMIT_LOGIN_MAX).toBe(10);
+      expect(RATE_LIMIT_PASSWORD_RESET_WINDOW_MS).toBe(15 * 60 * 1000);
+      expect(RATE_LIMIT_PASSWORD_RESET_MAX).toBe(5);
+    });
+  });
+
+  describe('constantes de imágenes', () => {
+    it('should export Cloudinary image widths', async () => {
+      const { IMAGE_MAX_WIDTH, IMAGE_THUMBNAIL_WIDTH } = await import('./constants.js');
+      expect(IMAGE_MAX_WIDTH).toBe(1200);
+      expect(IMAGE_THUMBNAIL_WIDTH).toBe(300);
+    });
+  });
+
+  describe('constantes de validación', () => {
+    it('should export Joi validation bounds', async () => {
+      const {
+        MAX_EXHIBITION_IMAGES,
+        EXHIBITION_YEAR_MIN,
+        EXHIBITION_YEAR_MAX,
+        MIN_TEXT_LENGTH,
+      } = await import('./constants.js');
+      expect(MAX_EXHIBITION_IMAGES).toBe(50);
+      expect(EXHIBITION_YEAR_MIN).toBe(1900);
+      expect(EXHIBITION_YEAR_MAX).toBe(2100);
+      expect(MIN_TEXT_LENGTH).toBe(10);
+    });
+  });
+
+  describe('constantes SMTP', () => {
+    it('should export SMTP ports and timeouts', async () => {
+      const {
+        SMTP_DEFAULT_PORT,
+        SMTP_SECURE_PORT,
+        SMTP_CONNECTION_TIMEOUT_MS,
+        SMTP_GREETING_TIMEOUT_MS,
+        SMTP_SOCKET_TIMEOUT_MS,
+      } = await import('./constants.js');
+      expect(SMTP_DEFAULT_PORT).toBe(587);
+      expect(SMTP_SECURE_PORT).toBe(465);
+      expect(SMTP_CONNECTION_TIMEOUT_MS).toBe(10000);
+      expect(SMTP_GREETING_TIMEOUT_MS).toBe(10000);
+      expect(SMTP_SOCKET_TIMEOUT_MS).toBe(30000);
+    });
+  });
+
+  describe('constantes de auth', () => {
+    it('should export RESET_TOKEN_BYTES', async () => {
+      const { RESET_TOKEN_BYTES } = await import('./constants.js');
+      expect(RESET_TOKEN_BYTES).toBe(32);
+    });
+  });
 });

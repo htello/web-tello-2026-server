@@ -5,31 +5,15 @@
  * del objeto `meta` devuelto por `sendPaginated`.
  *
  * @module lib/pagination
+ * @requires lib/constants
  */
 
-/**
- * Página por defecto
- * @type {number}
- */
-const DEFAULT_PAGE = 1;
-
-/**
- * Límite por defecto
- * @type {number}
- */
-const DEFAULT_LIMIT = 20;
-
-/**
- * Límite mínimo permitido
- * @type {number}
- */
-const MIN_LIMIT = 1;
-
-/**
- * Límite máximo permitido
- * @type {number}
- */
-const MAX_LIMIT = 100;
+import {
+  PAGINATION_DEFAULT_PAGE,
+  PAGINATION_DEFAULT_LIMIT,
+  PAGINATION_MIN_LIMIT,
+  PAGINATION_MAX_LIMIT,
+} from './constants.js';
 
 /**
  * Parsea los parámetros de paginación de la query.
@@ -43,9 +27,9 @@ const MAX_LIMIT = 100;
  * @returns {{ page: number, limit: number, skip: number }} Parámetros normalizados
  */
 const parsePagination = (query) => {
-  const page = Math.max(Number.parseInt(query?.page, 10) || DEFAULT_PAGE, DEFAULT_PAGE);
-  const parsedLimit = Number.parseInt(query?.limit, 10) || DEFAULT_LIMIT;
-  const limit = Math.min(Math.max(parsedLimit, MIN_LIMIT), MAX_LIMIT);
+  const page = Math.max(Number.parseInt(query?.page, 10) || PAGINATION_DEFAULT_PAGE, PAGINATION_DEFAULT_PAGE);
+  const parsedLimit = Number.parseInt(query?.limit, 10) || PAGINATION_DEFAULT_LIMIT;
+  const limit = Math.min(Math.max(parsedLimit, PAGINATION_MIN_LIMIT), PAGINATION_MAX_LIMIT);
 
   return { page, limit, skip: (page - 1) * limit };
 };
@@ -65,4 +49,4 @@ const buildPaginationMeta = (total, page, limit) => ({
   pages: Math.ceil(total / limit),
 });
 
-export { parsePagination, buildPaginationMeta, DEFAULT_PAGE, DEFAULT_LIMIT, MIN_LIMIT, MAX_LIMIT };
+export { parsePagination, buildPaginationMeta };
