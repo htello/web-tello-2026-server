@@ -112,6 +112,10 @@ const update = async (req, res) => {
     const imageAsset = await resolveImageAsset(req.file, imageUrl, 'pintura');
     const finalImageUrl = imageAsset.url;
 
+    if (Object.prototype.hasOwnProperty.call(req.body, 'imageUrl') && !req.file && !finalImageUrl) {
+      return sendError(res, 400, 'VALIDATION_ERROR', 'La imagen es obligatoria (archivo o URL)');
+    }
+
     if (finalImageUrl) {
       const previousPainting = await prisma.painting.findUnique({
         where: { id: parseId(id) },

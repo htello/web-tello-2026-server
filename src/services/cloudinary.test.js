@@ -62,11 +62,18 @@ describe('Cloudinary deletion service', () => {
     expect(extractPublicId('https://res.cloudinary.com/demo/image/upload/')).toBeNull();
   });
 
-  it('should reject when Cloudinary reports that the image was not found', async () => {
+  it('should treat a missing Cloudinary image as an idempotent deletion', async () => {
     cloudinary.uploader.destroy.mockResolvedValue({ result: 'not found' });
     const { deleteCloudinaryImage } = await import('./cloudinary.js');
 
-    await expect(deleteCloudinaryImage('portfolio/missing')).rejects.toThrow(
+    await expect(deleteCloudinaryImage('portfolio/missing')).resolves.toBeUndefined();
+  });
+
+  it('should reject when Cloudinary returns an unexpected result', async () => {
+    cloudinary.uploader.destroy.mockResolvedValue({ result: 'error' });
+    const { deleteCloudinaryImage } = await import('./cloudinary.js');
+
+    await expect(deleteCloudinaryImage('portfolio/error')).rejects.toThrow(
       'Cloudinary no eliminó la imagen',
     );
   });

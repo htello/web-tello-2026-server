@@ -15,7 +15,10 @@ y este proyecto adherido al [Versionado Semántico](https://semver.org/lang/es/)
 
 ### Fixed (identificador real de Cloudinary)
 - Las subidas persisten el `public_id` devuelto por Cloudinary, evitando derivar identificadores potencialmente incorrectos desde la URL.
-- El borrado usa `resource_type: image` y valida la respuesta `result: ok`; respuestas `not found` se tratan como error y conservan el registro en Prisma.
+- El borrado usa `resource_type: image` y acepta `ok` o `not found` como resultado idempotente; otros errores conservan el registro en Prisma.
+- Se extiende la persistencia del `public_id` real a ilustraciones, proyectos de diseño y biografía; colecciones mantiene fallback para URLs introducidas en dos pasos.
+- Las actualizaciones de pinturas, ilustraciones y proyectos de diseño rechazan quitar la imagen sin aportar otra con `400 VALIDATION_ERROR` y el mensaje `La imagen es obligatoria (archivo o URL)`.
+- La actualización de biografía admite cambiar solo la imagen y conserva el contenido existente; la creación sigue exigiendo contenido.
 
 ### Added (imágenes múltiples en exposiciones)
 - Nuevo modelo `ExhibitionImage` (migración `add_exhibition_images`): relación 1-N con `Exhibition` (`onDelete: Cascade`), campos `url`, `thumbnail?`, `width?`, `height?` y `position`, e índice por `exhibitionId`. Permite adjuntar varias imágenes a una exposición.

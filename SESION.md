@@ -108,8 +108,15 @@ CAMBIOS DE fix/23-cloudinary-image-deletion (2026-09-26):
 
 CAMBIOS DE fix/24-cloudinary-public-id (2026-09-26):
 - Las subidas persisten el `public_id` real devuelto por Cloudinary en pinturas.
-- `destroy` especifica `resource_type: image` y rechaza respuestas `not found` para evitar borrar la fila de Prisma cuando la imagen no se eliminó.
+- `destroy` especifica `resource_type: image`; las respuestas `not found` se tratan como borrado idempotente.
 - Verificación local: migración aplicada en PostgreSQL, health DB OK y tests de integración de HU06/HU10 OK.
+
+CAMBIOS DE fix/25-cloudinary-public-id-all-resources (2026-09-26):
+- Ilustraciones, proyectos de diseño y biografía persisten el `public_id` real de las subidas, manteniendo fallback para URLs Cloudinary legacy.
+- El resultado `not found` de Cloudinary se trata como borrado idempotente; evita 500 aleatorios al eliminar recursos cuya imagen ya no existe.
+- Colecciones y sus pinturas quedan cubiertas por el mismo comportamiento de borrado idempotente.
+- Las actualizaciones que reciben `imageUrl: null` o vacío sin archivo devuelven `400 VALIDATION_ERROR`; no se intenta guardar `null` en campos de imagen obligatorios.
+- `PUT /admin/biography` usa validación parcial: permite cambiar solo la imagen y conserva el contenido existente; `POST` mantiene `content` obligatorio.
 
 REGLAS DE SESIÓN (ESTRICTAS):
 1. Verificar siempre la rama antes de trabajar (`hu/XX-nombre`). NUNCA escribir código directo en `develop`.

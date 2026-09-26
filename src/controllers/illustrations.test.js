@@ -11,6 +11,7 @@ import { mockPrisma } from '../../tests/helpers/prisma-mock.js';
 
 vi.mock('../services/upload.js', () => ({
   resolveImageUrl: vi.fn(),
+  resolveImageAsset: vi.fn(),
   ALLOWED_SECTIONS: ['pintura', 'ilustracion', 'diseno', 'general'],
 }));
 
@@ -24,7 +25,7 @@ vi.mock('../services/cloudinary.js', () => ({
 }));
 
 const { create, update, remove, reorder, listPublished, listAll, listFeatured } = await import('./illustrations.js');
-const { resolveImageUrl } = await import('../services/upload.js');
+const { resolveImageUrl, resolveImageAsset } = await import('../services/upload.js');
 const logger = (await import('../services/logger.js')).default;
 const { deleteCloudinaryImage, extractPublicId } = await import('../services/cloudinary.js');
 
@@ -40,6 +41,10 @@ describe('HU08 - Admin Ilustraciones', () => {
     vi.clearAllMocks();
     extractPublicId.mockReturnValue(null);
     resolveImageUrl.mockImplementation(async (_file, imageUrl) => imageUrl);
+    resolveImageAsset.mockImplementation(async (file, imageUrl, section) => ({
+      url: await resolveImageUrl(file, imageUrl, section),
+      publicId: null,
+    }));
   });
 
   describe('listPublished', () => {
@@ -324,6 +329,22 @@ describe('HU08 - Admin Ilustraciones', () => {
     });
   });
 
+  it('should persist the public id returned by the upload asset', async () => {
+    resolveImageAsset.mockResolvedValue({
+      url: 'https://res.cloudinary.com/demo/image/upload/v1/portfolio/new.jpg',
+      publicId: 'portfolio/new-real-id',
+    });
+    mockPrisma.illustration.create.mockResolvedValue({ id: 1 });
+    req.file = { buffer: Buffer.from('image') };
+    req.body = { title: 'Nueva' };
+
+    await create(req, res);
+
+    expect(mockPrisma.illustration.create).toHaveBeenCalledWith({
+      data: expect.objectContaining({ imagePublicId: 'portfolio/new-real-id' }),
+    });
+  });
+
   describe('update', () => {
     describe('given valid data', () => {
       it('should return 200 with updated illustration', async () => {
@@ -387,6 +408,21 @@ describe('HU08 - Admin Ilustraciones', () => {
           where: { id: 1 },
           data: expect.objectContaining({ imagePublicId: 'portfolio/new' }),
         });
+      });
+
+      it('should reject removing the image without a replacement', async () => {
+        req.params = { id: '1' };
+        req.body = { imageUrl: null };
+
+        await update(req, res);
+
+        expect(res.status).toHaveBeenCalledWith(400);
+        expect(res.json).toHaveBeenCalledWith({
+          error: 'La imagen es obligatoria (archivo o URL)',
+          code: 'VALIDATION_ERROR',
+        });
+        expect(mockPrisma.illustration.update).not.toHaveBeenCalled();
+        expect(deleteCloudinaryImage).not.toHaveBeenCalled();
       });
     });
 

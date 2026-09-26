@@ -488,6 +488,23 @@ const biographySchema = Joi.object({
 });
 
 /**
+ * Schema de validación para actualizar biografía parcialmente.
+ * @type {Joi.ObjectSchema}
+ */
+const biographyUpdateSchema = Joi.object({
+  content: Joi.string()
+    .min(10)
+    .optional()
+    .messages({
+      'string.min': 'El contenido debe tener al menos 10 caracteres',
+      'string.empty': 'El contenido no puede estar vacío',
+    }),
+  imageUrl: imageUrlField(),
+}).min(1).messages({
+  'object.min': 'Debe enviar al menos un campo para actualizar',
+});
+
+/**
  * Schema de validación para formulario de contacto
  * @type {Joi.ObjectSchema}
  */
@@ -568,6 +585,7 @@ export {
   illustrationSchema,
   illustrationUpdateSchema,
   biographySchema,
+  biographyUpdateSchema,
   contactSchema,
   reorderSchema,
   forgotPasswordSchema,

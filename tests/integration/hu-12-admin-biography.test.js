@@ -98,6 +98,27 @@ describe('HU12 - Admin Biography', () => {
         expect(res.status).toBe(200);
         expect(res.body.data).toHaveProperty('content', 'Biografía actualizada');
       });
+
+      it('should update only the image without requiring content', async () => {
+        mockPrisma.biography.findFirst.mockResolvedValue({
+          id: 1,
+          content: 'Contenido existente de la biografía',
+          imageUrl: 'https://example.com/old.jpg',
+        });
+        mockPrisma.biography.update.mockResolvedValue({
+          id: 1,
+          content: 'Contenido existente de la biografía',
+          imageUrl: 'https://example.com/new.jpg',
+        });
+
+        const res = await request(app)
+          .put('/api/v1/admin/biography')
+          .set('Authorization', `Bearer ${adminToken}`)
+          .send({ imageUrl: 'https://example.com/new.jpg' });
+
+        expect(res.status).toBe(200);
+        expect(res.body.data).toHaveProperty('content', 'Contenido existente de la biografía');
+      });
     });
 
     describe('given admin token and no existing biography', () => {

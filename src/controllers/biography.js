@@ -12,7 +12,7 @@
 
 import prisma from '../lib/prisma.js';
 import logger from '../services/logger.js';
-import { resolveImageUrl } from '../services/upload.js';
+import { resolveImageAsset } from '../services/upload.js';
 import { sendSuccess, sendError, sendNotFound, sendInternalError } from '../lib/http-response.js';
 import { deleteCloudinaryImage, extractPublicId } from '../services/cloudinary.js';
 
@@ -59,13 +59,16 @@ const create = async (req, res) => {
       return sendError(res, 400, 'VALIDATION_ERROR', 'Ya existe una biografía');
     }
 
-    const finalImageUrl = await resolveImageUrl(req.file, imageUrl, 'general');
+    const imageAsset = await resolveImageAsset(req.file, imageUrl, 'general');
+    const finalImageUrl = imageAsset.url;
 
     const biography = await prisma.biography.create({
       data: {
         content,
         imageUrl: finalImageUrl || null,
-        ...(extractPublicId(finalImageUrl) && { imagePublicId: extractPublicId(finalImageUrl) }),
+        ...((imageAsset.publicId || extractPublicId(finalImageUrl)) && {
+          imagePublicId: imageAsset.publicId || extractPublicId(finalImageUrl),
+        }),
       },
     });
 
@@ -95,13 +98,15 @@ const update = async (req, res) => {
     const existing = await prisma.biography.findFirst();
     if (!existing) return sendNotFound(res, 'Biografía no encontrada');
 
-    const finalImageUrl = await resolveImageUrl(req.file, imageUrl, 'general');
+    const imageAsset = await resolveImageAsset(req.file, imageUrl, 'general');
+    const finalImageUrl = imageAsset.url;
 
-    const data = { content };
+    const data = {};
+    if (content !== undefined) data.content = content;
     if (finalImageUrl) {
       await deleteCloudinaryImage(existing.imagePublicId, existing.imageUrl);
       data.imageUrl = finalImageUrl;
-      const imagePublicId = extractPublicId(finalImageUrl);
+      const imagePublicId = imageAsset.publicId || extractPublicId(finalImageUrl);
       if (imagePublicId) data.imagePublicId = imagePublicId;
     }
 
