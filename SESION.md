@@ -12,11 +12,19 @@ CONTEXTO Y DOCUMENTACIÓN:
 - Orden de fases y HUs: docs/0002-IMPLEMENTATION-ORDER.md
 
 ESTADO DEL PROYECTO:
-- Rama actual: develop
+- Rama actual: refactor/dedupe-cleanup (pendiente de merge a develop)
 - Cobertura de tests: 100% obligatorio (Vitest)
 - Última HU completada y mergeada: HU13/HU14/HU15 - Formulario de Contacto + Email + Rate Limiting
 - Última rama mergeada: refactor/magic-numbers (constantes centralizadas en lib/constants.js) + fix client fix/exhibition-upload-section (imágenes de exposiciones a sección exposiciones)
 - gh CLI autenticado en este equipo (cuenta htello)
+
+CAMBIO DE rama refactor/dedupe-cleanup (en curso, pendiente de merge a develop):
+- Nueva factory src/lib/crud-factory.js: createReorderHandler (5 reorder duplicados), createFindManyHandler (listPublished/listFeatured/exhibitions list), createGetByIdHandler (ficha pintura), createImageResourceHandlers (create/update/remove de pinturas/ilustraciones/diseño), resolveImagePublicId + imagePublicIdField (elimina doble evaluación publicId||extractPublicId).
+- Eliminados exports muertos en services/upload.js: uploadImageAsset, resolveImageUrl; fileFilter/ALLOWED_TYPES/MAX_SIZE/CLOUDINARY_FOLDERS pasan a uso interno (tests adaptados con captura de config de Multer vía vi.hoisted).
+- Nuevas constantes/mensajes en lib/constants.js: ERROR_CODES, ADMIN_ROLE, USER_ROLES, MS_PER_MINUTE, CLOUDINARY_BASE_FOLDER/URL_MARKER/UPLOAD_SEGMENT, RESEND_TIMEOUT_MS, PASSWORD_MIN_LENGTH, ISO_DATE_LENGTH, DEFAULT_PORT/DEFAULT_CORS_ORIGIN/JSON_BODY_LIMIT, IMAGE_REQUIRED/REORDER_SUCCESS/REORDER_INVALID_IDS/INVALID_CREDENTIALS_MESSAGE.
+- lib/http-response.js: sendValidationError y sendUnauthorized; paginated-list/users.js migrados a factories; if(x) redundantes tras guardas 404 eliminados.
+- Unificación aprobada: GET /paintings/featured ahora ordena estable (position,id); POST /admin/paintings persiste imagePublicId con fallback extractPublicId de URLs Cloudinary.
+- Verificado: 557 tests, lint correcto, cobertura 100%. Sin cambios de contrato; docs/openapi.yaml no requiere sync.
 
 ESTADO DE LAS HUS POR FASE:
 ✅ Fase 0: Setup del Proyecto

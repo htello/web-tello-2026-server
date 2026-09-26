@@ -18,8 +18,8 @@ import prisma from '../lib/prisma.js';
 import logger from '../services/logger.js';
 import { BCRYPT_ROUNDS } from '../lib/constants.js';
 import { parseId, isNotFoundError, isDuplicateError } from '../lib/prisma-utils.js';
-import { sendSuccess, sendNotFound, sendDuplicate, sendPaginated, sendInternalError } from '../lib/http-response.js';
-import { parsePagination, buildPaginationMeta } from '../lib/pagination.js';
+import { sendSuccess, sendNotFound, sendDuplicate, sendInternalError } from '../lib/http-response.js';
+import { createPaginatedListHandler } from '../lib/paginated-list.js';
 
 /**
  * Campos públicos del usuario (sin password).
@@ -44,25 +44,14 @@ const USER_SELECT = {
  * @returns {Promise<Object>} 200 con data y meta, o 500
  * @security Requiere Bearer token con rol ADMIN
  */
-const list = async (req, res) => {
-  try {
-    const { page, limit, skip } = parsePagination(req.query);
-
-    const [users, total] = await Promise.all([
-      prisma.user.findMany({
-        skip,
-        take: limit,
-        orderBy: { id: 'asc' },
-        select: USER_SELECT,
-      }),
-      prisma.user.count(),
-    ]);
-
-    return sendPaginated(res, users, buildPaginationMeta(total, page, limit));
-  } catch (error) {
-    return sendInternalError(res, logger, 'Error al listar usuarios', error);
-  }
-};
+const list = createPaginatedListHandler({
+  model: prisma.user,
+  findManyArgs: {
+    orderBy: { id: 'asc' },
+    select: USER_SELECT,
+  },
+  errorMessage: 'Error al listar usuarios',
+});
 
 /**
  * Obtener detalle de un usuario.

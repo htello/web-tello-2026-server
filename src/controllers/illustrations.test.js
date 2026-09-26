@@ -567,7 +567,7 @@ describe('HU08 - Admin Ilustraciones', () => {
   describe('remove', () => {
     describe('given existing illustration', () => {
       it('should return 200 with success message', async () => {
-        mockPrisma.illustration.findUnique.mockResolvedValue(undefined);
+        mockPrisma.illustration.findUnique.mockResolvedValue({ id: 1, imageUrl: 'https://example.com/i.jpg', imagePublicId: null });
         mockPrisma.illustration.delete.mockResolvedValue({ id: 1 });
         req.params = { id: '1' };
 

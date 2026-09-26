@@ -425,7 +425,10 @@ describe('HU06 - Admin Pinturas', () => {
   describe('remove', () => {
     describe('given existing painting', () => {
       it('should return 200 with success message', async () => {
-        mockPrisma.painting.findUnique.mockResolvedValue(undefined);
+        mockPrisma.painting.findUnique.mockResolvedValue({
+          imageUrl: 'https://example.com/1.jpg',
+          imagePublicId: null,
+        });
         mockPrisma.painting.delete.mockResolvedValue({ id: 1 });
         req.params = { id: '1' };
 
@@ -491,6 +494,7 @@ describe('HU06 - Admin Pinturas', () => {
 
     describe('given a database error', () => {
       it('should return 500 INTERNAL_ERROR', async () => {
+        mockPrisma.painting.findUnique.mockResolvedValue({ imageUrl: 'x', imagePublicId: null });
         mockPrisma.painting.delete.mockRejectedValue(new Error('DB Error'));
         req.params = { id: '1' };
 
@@ -581,6 +585,7 @@ describe('HU06 - Admin Pinturas', () => {
 
         expect(mockPrisma.painting.findMany).toHaveBeenCalledWith({
           where: { isFeatured: true, isPublished: true },
+          orderBy: [{ position: 'asc' }, { id: 'asc' }],
           include: { collection: { select: { id: true, title: true } } },
         });
         expect(res.status).toHaveBeenCalledWith(200);

@@ -2,163 +2,57 @@
  * @fileoverview Controlador de ilustraciones.
  *
  * Implementa los handlers públicos (HU09) y de administración
- * (HU10) para la galería de ilustraciones.
+ * (HU10) para la galería de ilustraciones, apoyándose en las
+ * factorías compartidas de `lib/crud-factory`.
  *
  * @module controllers/illustrations
  * @requires lib/prisma
- * @requires lib/prisma-utils
- * @requires lib/http-response
- * @requires services/upload
- * @requires services/logger
+ * @requires lib/crud-factory
+ * @requires lib/paginated-list
+ * @requires lib/constants
  */
 
 import prisma from '../lib/prisma.js';
-import logger from '../services/logger.js';
-import { resolveImageAsset } from '../services/upload.js';
-import { deleteCloudinaryImage, extractPublicId } from '../services/cloudinary.js';
-import { parseId, isNotFoundError, isDuplicateError, reorderByPosition } from '../lib/prisma-utils.js';
-import { sendSuccess, sendError, sendNotFound, sendDuplicate, sendInternalError } from '../lib/http-response.js';
 import { createPaginatedListHandler } from '../lib/paginated-list.js';
+import {
+  createReorderHandler,
+  createFindManyHandler,
+  createImageResourceHandlers,
+  imagePublicIdField,
+} from '../lib/crud-factory.js';
 import { STABLE_POSITION_ORDER } from '../lib/constants.js';
 
-/**
- * HU10 - Crear ilustración
- * Endpoint POST /api/v1/admin/illustrations
- *
- * @param {Object} req - Request de Express
- * @param {Object} res - Response de Express
- * @returns {Promise<Object>} 201 con ilustración creada, 400 o 500
- * @security Requiere Bearer token con rol ADMIN
- */
-const create = async (req, res) => {
-  try {
-    const { title, description, imageUrl, isPublished, isFeatured } = req.body;
-
-    const imageAsset = await resolveImageAsset(req.file, imageUrl, 'ilustracion');
-    const finalImageUrl = imageAsset.url;
-
-    if (!finalImageUrl) {
-      return sendError(res, 400, 'VALIDATION_ERROR', 'La imagen es obligatoria (archivo o URL)');
-    }
-
-    const illustration = await prisma.illustration.create({
-      data: {
-        title,
-        description: description || null,
-        imageUrl: finalImageUrl,
-        ...((imageAsset.publicId || extractPublicId(finalImageUrl)) && {
-          imagePublicId: imageAsset.publicId || extractPublicId(finalImageUrl),
-        }),
-        ...(isPublished !== undefined && { isPublished }),
-        ...(isFeatured !== undefined && { isFeatured }),
-      },
-    });
-
-    logger.info('Ilustración creada', { id: illustration.id, title: illustration.title });
-
-    return sendSuccess(res, illustration, 201);
-  } catch (error) {
-    if (isDuplicateError(error)) {
-      return sendDuplicate(res, 'Ya existe una ilustración con ese título');
-    }
-    return sendInternalError(res, logger, 'Error al crear ilustración', error);
-  }
-};
-
-/**
- * HU10 - Actualizar ilustración
- * Endpoint PUT /api/v1/admin/illustrations/:id
- *
- * @param {Object} req - Request de Express
- * @param {Object} res - Response de Express
- * @returns {Promise<Object>} 200 con ilustración actualizada, 404, 400 o 500
- * @security Requiere Bearer token con rol ADMIN
- */
-const update = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const { title, description, imageUrl, isPublished, isFeatured } = req.body;
-
-    const imageAsset = await resolveImageAsset(req.file, imageUrl, 'ilustracion');
-    const finalImageUrl = imageAsset.url;
-
-    if (Object.prototype.hasOwnProperty.call(req.body, 'imageUrl') && !req.file && !finalImageUrl) {
-      return sendError(res, 400, 'VALIDATION_ERROR', 'La imagen es obligatoria (archivo o URL)');
-    }
-
-    if (finalImageUrl) {
-      const previousIllustration = await prisma.illustration.findUnique({
-        where: { id: parseId(id) },
-        select: { imageUrl: true, imagePublicId: true },
-      });
-
-      if (previousIllustration && previousIllustration.imageUrl !== finalImageUrl) {
-        await deleteCloudinaryImage(previousIllustration.imagePublicId, previousIllustration.imageUrl);
-      }
-    }
-
-    const illustration = await prisma.illustration.update({
-      where: { id: parseId(id) },
-      data: {
-        ...(title !== undefined && { title }),
-        ...(description !== undefined && { description }),
-        ...(finalImageUrl !== undefined && { imageUrl: finalImageUrl }),
-        ...(finalImageUrl && (imageAsset.publicId || extractPublicId(finalImageUrl)) && {
-          imagePublicId: imageAsset.publicId || extractPublicId(finalImageUrl),
-        }),
-        ...(isPublished !== undefined && { isPublished }),
-        ...(isFeatured !== undefined && { isFeatured }),
-      },
-    });
-
-    logger.info('Ilustración actualizada', { id: illustration.id });
-
-    return sendSuccess(res, illustration);
-  } catch (error) {
-    if (isNotFoundError(error)) return sendNotFound(res, 'Ilustración no encontrada');
-    if (isDuplicateError(error)) return sendDuplicate(res, 'Ya existe una ilustración con ese título');
-    return sendInternalError(res, logger, 'Error al actualizar ilustración', error);
-  }
-};
-
-/**
- * HU10 - Eliminar ilustración
- * Endpoint DELETE /api/v1/admin/illustrations/:id
- *
- * @param {Object} req - Request de Express
- * @param {Object} res - Response de Express
- * @returns {Promise<Object>} 200 con confirmación, 404 o 500
- * @security Requiere Bearer token con rol ADMIN
- */
-const remove = async (req, res) => {
-  try {
-    const { id } = req.params;
-
-    const illustration = await prisma.illustration.findUnique({
-      where: { id: parseId(id) },
-      select: { imageUrl: true, imagePublicId: true },
-    });
-
-    if (illustration === null) {
-      return sendNotFound(res, 'Ilustración no encontrada');
-    }
-
-    if (illustration) {
-      await deleteCloudinaryImage(illustration.imagePublicId, illustration.imageUrl);
-    }
-
-    await prisma.illustration.delete({
-      where: { id: parseId(id) },
-    });
-
-    logger.info('Ilustración eliminada', { id: parseId(id) });
-
-    return sendSuccess(res, { message: 'Ilustración eliminada correctamente' });
-  } catch (error) {
-    if (isNotFoundError(error)) return sendNotFound(res, 'Ilustración no encontrada');
-    return sendInternalError(res, logger, 'Error al eliminar ilustración', error);
-  }
-};
+const { create, update, remove } = createImageResourceHandlers({
+  model: prisma.illustration,
+  section: 'ilustracion',
+  buildCreateData: ({ body, imageAsset, finalImageUrl }) => ({
+    title: body.title,
+    description: body.description || null,
+    imageUrl: finalImageUrl,
+    ...imagePublicIdField(imageAsset, finalImageUrl),
+    ...(body.isPublished !== undefined && { isPublished: body.isPublished }),
+    ...(body.isFeatured !== undefined && { isFeatured: body.isFeatured }),
+  }),
+  buildUpdateData: ({ body, imageAsset, finalImageUrl }) => ({
+    ...(body.title !== undefined && { title: body.title }),
+    ...(body.description !== undefined && { description: body.description }),
+    ...(finalImageUrl !== undefined && { imageUrl: finalImageUrl }),
+    ...(finalImageUrl ? imagePublicIdField(imageAsset, finalImageUrl) : {}),
+    ...(body.isPublished !== undefined && { isPublished: body.isPublished }),
+    ...(body.isFeatured !== undefined && { isFeatured: body.isFeatured }),
+  }),
+  labels: {
+    created: 'Ilustración creada',
+    updated: 'Ilustración actualizada',
+    removed: 'Ilustración eliminada',
+    notFound: 'Ilustración no encontrada',
+    removedMessage: 'Ilustración eliminada correctamente',
+    duplicate: 'Ya existe una ilustración con ese título',
+    createError: 'Error al crear ilustración',
+    updateError: 'Error al actualizar ilustración',
+    removeError: 'Error al eliminar ilustración',
+  },
+});
 
 /**
  * HU09 - Galería Ilustración
@@ -169,18 +63,14 @@ const remove = async (req, res) => {
  * @returns {Promise<Object>} 200 con ilustraciones publicadas o 500
  * @security Endpoint público (no requiere autenticación)
  */
-const listPublished = async (req, res) => {
-  try {
-    const illustrations = await prisma.illustration.findMany({
-      where: { isPublished: true },
-      orderBy: STABLE_POSITION_ORDER,
-    });
-
-    return sendSuccess(res, illustrations);
-  } catch (error) {
-    return sendInternalError(res, logger, 'Error al listar ilustraciones', error);
-  }
-};
+const listPublished = createFindManyHandler({
+  model: prisma.illustration,
+  args: {
+    where: { isPublished: true },
+    orderBy: STABLE_POSITION_ORDER,
+  },
+  errorMessage: 'Error al listar ilustraciones',
+});
 
 /**
  * HU10 - Listar todas las ilustraciones (admin)
@@ -210,22 +100,11 @@ const listAll = createPaginatedListHandler({
  * @returns {Promise<Object>} 200 con confirmación, 400 o 500
  * @security Requiere Bearer token con rol ADMIN
  */
-const reorder = async (req, res) => {
-  try {
-    const { orderedIds } = req.body;
-
-    await reorderByPosition(prisma, prisma.illustration, orderedIds);
-
-    logger.info('Ilustraciones reordenadas', { count: orderedIds.length });
-
-    return sendSuccess(res, { message: 'Orden actualizado correctamente' });
-  } catch (error) {
-    if (isNotFoundError(error)) {
-      return sendError(res, 400, 'VALIDATION_ERROR', 'Uno o más IDs no existen');
-    }
-    return sendInternalError(res, logger, 'Error al reordenar ilustraciones', error);
-  }
-};
+const reorder = createReorderHandler({
+  model: prisma.illustration,
+  logLabel: 'Ilustraciones reordenadas',
+  errorMessage: 'Error al reordenar ilustraciones',
+});
 
 /**
  * Listar ilustraciones destacadas y publicadas.
@@ -236,17 +115,13 @@ const reorder = async (req, res) => {
  * @returns {Promise<Object>} 200 con ilustraciones destacadas o 500
  * @security Endpoint público (no requiere autenticación)
  */
-const listFeatured = async (req, res) => {
-  try {
-    const illustrations = await prisma.illustration.findMany({
-      where: { isFeatured: true, isPublished: true },
-      orderBy: STABLE_POSITION_ORDER,
-    });
-
-    return sendSuccess(res, illustrations);
-  } catch (error) {
-    return sendInternalError(res, logger, 'Error al listar ilustraciones destacadas', error);
-  }
-};
+const listFeatured = createFindManyHandler({
+  model: prisma.illustration,
+  args: {
+    where: { isFeatured: true, isPublished: true },
+    orderBy: STABLE_POSITION_ORDER,
+  },
+  errorMessage: 'Error al listar ilustraciones destacadas',
+});
 
 export { create, update, remove, reorder, listPublished, listAll, listFeatured };

@@ -299,6 +299,12 @@ describe('HU06 - Admin Colecciones y Pinturas', () => {
   describe('DELETE /admin/collections/:id', () => {
     describe('given admin token and existing collection', () => {
       it('should return 200 with success message', async () => {
+        mockPrisma.collection.findUnique.mockResolvedValue({
+          id: 1,
+          coverImage: null,
+          coverImageId: null,
+          paintings: [],
+        });
         mockPrisma.collection.delete.mockResolvedValue({ id: 1 });
 
         const res = await request(app)
@@ -327,6 +333,12 @@ describe('HU06 - Admin Colecciones y Pinturas', () => {
 
     describe('given database error', () => {
       it('should return 500 INTERNAL_ERROR', async () => {
+        mockPrisma.collection.findUnique.mockResolvedValue({
+          id: 1,
+          coverImage: null,
+          coverImageId: null,
+          paintings: [],
+        });
         mockPrisma.collection.delete.mockRejectedValue(
           new Error('Database connection failed')
         );
@@ -754,6 +766,11 @@ describe('HU06 - Admin Colecciones y Pinturas', () => {
   describe('DELETE /admin/paintings/:id', () => {
     describe('given admin token and existing painting', () => {
       it('should return 200 with success message', async () => {
+        mockPrisma.painting.findUnique.mockResolvedValue({
+          id: 1,
+          imageUrl: null,
+          imagePublicId: null,
+        });
         mockPrisma.painting.delete.mockResolvedValue({ id: 1 });
 
         const res = await request(app)
@@ -782,6 +799,11 @@ describe('HU06 - Admin Colecciones y Pinturas', () => {
 
     describe('given database error', () => {
       it('should return 500 INTERNAL_ERROR', async () => {
+        mockPrisma.painting.findUnique.mockResolvedValue({
+          id: 1,
+          imageUrl: null,
+          imagePublicId: null,
+        });
         mockPrisma.painting.delete.mockRejectedValue(
           new Error('Database connection failed')
         );

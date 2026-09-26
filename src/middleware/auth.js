@@ -1,6 +1,17 @@
+/**
+ * @fileoverview Middlewares de autenticación (JWT) y autorización (roles).
+ *
+ * @module middleware/auth
+ * @requires jsonwebtoken
+ * @requires lib/constants
+ * @requires lib/http-response
+ * @requires services/logger
+ */
+
 import jwt from 'jsonwebtoken';
 import logger from '../services/logger.js';
-import { JWT_SECRET } from '../lib/constants.js';
+import { JWT_SECRET, ADMIN_ROLE, ERROR_CODES } from '../lib/constants.js';
+import { sendError, sendUnauthorized } from '../lib/http-response.js';
 
 /**
  * Middleware de autenticación JWT
@@ -18,10 +29,7 @@ const authenticate = (req, res, next) => {
   const authHeader = req.headers.authorization;
 
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    return res.status(401).json({
-      error: 'Token de autenticación requerido',
-      code: 'UNAUTHORIZED',
-    });
+    return sendUnauthorized(res, 'Token de autenticación requerido');
   }
 
   const token = authHeader.split(' ')[1];
@@ -32,10 +40,7 @@ const authenticate = (req, res, next) => {
     next();
   } catch (error) {
     logger.warn('Invalid token attempt', { error: error.message });
-    return res.status(403).json({
-      error: 'Token inválido o expirado',
-      code: 'FORBIDDEN',
-    });
+    return sendError(res, 403, ERROR_CODES.FORBIDDEN, 'Token inválido o expirado');
   }
 };
 
@@ -51,11 +56,8 @@ const authenticate = (req, res, next) => {
  * router.delete('/admin/users/:id', authenticate, requireAdmin, controller);
  */
 const requireAdmin = (req, res, next) => {
-  if (!req.user || req.user.role !== 'ADMIN') {
-    return res.status(403).json({
-      error: 'Acceso denegado. Se requiere rol de administrador',
-      code: 'FORBIDDEN',
-    });
+  if (!req.user || req.user.role !== ADMIN_ROLE) {
+    return sendError(res, 403, ERROR_CODES.FORBIDDEN, 'Acceso denegado. Se requiere rol de administrador');
   }
   next();
 };
