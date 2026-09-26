@@ -100,35 +100,76 @@ describe('HU08 - Admin Ilustraciones', () => {
 
   describe('listAll', () => {
     describe('given illustrations exist (published and unpublished)', () => {
-      it('should return 200 with all illustrations without published filter', async () => {
+      it('should return 200 with paginated illustrations without published filter', async () => {
         mockPrisma.illustration.findMany.mockResolvedValue([
           { id: 1, title: 'Bosque Encantado', imageUrl: 'https://example.com/a.jpg', isPublished: true },
           { id: 2, title: 'Dragón', imageUrl: 'https://example.com/b.jpg', isPublished: false },
         ]);
+        mockPrisma.illustration.count.mockResolvedValue(2);
 
         await listAll(req, res);
 
         expect(mockPrisma.illustration.findMany).toHaveBeenCalledWith({
+          skip: 0,
+          take: 20,
           orderBy: [{ position: 'asc' }, { id: 'asc' }],
         });
+        expect(mockPrisma.illustration.count).toHaveBeenCalledWith();
         expect(res.status).toHaveBeenCalledWith(200);
         expect(res.json).toHaveBeenCalledWith({
           data: [
             { id: 1, title: 'Bosque Encantado', imageUrl: 'https://example.com/a.jpg', isPublished: true },
             { id: 2, title: 'Dragón', imageUrl: 'https://example.com/b.jpg', isPublished: false },
           ],
+          meta: { total: 2, page: 1, limit: 20, pages: 1 },
         });
+      });
+    });
+
+    describe('given pagination query params', () => {
+      it('should apply page and limit and return meta', async () => {
+        req.query = { page: '2', limit: '5' };
+        mockPrisma.illustration.findMany.mockResolvedValue([]);
+        mockPrisma.illustration.count.mockResolvedValue(7);
+
+        await listAll(req, res);
+
+        expect(mockPrisma.illustration.findMany).toHaveBeenCalledWith({
+          skip: 5,
+          take: 5,
+          orderBy: [{ position: 'asc' }, { id: 'asc' }],
+        });
+        expect(res.json).toHaveBeenCalledWith({
+          data: [],
+          meta: { total: 7, page: 2, limit: 5, pages: 2 },
+        });
+      });
+
+      it('should cap limit at 100', async () => {
+        req.query = { limit: '500' };
+        mockPrisma.illustration.findMany.mockResolvedValue([]);
+        mockPrisma.illustration.count.mockResolvedValue(0);
+
+        await listAll(req, res);
+
+        expect(mockPrisma.illustration.findMany).toHaveBeenCalledWith(
+          expect.objectContaining({ skip: 0, take: 100 })
+        );
       });
     });
 
     describe('given no illustrations', () => {
       it('should return 200 with an empty array', async () => {
         mockPrisma.illustration.findMany.mockResolvedValue([]);
+        mockPrisma.illustration.count.mockResolvedValue(0);
 
         await listAll(req, res);
 
         expect(res.status).toHaveBeenCalledWith(200);
-        expect(res.json).toHaveBeenCalledWith({ data: [] });
+        expect(res.json).toHaveBeenCalledWith({
+          data: [],
+          meta: { total: 0, page: 1, limit: 20, pages: 0 },
+        });
       });
     });
 

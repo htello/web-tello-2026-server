@@ -15,7 +15,7 @@ ESTADO DEL PROYECTO:
 - Rama actual: develop
 - Cobertura de tests: 100% obligatorio (Vitest)
 - Última HU completada y mergeada: HU13/HU14/HU15 - Formulario de Contacto + Email + Rate Limiting
-- Última rama mergeada: chore/cloudinary-sections (secciones Cloudinary: exposiciones + test interna)
+- Última rama mergeada: feat/admin-pagination (paginación en GET admin de colecciones, pinturas, exposiciones, diseño e ilustraciones)
 - gh CLI autenticado en este equipo (cuenta htello)
 
 ESTADO DE LAS HUS POR FASE:
@@ -124,6 +124,14 @@ CAMBIOS DE chore/cloudinary-sections (2026-09-26):
 - Se mantiene `diseno` (sin ñ). Carpetas Cloudinary: diseno, exposiciones, general, ilustracion, pintura, test (se crean automáticamente al subir).
 - Sincronizados `docs/openapi.yaml` (enum de `section`), `docs/openapi-INDEX.md` y `CHANGELOG.md`.
 - Verificado: 518 tests, lint correcto y cobertura 100%.
+
+CAMBIOS DE feat/admin-pagination (2026-09-26):
+- Los GET admin de colecciones, pinturas, exposiciones, diseño e ilustraciones aceptan `?page` (default 1) y `?limit` (default 20, max 100) y responden `{ data, meta: { total, page, limit, pages } }` (mismo contrato que `GET /admin/users`). BREAKING para consumidores admin: la respuesta ya no es solo `{ data }`.
+- Nuevo helper `src/lib/pagination.js` (`parsePagination`, `buildPaginationMeta`); `users.js` refactorizado para usarlo (limit mínimo ahora 1).
+- Endpoints públicos intactos (`listPublished`/`listFiltered`/`listFeatured`).
+- `prisma-mock.js` añade `count` a collection/painting/exhibition/designProject/illustration; integración hu-06/hu-07/hu-10 con aserciones de `meta`.
+- Sincronizados `docs/openapi.yaml`, `docs/openapi-INDEX.md` (2277 líneas) y `CHANGELOG.md`.
+- Verificado: 538 tests, lint correcto y cobertura 100%.
 
 REGLAS DE SESIÓN (ESTRICTAS):
 1. Verificar siempre la rama antes de trabajar (`hu/XX-nombre`). NUNCA escribir código directo en `develop`.

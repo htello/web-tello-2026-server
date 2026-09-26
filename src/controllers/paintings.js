@@ -17,7 +17,8 @@ import logger from '../services/logger.js';
 import { resolveImageAsset } from '../services/upload.js';
 import { deleteCloudinaryImage } from '../services/cloudinary.js';
 import { parseId, isNotFoundError, isDuplicateError, reorderByPosition } from '../lib/prisma-utils.js';
-import { sendSuccess, sendError, sendNotFound, sendDuplicate, sendInternalError } from '../lib/http-response.js';
+import { sendSuccess, sendPaginated, sendError, sendNotFound, sendDuplicate, sendInternalError } from '../lib/http-response.js';
+import { parsePagination, buildPaginationMeta } from '../lib/pagination.js';
 import { STABLE_POSITION_ORDER } from '../lib/constants.js';
 
 /**
@@ -25,18 +26,27 @@ import { STABLE_POSITION_ORDER } from '../lib/constants.js';
  * Endpoint GET /api/v1/admin/paintings
  *
  * @param {Object} req - Request de Express
+ * @param {Object} req.query.page - Número de página (default 1)
+ * @param {Object} req.query.limit - Elementos por página (default 20, max 100)
  * @param {Object} res - Response de Express
- * @returns {Promise<Object>} 200 con todas las pinturas o 500
+ * @returns {Promise<Object>} 200 con data paginada y meta, o 500
  * @security Requiere Bearer token con rol ADMIN
  */
 const listAll = async (req, res) => {
   try {
-    const paintings = await prisma.painting.findMany({
-      orderBy: STABLE_POSITION_ORDER,
-      include: { collection: { select: { id: true, title: true } } },
-    });
+    const { page, limit, skip } = parsePagination(req.query);
 
-    return sendSuccess(res, paintings);
+    const [paintings, total] = await Promise.all([
+      prisma.painting.findMany({
+        skip,
+        take: limit,
+        orderBy: STABLE_POSITION_ORDER,
+        include: { collection: { select: { id: true, title: true } } },
+      }),
+      prisma.painting.count(),
+    ]);
+
+    return sendPaginated(res, paintings, buildPaginationMeta(total, page, limit));
   } catch (error) {
     return sendInternalError(res, logger, 'Error al listar pinturas', error);
   }
