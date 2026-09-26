@@ -7,6 +7,10 @@ y este proyecto adherido al [Versionado Semántico](https://semver.org/lang/es/)
 
 ## [Unreleased]
 
+### Changed (refactor listados admin paginados)
+- Nueva factory `src/lib/paginated-list.js` (`createPaginatedListHandler`): genera los handlers de listado paginado a partir del modelo Prisma, argumentos de `findMany`, serializador opcional y mensaje de error.
+- Los `listAll` de colecciones, pinturas, exposiciones, diseño e ilustraciones delegan en la factory; sin cambios de comportamiento ni de contrato (543 tests, cobertura 100%).
+
 ### Added (paginación en listados admin)
 - Los GET admin de colecciones, pinturas, exposiciones, diseño e ilustraciones aceptan `?page` (default 1) y `?limit` (default 20, max 100) y responden `{ data, meta: { total, page, limit, pages } }` (mismo contrato que `GET /admin/users`). **Breaking para consumidores admin**: la respuesta ya no es solo `{ data }`.
 - Nuevo helper `src/lib/pagination.js` (`parsePagination`, `buildPaginationMeta`) reutilizado también por `GET /admin/users` (sin cambio de comportamiento; el límite ahora se fija a >= 1).
