@@ -164,14 +164,30 @@ const remove = async (req, res) => {
 };
 
 /**
+ * Construye el filtro `where` del listado admin según la query.
+ *
+ * @param {Object} query - Query del request (req.query)
+ * @param {string} [query.subcategory] - Filtra por subcategoría válida
+ * @returns {Object|string} Objeto `where` (o `{}`) o mensaje de error de validación
+ */
+const buildListWhere = ({ subcategory } = {}) => {
+  if (subcategory === undefined || subcategory === '') return {};
+  if (!DESIGN_SUBCATEGORIES.includes(subcategory)) {
+    return `La subcategoría debe ser: ${DESIGN_SUBCATEGORIES.join(', ')}`;
+  }
+  return { subcategory };
+};
+
+/**
  * HU10 - Listar todos los proyectos de diseño (admin)
  * Endpoint GET /api/v1/admin/design
  *
  * @param {Object} req - Request de Express
  * @param {Object} req.query.page - Número de página (default 1)
  * @param {Object} req.query.limit - Elementos por página (default 20, max 100)
+ * @param {Object} req.query.subcategory - Filtro opcional por subcategoría
  * @param {Object} res - Response de Express
- * @returns {Promise<Object>} 200 con data paginada y meta, o 500
+ * @returns {Promise<Object>} 200 con data paginada y meta, 400 o 500
  * @security Requiere Bearer token con rol ADMIN
  */
 const listAll = createPaginatedListHandler({
@@ -179,6 +195,7 @@ const listAll = createPaginatedListHandler({
   findManyArgs: {
     orderBy: STABLE_POSITION_ORDER,
   },
+  buildWhere: buildListWhere,
   errorMessage: 'Error al listar proyectos de diseño',
 });
 

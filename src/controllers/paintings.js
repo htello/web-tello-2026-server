@@ -22,14 +22,31 @@ import { createPaginatedListHandler } from '../lib/paginated-list.js';
 import { STABLE_POSITION_ORDER } from '../lib/constants.js';
 
 /**
+ * Construye el filtro `where` del listado admin según la query.
+ *
+ * @param {Object} query - Query del request (req.query)
+ * @param {string} [query.collectionId] - Filtra por colección (entero positivo)
+ * @returns {Object|string} Objeto `where` (o `{}`) o mensaje de error de validación
+ */
+const buildListWhere = ({ collectionId } = {}) => {
+  if (collectionId === undefined || collectionId === '') return {};
+  const id = Number.parseInt(collectionId, 10);
+  if (!Number.isInteger(id) || id <= 0) {
+    return 'El collectionId debe ser un entero positivo';
+  }
+  return { collectionId: id };
+};
+
+/**
  * HU06 - Listar todas las pinturas (admin)
  * Endpoint GET /api/v1/admin/paintings
  *
  * @param {Object} req - Request de Express
  * @param {Object} req.query.page - Número de página (default 1)
  * @param {Object} req.query.limit - Elementos por página (default 20, max 100)
+ * @param {Object} req.query.collectionId - Filtro opcional por colección
  * @param {Object} res - Response de Express
- * @returns {Promise<Object>} 200 con data paginada y meta, o 500
+ * @returns {Promise<Object>} 200 con data paginada y meta, 400 o 500
  * @security Requiere Bearer token con rol ADMIN
  */
 const listAll = createPaginatedListHandler({
@@ -38,6 +55,7 @@ const listAll = createPaginatedListHandler({
     orderBy: STABLE_POSITION_ORDER,
     include: { collection: { select: { id: true, title: true } } },
   },
+  buildWhere: buildListWhere,
   errorMessage: 'Error al listar pinturas',
 });
 

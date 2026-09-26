@@ -7,6 +7,18 @@ y este proyecto adherido al [Versionado Semántico](https://semver.org/lang/es/)
 
 ## [Unreleased]
 
+### Added (filtros server-side en listados admin)
+- `createPaginatedListHandler` (`src/lib/paginated-list.js`) admite `buildWhere(query)`: aplica `where` a `findMany` y `count` (meta.total filtrado) y devuelve `400 VALIDATION_ERROR` si retorna un mensaje de error.
+- `GET /admin/paintings` acepta `?collectionId=` (entero positivo; no numérico o ≤ 0 → 400).
+- `GET /admin/design` acepta `?subcategory=` (validada contra `DESIGN_SUBCATEGORIES`; inválida → 400).
+- Sincronizados `docs/openapi.yaml` (params + respuesta 400 en ambos GET) y `docs/openapi-INDEX.md`. Tests: 560 en total, cobertura 100%.
+
+### Changed (seed aditivo con datos reales)
+- `prisma/seed.js` ya no es destructivo: elimina los `deleteMany` y es idempotente (re-ejecutable sin duplicar registros).
+- Enriquece los registros existentes del usuario (rellena solo campos null: técnica, dimensiones, descripciones, portadas).
+- Añade datos reales con URLs de Wikimedia Commons (validadas, no se sube nada a Cloudinary): 6 colecciones de pintura (11 obras c/u, top-ups de las 2 colecciones existentes a 10), 19 ilustraciones, 48 proyectos de diseño (15 por subcategoría) y 3 exposiciones (12 fotos c/u) + top-up de fotos de exposición.
+- Nuevo módulo de datos `prisma/seed-data.js` generado desde Wikimedia Commons.
+
 ### Changed (centralización de magic numbers)
 - Nuevas constantes en `src/lib/constants.js`: paginación (`PAGINATION_DEFAULT_PAGE/DEFAULT_LIMIT/MIN_LIMIT/MAX_LIMIT`), rate limiting (`RATE_LIMIT_WINDOW_MS`, `RATE_LIMIT_CONTACT_MAX`, `RATE_LIMIT_LOGIN_MAX`, `RATE_LIMIT_PASSWORD_RESET_*`), imágenes Cloudinary (`IMAGE_MAX_WIDTH`, `IMAGE_THUMBNAIL_WIDTH`), validación Joi (`MAX_EXHIBITION_IMAGES`, `EXHIBITION_YEAR_MIN/MAX`, `MIN_TEXT_LENGTH`), SMTP (`SMTP_DEFAULT_PORT`, `SMTP_SECURE_PORT`, `SMTP_*_TIMEOUT_MS`) y auth (`RESET_TOKEN_BYTES`).
 - Consumidores refactorizados sin cambio de comportamiento: `lib/pagination.js` (elimina constantes locales duplicadas), `middleware/rateLimiter.js` (mensaje de minutos derivado de la constante), `middleware/validate.js` (mensajes Joi con template literals, strings idénticos), `services/upload.js`, `services/email.js`, `controllers/auth.js`.
