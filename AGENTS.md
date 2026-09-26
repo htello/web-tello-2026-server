@@ -40,6 +40,7 @@
 
 * **Índices primero:** para la API, leer `docs/openapi-INDEX.md` y `docs/postman/INDEX.md`. NUNCA leer `docs/openapi.yaml` (1919 líneas) ni el JSON de Postman completos.
 * **Detalle por bloque:** abrir `docs/openapi.yaml` con `offset/limit` usando la línea del índice; en Postman, `jq '.. | objects | select(.name?=="NOMBRE")' docs/postman/portfolio-api.postman_collection.json`.
+* **seed-data.js:** leer `prisma/seed-data-INDEX.md`; nunca el archivo completo (1854 líneas).
 * **CHANGELOG.md:** leer solo la sección `[Unreleased]`.
 * **docs/0001 y docs/0002:** leer solo la sección relevante a la tarea.
 * **Buscar antes que leer:** `grep`/`glob` para localizar; `read` con `offset/limit`. No releer archivos ya vistos en la sesión.
