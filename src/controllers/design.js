@@ -16,6 +16,7 @@
 import prisma from '../lib/prisma.js';
 import logger from '../services/logger.js';
 import { resolveImageUrl } from '../services/upload.js';
+import { deleteCloudinaryImage, extractPublicId } from '../services/cloudinary.js';
 import { parseId, isNotFoundError, isDuplicateError, reorderByPosition } from '../lib/prisma-utils.js';
 import { sendSuccess, sendError, sendNotFound, sendDuplicate, sendInternalError } from '../lib/http-response.js';
 import { DESIGN_SUBCATEGORIES, STABLE_POSITION_ORDER } from '../lib/constants.js';
@@ -44,6 +45,7 @@ const create = async (req, res) => {
         title,
         description: description || null,
         imageUrl: finalImageUrl,
+        ...(extractPublicId(finalImageUrl) && { imagePublicId: extractPublicId(finalImageUrl) }),
         subcategory,
         ...(isPublished !== undefined && { isPublished }),
         ...(isFeatured !== undefined && { isFeatured }),
@@ -77,12 +79,24 @@ const update = async (req, res) => {
 
     const finalImageUrl = await resolveImageUrl(req.file, imageUrl, 'diseno');
 
+    if (finalImageUrl) {
+      const previousProject = await prisma.designProject.findUnique({
+        where: { id: parseId(id) },
+        select: { imageUrl: true, imagePublicId: true },
+      });
+
+      if (previousProject && previousProject.imageUrl !== finalImageUrl) {
+        await deleteCloudinaryImage(previousProject.imagePublicId, previousProject.imageUrl);
+      }
+    }
+
     const project = await prisma.designProject.update({
       where: { id: parseId(id) },
       data: {
         ...(title !== undefined && { title }),
         ...(description !== undefined && { description }),
         ...(finalImageUrl !== undefined && { imageUrl: finalImageUrl }),
+        ...(finalImageUrl && extractPublicId(finalImageUrl) && { imagePublicId: extractPublicId(finalImageUrl) }),
         ...(subcategory !== undefined && { subcategory }),
         ...(isPublished !== undefined && { isPublished }),
         ...(isFeatured !== undefined && { isFeatured }),
@@ -111,6 +125,19 @@ const update = async (req, res) => {
 const remove = async (req, res) => {
   try {
     const { id } = req.params;
+
+    const project = await prisma.designProject.findUnique({
+      where: { id: parseId(id) },
+      select: { imageUrl: true, imagePublicId: true },
+    });
+
+    if (project === null) {
+      return sendNotFound(res, 'Proyecto de diseño no encontrado');
+    }
+
+    if (project) {
+      await deleteCloudinaryImage(project.imagePublicId, project.imageUrl);
+    }
 
     await prisma.designProject.delete({
       where: { id: parseId(id) },

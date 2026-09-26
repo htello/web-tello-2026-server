@@ -18,9 +18,15 @@ vi.mock('../services/logger.js', () => ({
   default: { info: vi.fn(), error: vi.fn(), warn: vi.fn() },
 }));
 
+vi.mock('../services/cloudinary.js', () => ({
+  deleteCloudinaryImage: vi.fn(),
+  extractPublicId: vi.fn(() => null),
+}));
+
 const { create, update, remove, reorder, getById, getFeatured, listPublished, listAll } = await import('./paintings.js');
 const { resolveImageUrl } = await import('../services/upload.js');
 const logger = (await import('../services/logger.js')).default;
+const { deleteCloudinaryImage, extractPublicId } = await import('../services/cloudinary.js');
 
 describe('HU06 - Admin Pinturas', () => {
   let req, res;
@@ -32,6 +38,7 @@ describe('HU06 - Admin Pinturas', () => {
       json: vi.fn(),
     };
     vi.clearAllMocks();
+    extractPublicId.mockReturnValue(null);
     resolveImageUrl.mockImplementation(async (_file, imageUrl) => imageUrl);
   });
 
@@ -207,6 +214,19 @@ describe('HU06 - Admin Pinturas', () => {
     });
   });
 
+  it('should persist the public id for a Cloudinary image', async () => {
+    extractPublicId.mockReturnValue('portfolio/new');
+    mockPrisma.collection.findUnique.mockResolvedValue({ id: 1 });
+    mockPrisma.painting.create.mockResolvedValue({ id: 1, imageUrl: 'https://res.cloudinary.com/demo/new.jpg' });
+    req.body = { title: 'Nueva', imageUrl: 'https://res.cloudinary.com/demo/new.jpg', collectionId: 1 };
+
+    await create(req, res);
+
+    expect(mockPrisma.painting.create).toHaveBeenCalledWith({
+      data: expect.objectContaining({ imagePublicId: 'portfolio/new' }),
+    });
+  });
+
   describe('update', () => {
     describe('given valid data', () => {
       it('should return 200 with updated painting', async () => {
@@ -250,6 +270,34 @@ describe('HU06 - Admin Pinturas', () => {
         });
         expect(res.status).toHaveBeenCalledWith(200);
       });
+
+      it('should persist the public id when updating with a Cloudinary URL', async () => {
+        extractPublicId.mockReturnValue('portfolio/new');
+        mockPrisma.painting.update.mockResolvedValue({ id: 1, imageUrl: 'https://res.cloudinary.com/demo/new.jpg' });
+        req.params = { id: '1' };
+        req.body = { imageUrl: 'https://res.cloudinary.com/demo/new.jpg' };
+
+        await update(req, res);
+
+        expect(mockPrisma.painting.update).toHaveBeenCalledWith({
+          where: { id: 1 },
+          data: expect.objectContaining({ imagePublicId: 'portfolio/new' }),
+        });
+      });
+    });
+
+    it('should delete the previous image when updating the image', async () => {
+      mockPrisma.painting.findUnique.mockResolvedValue({
+        imageUrl: 'https://res.cloudinary.com/demo/old.jpg',
+        imagePublicId: 'portfolio/old',
+      });
+      mockPrisma.painting.update.mockResolvedValue({ id: 1, imageUrl: 'https://example.com/new.jpg' });
+      req.params = { id: '1' };
+      req.body = { imageUrl: 'https://example.com/new.jpg' };
+
+      await update(req, res);
+
+      expect(deleteCloudinaryImage).toHaveBeenCalledWith('portfolio/old', expect.any(String));
     });
 
     describe('given isPublished and isFeatured', () => {
@@ -283,6 +331,15 @@ describe('HU06 - Admin Pinturas', () => {
           error: 'Pintura no encontrada',
           code: 'NOT_FOUND',
         });
+      });
+
+      it('should return 404 when the painting lookup returns null', async () => {
+        mockPrisma.painting.findUnique.mockResolvedValue(null);
+        req.params = { id: '999' };
+
+        await remove(req, res);
+
+        expect(res.status).toHaveBeenCalledWith(404);
       });
     });
 
@@ -324,6 +381,7 @@ describe('HU06 - Admin Pinturas', () => {
   describe('remove', () => {
     describe('given existing painting', () => {
       it('should return 200 with success message', async () => {
+        mockPrisma.painting.findUnique.mockResolvedValue(undefined);
         mockPrisma.painting.delete.mockResolvedValue({ id: 1 });
         req.params = { id: '1' };
 
@@ -336,6 +394,20 @@ describe('HU06 - Admin Pinturas', () => {
         });
         expect(logger.info).toHaveBeenCalled();
       });
+    });
+
+    it('should delete the Cloudinary image before the painting', async () => {
+      mockPrisma.painting.findUnique.mockResolvedValue({
+        imageUrl: 'https://res.cloudinary.com/demo/image/upload/v1/obra.jpg',
+        imagePublicId: 'portfolio/obra',
+      });
+      mockPrisma.painting.delete.mockResolvedValue({ id: 1 });
+      req.params = { id: '1' };
+
+      await remove(req, res);
+
+      expect(deleteCloudinaryImage).toHaveBeenCalledWith('portfolio/obra', expect.any(String));
+      expect(mockPrisma.painting.delete).toHaveBeenCalledWith({ where: { id: 1 } });
     });
 
     describe('given painting does not exist', () => {

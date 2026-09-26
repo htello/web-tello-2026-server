@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 vi.mock('cloudinary', () => ({
   v2: {
-    uploader: { upload: vi.fn() },
+    uploader: { upload: vi.fn(), destroy: vi.fn() },
     url: vi.fn(),
   },
 }));
@@ -52,6 +52,7 @@ describe('HU16 - Upload Service', () => {
       const result = await uploadToCloudinary(file);
 
       expect(result).toHaveProperty('url');
+      expect(result).toHaveProperty('publicId', 'portfolio-antonio-tello/general/test');
       expect(result).toHaveProperty('thumbnail');
       expect(result).toHaveProperty('width', 1200);
       expect(result).toHaveProperty('height', 800);
@@ -102,6 +103,26 @@ describe('HU16 - Upload Service', () => {
         expect.any(String),
         expect.objectContaining({ folder: 'portfolio-antonio-tello/general' })
       );
+    });
+  });
+
+  describe('uploadImageAsset', () => {
+    it('should return the Cloudinary public id', async () => {
+      cloudinary.uploader.upload.mockResolvedValue({
+        secure_url: 'https://res.cloudinary.com/test/image/upload/test.jpg',
+        public_id: 'portfolio-antonio-tello/general/test',
+        width: 1200,
+        height: 800,
+        format: 'jpg',
+      });
+      cloudinary.url.mockReturnValue('https://res.cloudinary.com/test/image/upload/test_thumb.jpg');
+
+      const { uploadImageAsset } = await import('./upload.js');
+      const result = await uploadImageAsset(
+        { buffer: Buffer.from('img'), mimetype: 'image/jpeg', originalname: 'test.jpg' },
+      );
+
+      expect(result.publicId).toBe('portfolio-antonio-tello/general/test');
     });
   });
 

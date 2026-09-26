@@ -16,6 +16,7 @@ import logger from '../services/logger.js';
 import { parseId, isNotFoundError, isDuplicateError, reorderByPosition } from '../lib/prisma-utils.js';
 import { sendSuccess, sendError, sendNotFound, sendDuplicate, sendInternalError } from '../lib/http-response.js';
 import { STABLE_POSITION_ORDER } from '../lib/constants.js';
+import { deleteCloudinaryImage, extractPublicId } from '../services/cloudinary.js';
 
 /**
  * HU01 - Listar colecciones publicadas
@@ -99,6 +100,7 @@ const create = async (req, res) => {
         title,
         description: description || null,
         coverImage: coverImage || null,
+        ...(extractPublicId(coverImage) && { coverImageId: extractPublicId(coverImage) }),
         ...(position !== undefined && { position }),
         ...(isPublished !== undefined && { isPublished }),
       },
@@ -129,12 +131,24 @@ const update = async (req, res) => {
     const { id } = req.params;
     const { title, description, coverImage, position, isPublished } = req.body;
 
+    if (coverImage) {
+      const previousCollection = await prisma.collection.findUnique({
+        where: { id: parseId(id) },
+        select: { coverImage: true, coverImageId: true },
+      });
+
+      if (previousCollection && previousCollection.coverImage !== coverImage) {
+        await deleteCloudinaryImage(previousCollection.coverImageId, previousCollection.coverImage);
+      }
+    }
+
     const collection = await prisma.collection.update({
       where: { id: parseId(id) },
       data: {
         ...(title !== undefined && { title }),
         ...(description !== undefined && { description }),
         ...(coverImage !== undefined && { coverImage }),
+        ...(coverImage && extractPublicId(coverImage) && { coverImageId: extractPublicId(coverImage) }),
         ...(position !== undefined && { position }),
         ...(isPublished !== undefined && { isPublished }),
       },
@@ -162,6 +176,26 @@ const update = async (req, res) => {
 const remove = async (req, res) => {
   try {
     const { id } = req.params;
+
+    const collection = await prisma.collection.findUnique({
+      where: { id: parseId(id) },
+      include: {
+        paintings: { select: { imageUrl: true, imagePublicId: true } },
+      },
+    });
+
+    if (collection === null) {
+      return sendNotFound(res, 'Colección no encontrada');
+    }
+
+    if (collection) {
+      await deleteCloudinaryImage(collection.coverImageId, collection.coverImage);
+      await Promise.all(
+        collection.paintings.map((painting) =>
+          deleteCloudinaryImage(painting.imagePublicId, painting.imageUrl),
+        ),
+      );
+    }
 
     await prisma.collection.delete({
       where: { id: parseId(id) },

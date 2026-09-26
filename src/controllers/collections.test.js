@@ -14,7 +14,13 @@ vi.mock('../services/logger.js', () => ({
   default: { info: vi.fn(), error: vi.fn(), warn: vi.fn() },
 }));
 
+vi.mock('../services/cloudinary.js', () => ({
+  deleteCloudinaryImage: vi.fn(),
+  extractPublicId: vi.fn(() => null),
+}));
+
 const logger = (await import('../services/logger.js')).default;
+const { deleteCloudinaryImage, extractPublicId } = await import('../services/cloudinary.js');
 const { listPublished, listAll, getById, create, update, remove, reorder } = await import('../controllers/collections.js');
 
 describe('HU01 - Galería de Colecciones', () => {
@@ -27,6 +33,19 @@ describe('HU01 - Galería de Colecciones', () => {
       json: vi.fn(),
     };
     vi.clearAllMocks();
+    extractPublicId.mockReturnValue(null);
+  });
+
+  it('should persist the public id for a Cloudinary cover', async () => {
+    extractPublicId.mockReturnValue('portfolio/cover');
+    mockPrisma.collection.create.mockResolvedValue({ id: 1, coverImage: 'https://res.cloudinary.com/demo/cover.jpg' });
+    req.body = { title: 'Nueva', coverImage: 'https://res.cloudinary.com/demo/cover.jpg' };
+
+    await create(req, res);
+
+    expect(mockPrisma.collection.create).toHaveBeenCalledWith({
+      data: expect.objectContaining({ coverImageId: 'portfolio/cover' }),
+    });
   });
 
   describe('listPublished', () => {
@@ -445,6 +464,43 @@ describe('HU01 - Galería de Colecciones', () => {
             code: 'NOT_FOUND',
           });
         });
+
+        it('should return 404 when the collection lookup returns null', async () => {
+          mockPrisma.collection.findUnique.mockResolvedValue(null);
+          req.params = { id: '999' };
+
+          await remove(req, res);
+
+          expect(res.status).toHaveBeenCalledWith(404);
+        });
+      });
+
+      it('should delete the previous cover when updating it', async () => {
+        mockPrisma.collection.findUnique.mockResolvedValue({
+          coverImage: 'https://res.cloudinary.com/demo/old.jpg',
+          coverImageId: 'portfolio/old',
+        });
+        mockPrisma.collection.update.mockResolvedValue({ id: 1, coverImage: 'https://example.com/new.jpg' });
+        req.params = { id: '1' };
+        req.body = { coverImage: 'https://example.com/new.jpg' };
+
+        await update(req, res);
+
+        expect(deleteCloudinaryImage).toHaveBeenCalledWith('portfolio/old', expect.any(String));
+      });
+
+      it('should persist the public id when updating a Cloudinary cover', async () => {
+        extractPublicId.mockReturnValue('portfolio/new');
+        mockPrisma.collection.update.mockResolvedValue({ id: 1, coverImage: 'https://res.cloudinary.com/demo/new.jpg' });
+        req.params = { id: '1' };
+        req.body = { coverImage: 'https://res.cloudinary.com/demo/new.jpg' };
+
+        await update(req, res);
+
+        expect(mockPrisma.collection.update).toHaveBeenCalledWith({
+          where: { id: 1 },
+          data: expect.objectContaining({ coverImageId: 'portfolio/new' }),
+        });
       });
 
       describe('given duplicate title on update', () => {
@@ -485,6 +541,7 @@ describe('HU01 - Galería de Colecciones', () => {
     describe('remove', () => {
       describe('given existing collection', () => {
         it('should return 200 with success message', async () => {
+          mockPrisma.collection.findUnique.mockResolvedValue(undefined);
           mockPrisma.collection.delete.mockResolvedValue({ id: 1 });
           req.params = { id: '1' };
 
@@ -497,6 +554,21 @@ describe('HU01 - Galería de Colecciones', () => {
           });
           expect(logger.info).toHaveBeenCalled();
         });
+      });
+
+      it('should delete the cover and painting images before the collection', async () => {
+        mockPrisma.collection.findUnique.mockResolvedValue({
+          coverImage: 'https://res.cloudinary.com/demo/cover.jpg',
+          coverImageId: 'portfolio/cover',
+          paintings: [{ imageUrl: 'https://res.cloudinary.com/demo/obra.jpg', imagePublicId: 'portfolio/obra' }],
+        });
+        mockPrisma.collection.delete.mockResolvedValue({ id: 1 });
+        req.params = { id: '1' };
+
+        await remove(req, res);
+
+        expect(deleteCloudinaryImage).toHaveBeenCalledTimes(2);
+        expect(mockPrisma.collection.delete).toHaveBeenCalledWith({ where: { id: 1 } });
       });
 
       describe('given collection does not exist', () => {

@@ -16,6 +16,7 @@ import logger from '../services/logger.js';
 import { parseId, isNotFoundError, reorderByPosition } from '../lib/prisma-utils.js';
 import { sendSuccess, sendError, sendNotFound, sendInternalError } from '../lib/http-response.js';
 import { STABLE_POSITION_ORDER } from '../lib/constants.js';
+import { deleteCloudinaryImage, extractPublicId } from '../services/cloudinary.js';
 
 /**
  * Convierte un valor de fecha (Date o texto ISO) a formato yyyy-mm-dd.
@@ -87,7 +88,11 @@ const create = async (req, res) => {
         ...(isPublished !== undefined && { isPublished }),
         ...(images !== undefined && {
           images: {
-            create: images.map((image, index) => ({ ...image, position: index })),
+          create: images.map((image, index) => ({
+            ...image,
+            ...(extractPublicId(image.url) && { publicId: extractPublicId(image.url) }),
+            position: index,
+          })),
           },
         }),
       },
@@ -135,11 +140,25 @@ const update = async (req, res) => {
         include: IMAGES_INCLUDE,
       });
     } else {
+      const oldImages = await prisma.exhibitionImage.findMany({
+        where: { exhibitionId },
+        select: { url: true, publicId: true },
+      }) || [];
+
+      await Promise.all(
+        oldImages.map((image) => deleteCloudinaryImage(image.publicId, image.url)),
+      );
+
       const [, , , reloaded] = await prisma.$transaction([
         prisma.exhibition.update({ where: { id: exhibitionId }, data }),
         prisma.exhibitionImage.deleteMany({ where: { exhibitionId } }),
         prisma.exhibitionImage.createMany({
-          data: images.map((image, index) => ({ ...image, exhibitionId, position: index })),
+          data: images.map((image, index) => ({
+            ...image,
+            ...(extractPublicId(image.url) && { publicId: extractPublicId(image.url) }),
+            exhibitionId,
+            position: index,
+          })),
         }),
         prisma.exhibition.findUnique({ where: { id: exhibitionId }, include: IMAGES_INCLUDE }),
       ]);
@@ -167,6 +186,21 @@ const update = async (req, res) => {
 const remove = async (req, res) => {
   try {
     const { id } = req.params;
+
+    const exhibition = await prisma.exhibition.findUnique({
+      where: { id: parseId(id) },
+      include: { images: { select: { url: true, publicId: true } } },
+    });
+
+    if (exhibition === null) {
+      return sendNotFound(res, 'Exposición no encontrada');
+    }
+
+    if (exhibition) {
+      await Promise.all(
+        exhibition.images.map((image) => deleteCloudinaryImage(image.publicId, image.url)),
+      );
+    }
 
     await prisma.exhibition.delete({
       where: { id: parseId(id) },

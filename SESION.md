@@ -100,6 +100,12 @@ PENDIENTE DEL SERVER (2026-09-25, detectado en la Fase 15 del front — refactor
 - openapi.yaml documenta los POST/PUT de paintings/design/illustrations SOLO como multipart/form-data con campo binario `image`. La convención acordada (raw JSON + subida en 2 pasos) hace que el front envíe `imageUrl` (obtenida de POST /admin/upload) en el JSON del create/update; el server lo acepta y funciona (verificado con E2E Playwright del front contra server real), pero esa variante NO está documentada en el contrato.
 - Acción propuesta: documentar la variante application/json con `imageUrl` (string, format uri) en PaintingRequest/PaintingUpdateRequest/DesignRequest/IllustrationRequest (o en el requestBody de sus endpoints POST/PUT) y regenerar openapi-INDEX.md. El front no necesita cambios.
 
+CAMBIOS DE fix/23-cloudinary-image-deletion (2026-09-26):
+- Las eliminaciones y reemplazos de pinturas, proyectos de diseño, ilustraciones, colecciones, exposiciones y biografía limpian sus imágenes de Cloudinary cuando corresponda.
+- Se almacenan identificadores `publicId` con fallback para URLs legacy; las URLs externas no se eliminan.
+- Nueva migración `add_cloudinary_public_ids` y servicio `src/services/cloudinary.js`.
+- Verificado: 500 tests, lint correcto y cobertura 100%. Migración pendiente de aplicar en entornos con PostgreSQL disponible.
+
 REGLAS DE SESIÓN (ESTRICTAS):
 1. Verificar siempre la rama antes de trabajar (`hu/XX-nombre`). NUNCA escribir código directo en `develop`.
 2. Seguir TDD estricto (RED → GREEN → REFACTOR) y mantener 100% de cobertura.

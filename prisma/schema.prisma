@@ -29,6 +29,7 @@ model Collection {
   title       String     @unique
   description String?
   coverImage  String?
+  coverImageId String?
   position    Int        @default(0)
   isPublished Boolean    @default(false)
   paintings   Painting[]
@@ -40,6 +41,7 @@ model Painting {
   id           Int        @id @default(autoincrement())
   title        String
   imageUrl     String
+  imagePublicId String?
   dimensions   String?
   technique    String?
   year         Int?
@@ -72,6 +74,7 @@ model ExhibitionImage {
   id           Int        @id @default(autoincrement())
   exhibitionId Int
   url          String
+  publicId     String?
   thumbnail    String?
   width        Int?
   height       Int?
@@ -87,6 +90,7 @@ model DesignProject {
   title       String
   description String?
   imageUrl    String
+  imagePublicId String?
   subcategory String
   isPublished Boolean  @default(true)
   isFeatured  Boolean  @default(false)
@@ -100,6 +104,7 @@ model Illustration {
   title       String
   description String?
   imageUrl    String
+  imagePublicId String?
   isPublished Boolean  @default(true)
   isFeatured  Boolean  @default(false)
   position    Int      @default(0)
@@ -111,5 +116,6 @@ model Biography {
   id        Int      @id @default(autoincrement())
   content   String
   imageUrl  String?
+  imagePublicId String?
   updatedAt DateTime @updatedAt
 }
