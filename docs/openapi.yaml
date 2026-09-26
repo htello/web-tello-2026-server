@@ -1259,6 +1259,12 @@ paths:
             type: integer
             default: 20
             maximum: 100
+        - name: collectionId
+          in: query
+          description: Filtra las pinturas por colección (entero positivo). Inválido → 400.
+          schema:
+            type: integer
+            minimum: 1
       responses:
         '200':
           description: Lista de pinturas
@@ -1273,6 +1279,12 @@ paths:
                       $ref: '#/components/schemas/PaintingDetail'
                   meta:
                     $ref: '#/components/schemas/PaginationMeta'
+        '400':
+          description: collectionId no numérico o no positivo
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
         '401':
           description: No autenticado
           content:
@@ -1691,6 +1703,12 @@ paths:
             type: integer
             default: 20
             maximum: 100
+        - name: subcategory
+          in: query
+          description: Filtra los proyectos por subcategoría. Inválida → 400.
+          schema:
+            type: string
+            enum: [imagen-corporativa, packaging-expositores, carteleria, editorial]
       responses:
         '200':
           description: Lista de proyectos de diseño
@@ -1705,6 +1723,12 @@ paths:
                       $ref: '#/components/schemas/DesignProject'
                   meta:
                     $ref: '#/components/schemas/PaginationMeta'
+        '400':
+          description: subcategory no válida
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
         '401':
           description: No autenticado
           content:

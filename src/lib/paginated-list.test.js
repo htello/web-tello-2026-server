@@ -79,6 +79,85 @@ describe('lib/paginated-list - createPaginatedListHandler', () => {
     });
   });
 
+  describe('given a buildWhere option', () => {
+    it('should apply returned where to findMany and count', async () => {
+      model.findMany.mockResolvedValue([]);
+      model.count.mockResolvedValue(4);
+      const handler = createPaginatedListHandler({
+        model,
+        buildWhere: (query) => (query.collectionId ? { collectionId: Number(query.collectionId) } : {}),
+        errorMessage: 'Error al listar',
+      });
+      const res = createRes();
+
+      await handler({ query: { collectionId: '7' } }, res);
+
+      expect(model.findMany).toHaveBeenCalledWith({ skip: 0, take: 20, where: { collectionId: 7 } });
+      expect(model.count).toHaveBeenCalledWith({ where: { collectionId: 7 } });
+      expect(res.json).toHaveBeenCalledWith({
+        data: [],
+        meta: { total: 4, page: 1, limit: 20, pages: 1 },
+      });
+    });
+
+    it('should omit where when buildWhere returns an empty filter', async () => {
+      model.findMany.mockResolvedValue([]);
+      model.count.mockResolvedValue(0);
+      const handler = createPaginatedListHandler({
+        model,
+        findManyArgs: { orderBy: [{ position: 'asc' }] },
+        buildWhere: () => ({}),
+        errorMessage: 'Error al listar',
+      });
+      const res = createRes();
+
+      await handler({ query: {} }, res);
+
+      expect(model.findMany).toHaveBeenCalledWith({ skip: 0, take: 20, orderBy: [{ position: 'asc' }] });
+      expect(model.count).toHaveBeenCalledWith();
+    });
+
+    it('should merge findManyArgs.where with the filter where', async () => {
+      model.findMany.mockResolvedValue([]);
+      model.count.mockResolvedValue(1);
+      const handler = createPaginatedListHandler({
+        model,
+        findManyArgs: { where: { isPublished: true } },
+        buildWhere: () => ({ collectionId: 2 }),
+        errorMessage: 'Error al listar',
+      });
+      const res = createRes();
+
+      await handler({ query: {} }, res);
+
+      expect(model.findMany).toHaveBeenCalledWith({
+        skip: 0,
+        take: 20,
+        where: { isPublished: true, collectionId: 2 },
+      });
+      expect(model.count).toHaveBeenCalledWith({ where: { isPublished: true, collectionId: 2 } });
+    });
+
+    it('should return 400 VALIDATION_ERROR when buildWhere returns an error message', async () => {
+      const handler = createPaginatedListHandler({
+        model,
+        buildWhere: () => 'El collectionId debe ser un entero positivo',
+        errorMessage: 'Error al listar',
+      });
+      const res = createRes();
+
+      await handler({ query: { collectionId: 'abc' } }, res);
+
+      expect(model.findMany).not.toHaveBeenCalled();
+      expect(model.count).not.toHaveBeenCalled();
+      expect(res.status).toHaveBeenCalledWith(400);
+      expect(res.json).toHaveBeenCalledWith({
+        error: 'El collectionId debe ser un entero positivo',
+        code: 'VALIDATION_ERROR',
+      });
+    });
+  });
+
   describe('given a serialize function', () => {
     it('should map items through it', async () => {
       model.findMany.mockResolvedValue([

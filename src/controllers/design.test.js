@@ -122,6 +122,51 @@ describe('HU09 - Admin Diseño', () => {
       });
     });
 
+    describe('given subcategory query param', () => {
+      it('should filter findMany and count by subcategory', async () => {
+        req.query = { subcategory: 'editorial' };
+        mockPrisma.designProject.findMany.mockResolvedValue([]);
+        mockPrisma.designProject.count.mockResolvedValue(0);
+
+        await listAll(req, res);
+
+        expect(mockPrisma.designProject.findMany).toHaveBeenCalledWith({
+          skip: 0,
+          take: 20,
+          where: { subcategory: 'editorial' },
+          orderBy: [{ position: 'asc' }, { id: 'asc' }],
+        });
+        expect(mockPrisma.designProject.count).toHaveBeenCalledWith({ where: { subcategory: 'editorial' } });
+        expect(res.status).toHaveBeenCalledWith(200);
+      });
+
+      it('should ignore an empty subcategory', async () => {
+        req.query = { subcategory: '' };
+        mockPrisma.designProject.findMany.mockResolvedValue([]);
+        mockPrisma.designProject.count.mockResolvedValue(0);
+
+        await listAll(req, res);
+
+        expect(mockPrisma.designProject.findMany).toHaveBeenCalledWith(
+          expect.not.objectContaining({ where: expect.anything() })
+        );
+        expect(mockPrisma.designProject.count).toHaveBeenCalledWith();
+      });
+
+      it('should return 400 VALIDATION_ERROR for an invalid subcategory', async () => {
+        req.query = { subcategory: 'COSA' };
+
+        await listAll(req, res);
+
+        expect(res.status).toHaveBeenCalledWith(400);
+        expect(res.json).toHaveBeenCalledWith({
+          error: 'La subcategoría debe ser: imagen-corporativa, packaging-expositores, carteleria, editorial',
+          code: 'VALIDATION_ERROR',
+        });
+        expect(mockPrisma.designProject.findMany).not.toHaveBeenCalled();
+      });
+    });
+
     describe('given a database error', () => {
       it('should return 500 INTERNAL_ERROR', async () => {
         mockPrisma.designProject.findMany.mockRejectedValue(new Error('DB Error'));

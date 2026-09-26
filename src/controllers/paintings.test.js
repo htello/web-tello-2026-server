@@ -765,6 +765,64 @@ describe('HU06 - Admin Pinturas', () => {
       });
     });
 
+    describe('given collectionId query param', () => {
+      it('should filter findMany and count by collectionId', async () => {
+        req.query = { collectionId: '3' };
+        mockPrisma.painting.findMany.mockResolvedValue([]);
+        mockPrisma.painting.count.mockResolvedValue(0);
+
+        await listAll(req, res);
+
+        expect(mockPrisma.painting.findMany).toHaveBeenCalledWith({
+          skip: 0,
+          take: 20,
+          where: { collectionId: 3 },
+          orderBy: [{ position: 'asc' }, { id: 'asc' }],
+          include: { collection: { select: { id: true, title: true } } },
+        });
+        expect(mockPrisma.painting.count).toHaveBeenCalledWith({ where: { collectionId: 3 } });
+        expect(res.status).toHaveBeenCalledWith(200);
+      });
+
+      it('should ignore an empty collectionId', async () => {
+        req.query = { collectionId: '' };
+        mockPrisma.painting.findMany.mockResolvedValue([]);
+        mockPrisma.painting.count.mockResolvedValue(0);
+
+        await listAll(req, res);
+
+        expect(mockPrisma.painting.findMany).toHaveBeenCalledWith(
+          expect.not.objectContaining({ where: expect.anything() })
+        );
+        expect(mockPrisma.painting.count).toHaveBeenCalledWith();
+      });
+
+      it('should return 400 VALIDATION_ERROR for a non-numeric collectionId', async () => {
+        req.query = { collectionId: 'abc' };
+
+        await listAll(req, res);
+
+        expect(res.status).toHaveBeenCalledWith(400);
+        expect(res.json).toHaveBeenCalledWith({
+          error: 'El collectionId debe ser un entero positivo',
+          code: 'VALIDATION_ERROR',
+        });
+        expect(mockPrisma.painting.findMany).not.toHaveBeenCalled();
+      });
+
+      it('should return 400 VALIDATION_ERROR for a non-positive collectionId', async () => {
+        req.query = { collectionId: '0' };
+
+        await listAll(req, res);
+
+        expect(res.status).toHaveBeenCalledWith(400);
+        expect(res.json).toHaveBeenCalledWith({
+          error: 'El collectionId debe ser un entero positivo',
+          code: 'VALIDATION_ERROR',
+        });
+      });
+    });
+
     describe('given a database error', () => {
       it('should return 500 INTERNAL_ERROR', async () => {
         mockPrisma.painting.findMany.mockRejectedValue(new Error('DB Error'));
