@@ -26,9 +26,18 @@ const MAX_SIZE = 5 * 1024 * 1024;
 
 /**
  * Secciones permitidas para subcarpetas en Cloudinary
+ * (válidas como `section` en POST /admin/upload)
  * @type {string[]}
  */
-const ALLOWED_SECTIONS = ['pintura', 'ilustracion', 'diseno', 'general'];
+const ALLOWED_SECTIONS = ['pintura', 'ilustracion', 'diseno', 'general', 'exposiciones'];
+
+/**
+ * Carpetas Cloudinary válidas para uploadToCloudinary.
+ * Incluye 'test' para uso interno (scripts y pruebas);
+ * no se expone en el endpoint de upload.
+ * @type {string[]}
+ */
+const CLOUDINARY_FOLDERS = [...ALLOWED_SECTIONS, 'test'];
 
 /**
  * Limpia el nombre del archivo para usarlo como public_id en Cloudinary
@@ -80,11 +89,11 @@ const upload = multer({
  * @param {Buffer} file.buffer - Contenido del archivo
  * @param {string} file.mimetype - Tipo MIME del archivo
  * @param {string} file.originalname - Nombre original del archivo
- * @param {string} section - Sección para subcarpeta (pintura, ilustracion, diseno, general)
+ * @param {string} section - Sección para subcarpeta (pintura, ilustracion, diseno, general, exposiciones, test)
  * @returns {Promise<Object>} URLs y metadata de la imagen subida
  */
 const uploadToCloudinary = async (file, section = 'general') => {
-  const folder = ALLOWED_SECTIONS.includes(section)
+  const folder = CLOUDINARY_FOLDERS.includes(section)
     ? `portfolio-antonio-tello/${section}`
     : 'portfolio-antonio-tello/general';
 
@@ -152,4 +161,5 @@ export {
   ALLOWED_TYPES,
   MAX_SIZE,
   ALLOWED_SECTIONS,
+  CLOUDINARY_FOLDERS,
 };

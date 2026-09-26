@@ -2137,8 +2137,9 @@ paths:
                     - ilustracion
                     - diseno
                     - general
+                    - exposiciones
                   default: general
-                  description: Subcarpeta de destino en Cloudinary. Si se omite, se usa "general". Un valor fuera del enum devuelve 400.
+                  description: Subcarpeta de destino en Cloudinary (portfolio-antonio-tello/{section}). Si se omite, se usa "general". Un valor fuera del enum devuelve 400. La carpeta "test" es de uso interno y no se acepta en este endpoint.
       responses:
         '200':
           description: Imagen subida

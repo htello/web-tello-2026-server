@@ -15,7 +15,7 @@ ESTADO DEL PROYECTO:
 - Rama actual: develop
 - Cobertura de tests: 100% obligatorio (Vitest)
 - Última HU completada y mergeada: HU13/HU14/HU15 - Formulario de Contacto + Email + Rate Limiting
-- Última rama mergeada: chore/token-efficiency-docs (índices de docs + reglas de eficiencia de tokens + seed Admin123!)
+- Última rama mergeada: chore/cloudinary-sections (secciones Cloudinary: exposiciones + test interna)
 - gh CLI autenticado en este equipo (cuenta htello)
 
 ESTADO DE LAS HUS POR FASE:
@@ -117,6 +117,13 @@ CAMBIOS DE fix/25-cloudinary-public-id-all-resources (2026-09-26):
 - Colecciones y sus pinturas quedan cubiertas por el mismo comportamiento de borrado idempotente.
 - Las actualizaciones que reciben `imageUrl: null` o vacío sin archivo devuelven `400 VALIDATION_ERROR`; no se intenta guardar `null` en campos de imagen obligatorios.
 - `PUT /admin/biography` usa validación parcial: permite cambiar solo la imagen y conserva el contenido existente; `POST` mantiene `content` obligatorio.
+
+CAMBIOS DE chore/cloudinary-sections (2026-09-26):
+- `ALLOWED_SECTIONS` incluye `exposiciones`: `POST /admin/upload` acepta `section=exposiciones` → carpeta `portfolio-antonio-tello/exposiciones`.
+- Nueva constante `CLOUDINARY_FOLDERS` (`ALLOWED_SECTIONS` + `test`): `uploadToCloudinary` admite la sección interna `test` (`portfolio-antonio-tello/test`) para scripts/pruebas; el endpoint la rechaza con 400.
+- Se mantiene `diseno` (sin ñ). Carpetas Cloudinary: diseno, exposiciones, general, ilustracion, pintura, test (se crean automáticamente al subir).
+- Sincronizados `docs/openapi.yaml` (enum de `section`), `docs/openapi-INDEX.md` y `CHANGELOG.md`.
+- Verificado: 518 tests, lint correcto y cobertura 100%.
 
 REGLAS DE SESIÓN (ESTRICTAS):
 1. Verificar siempre la rama antes de trabajar (`hu/XX-nombre`). NUNCA escribir código directo en `develop`.
