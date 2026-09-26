@@ -14,8 +14,8 @@
 import prisma from '../lib/prisma.js';
 import logger from '../services/logger.js';
 import { parseId, isNotFoundError, isDuplicateError, reorderByPosition } from '../lib/prisma-utils.js';
-import { sendSuccess, sendPaginated, sendError, sendNotFound, sendDuplicate, sendInternalError } from '../lib/http-response.js';
-import { parsePagination, buildPaginationMeta } from '../lib/pagination.js';
+import { sendSuccess, sendError, sendNotFound, sendDuplicate, sendInternalError } from '../lib/http-response.js';
+import { createPaginatedListHandler } from '../lib/paginated-list.js';
 import { STABLE_POSITION_ORDER } from '../lib/constants.js';
 import { deleteCloudinaryImage, extractPublicId } from '../services/cloudinary.js';
 
@@ -65,32 +65,20 @@ const listPublished = async (req, res) => {
  * @returns {Promise<Object>} 200 con data paginada y meta, o 500
  * @security Requiere Bearer token con rol ADMIN
  */
-const listAll = async (req, res) => {
-  try {
-    const { page, limit, skip } = parsePagination(req.query);
-
-    const [collections, total] = await Promise.all([
-      prisma.collection.findMany({
-        skip,
-        take: limit,
-        orderBy: STABLE_POSITION_ORDER,
-        include: {
-          _count: { select: { paintings: true } },
-        },
-      }),
-      prisma.collection.count(),
-    ]);
-
-    const data = collections.map(({ _count, ...collection }) => ({
-      ...collection,
-      paintingsCount: _count.paintings,
-    }));
-
-    return sendPaginated(res, data, buildPaginationMeta(total, page, limit));
-  } catch (error) {
-    return sendInternalError(res, logger, 'Error al listar colecciones', error);
-  }
-};
+const listAll = createPaginatedListHandler({
+  model: prisma.collection,
+  findManyArgs: {
+    orderBy: STABLE_POSITION_ORDER,
+    include: {
+      _count: { select: { paintings: true } },
+    },
+  },
+  serialize: ({ _count, ...collection }) => ({
+    ...collection,
+    paintingsCount: _count.paintings,
+  }),
+  errorMessage: 'Error al listar colecciones',
+});
 
 /**
  * HU06 - Crear colección

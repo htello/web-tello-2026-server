@@ -18,8 +18,8 @@ import logger from '../services/logger.js';
 import { resolveImageAsset } from '../services/upload.js';
 import { deleteCloudinaryImage, extractPublicId } from '../services/cloudinary.js';
 import { parseId, isNotFoundError, isDuplicateError, reorderByPosition } from '../lib/prisma-utils.js';
-import { sendSuccess, sendPaginated, sendError, sendNotFound, sendDuplicate, sendInternalError } from '../lib/http-response.js';
-import { parsePagination, buildPaginationMeta } from '../lib/pagination.js';
+import { sendSuccess, sendError, sendNotFound, sendDuplicate, sendInternalError } from '../lib/http-response.js';
+import { createPaginatedListHandler } from '../lib/paginated-list.js';
 import { DESIGN_SUBCATEGORIES, STABLE_POSITION_ORDER } from '../lib/constants.js';
 
 /**
@@ -174,24 +174,13 @@ const remove = async (req, res) => {
  * @returns {Promise<Object>} 200 con data paginada y meta, o 500
  * @security Requiere Bearer token con rol ADMIN
  */
-const listAll = async (req, res) => {
-  try {
-    const { page, limit, skip } = parsePagination(req.query);
-
-    const [projects, total] = await Promise.all([
-      prisma.designProject.findMany({
-        skip,
-        take: limit,
-        orderBy: STABLE_POSITION_ORDER,
-      }),
-      prisma.designProject.count(),
-    ]);
-
-    return sendPaginated(res, projects, buildPaginationMeta(total, page, limit));
-  } catch (error) {
-    return sendInternalError(res, logger, 'Error al listar proyectos de diseño', error);
-  }
-};
+const listAll = createPaginatedListHandler({
+  model: prisma.designProject,
+  findManyArgs: {
+    orderBy: STABLE_POSITION_ORDER,
+  },
+  errorMessage: 'Error al listar proyectos de diseño',
+});
 
 /**
  * HU10 - Reordenar proyectos de diseño

@@ -14,8 +14,8 @@
 import prisma from '../lib/prisma.js';
 import logger from '../services/logger.js';
 import { parseId, isNotFoundError, reorderByPosition } from '../lib/prisma-utils.js';
-import { sendSuccess, sendPaginated, sendError, sendNotFound, sendInternalError } from '../lib/http-response.js';
-import { parsePagination, buildPaginationMeta } from '../lib/pagination.js';
+import { sendSuccess, sendError, sendNotFound, sendInternalError } from '../lib/http-response.js';
+import { createPaginatedListHandler } from '../lib/paginated-list.js';
 import { STABLE_POSITION_ORDER } from '../lib/constants.js';
 import { deleteCloudinaryImage, extractPublicId } from '../services/cloudinary.js';
 
@@ -276,24 +276,14 @@ const listPublished = async (req, res) => {
  * @returns {Promise<Object>} 200 con data paginada y meta, o 500
  * @security Requiere Bearer token con rol ADMIN
  */
-const listAll = async (req, res) => {
-  try {
-    const { page, limit, skip } = parsePagination(req.query);
-
-    const [exhibitions, total] = await Promise.all([
-      prisma.exhibition.findMany({
-        skip,
-        take: limit,
-        orderBy: STABLE_POSITION_ORDER,
-        include: IMAGES_INCLUDE,
-      }),
-      prisma.exhibition.count(),
-    ]);
-
-    return sendPaginated(res, exhibitions.map(serializeExhibition), buildPaginationMeta(total, page, limit));
-  } catch (error) {
-    return sendInternalError(res, logger, 'Error al listar exposiciones', error);
-  }
-};
+const listAll = createPaginatedListHandler({
+  model: prisma.exhibition,
+  findManyArgs: {
+    orderBy: STABLE_POSITION_ORDER,
+    include: IMAGES_INCLUDE,
+  },
+  serialize: serializeExhibition,
+  errorMessage: 'Error al listar exposiciones',
+});
 
 export { create, update, remove, reorder, listPublished, listAll };

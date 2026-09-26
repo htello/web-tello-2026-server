@@ -15,7 +15,7 @@ ESTADO DEL PROYECTO:
 - Rama actual: develop
 - Cobertura de tests: 100% obligatorio (Vitest)
 - Última HU completada y mergeada: HU13/HU14/HU15 - Formulario de Contacto + Email + Rate Limiting
-- Última rama mergeada: feat/admin-pagination (paginación en GET admin de colecciones, pinturas, exposiciones, diseño e ilustraciones)
+- Última rama mergeada: refactor/admin-list-handlers (factory createPaginatedListHandler para los listAll admin paginados)
 - gh CLI autenticado en este equipo (cuenta htello)
 
 ESTADO DE LAS HUS POR FASE:
@@ -132,6 +132,12 @@ CAMBIOS DE feat/admin-pagination (2026-09-26):
 - `prisma-mock.js` añade `count` a collection/painting/exhibition/designProject/illustration; integración hu-06/hu-07/hu-10 con aserciones de `meta`.
 - Sincronizados `docs/openapi.yaml`, `docs/openapi-INDEX.md` (2277 líneas) y `CHANGELOG.md`.
 - Verificado: 538 tests, lint correcto y cobertura 100%.
+
+CAMBIOS DE refactor/admin-list-handlers (2026-09-26):
+- Nueva factory `src/lib/paginated-list.js` (`createPaginatedListHandler({ model, findManyArgs, serialize, errorMessage })`) con 5 tests propios.
+- Los `listAll` de colecciones, pinturas, exposiciones, diseño e ilustraciones delegan en la factory; comportamiento y contrato idénticos (tests existentes sin cambios).
+- Imports limpios en controladores (`sendPaginated`/`parsePagination` ya no se usan ahí).
+- Verificado: 543 tests, lint correcto y cobertura 100%.
 
 REGLAS DE SESIÓN (ESTRICTAS):
 1. Verificar siempre la rama antes de trabajar (`hu/XX-nombre`). NUNCA escribir código directo en `develop`.
