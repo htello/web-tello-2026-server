@@ -12,6 +12,8 @@
 
 import Joi from 'joi';
 import {
+  PASSWORD_MIN_LENGTH,
+  USER_ROLES,
   DESIGN_SUBCATEGORIES,
   MAX_EXHIBITION_IMAGES,
   EXHIBITION_YEAR_MIN,
@@ -72,12 +74,12 @@ const emailField = ({ withEmpty = true } = {}) => Joi.string()
  */
 const passwordField = ({ strong = false } = {}) => {
   const messages = {
-    'string.min': 'La contraseña debe tener al menos 8 caracteres',
+    'string.min': `La contraseña debe tener al menos ${PASSWORD_MIN_LENGTH} caracteres`,
     'any.required': 'La contraseña es obligatoria',
     'string.empty': 'La contraseña no puede estar vacía',
   };
 
-  let field = Joi.string().min(8);
+  let field = Joi.string().min(PASSWORD_MIN_LENGTH);
 
   if (strong) {
     field = field.pattern(/^(?=.*[A-Z])(?=.*[^a-zA-Z0-9\s]).*$/);
@@ -308,7 +310,7 @@ const userUpdateSchema = Joi.object({
       'string.empty': 'El rol no puede estar vacío',
     })
     .custom((value, helpers) => {
-      if (!['ADMIN', 'USER'].includes(value)) {
+      if (!USER_ROLES.includes(value)) {
         return helpers.message('El rol debe ser ADMIN o USER');
       }
       return value;

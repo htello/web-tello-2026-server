@@ -664,7 +664,7 @@ describe('HU09 - Admin Diseño', () => {
   describe('remove', () => {
     describe('given existing project', () => {
       it('should return 200 with success message', async () => {
-        mockPrisma.designProject.findUnique.mockResolvedValue(undefined);
+        mockPrisma.designProject.findUnique.mockResolvedValue({ id: 1, imageUrl: 'https://example.com/d.jpg', imagePublicId: null });
         mockPrisma.designProject.delete.mockResolvedValue({ id: 1 });
         req.params = { id: '1' };
 

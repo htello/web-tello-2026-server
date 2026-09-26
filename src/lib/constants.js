@@ -86,10 +86,16 @@ export const PAGINATION_MIN_LIMIT = 1;
 export const PAGINATION_MAX_LIMIT = 100;
 
 /**
+ * Milisegundos por minuto
+ * @type {number}
+ */
+export const MS_PER_MINUTE = 60 * 1000;
+
+/**
  * Ventana estándar de rate limiting (1 minuto, en ms)
  * @type {number}
  */
-export const RATE_LIMIT_WINDOW_MS = 60 * 1000;
+export const RATE_LIMIT_WINDOW_MS = MS_PER_MINUTE;
 
 /**
  * Máximo de peticiones de contacto por ventana
@@ -186,3 +192,109 @@ export const SMTP_SOCKET_TIMEOUT_MS = 30000;
  * @type {number}
  */
 export const RESET_TOKEN_BYTES = 32;
+
+/**
+ * Prefijo de todas las carpetas de Cloudinary del proyecto
+ * @type {string}
+ */
+export const CLOUDINARY_BASE_FOLDER = 'portfolio-antonio-tello';
+
+/**
+ * Dominio que identifica URLs de Cloudinary
+ * @type {string}
+ */
+export const CLOUDINARY_URL_MARKER = 'res.cloudinary.com';
+
+/**
+ * Segmento de ruta que precede al public_id en URLs de Cloudinary
+ * @type {string}
+ */
+export const CLOUDINARY_UPLOAD_SEGMENT = '/upload/';
+
+/**
+ * Timeout de las llamadas a la API de Resend (ms)
+ * @type {number}
+ */
+export const RESEND_TIMEOUT_MS = 15000;
+
+/**
+ * Longitud mínima de contraseña
+ * @type {number}
+ */
+export const PASSWORD_MIN_LENGTH = 8;
+
+/**
+ * Longitud del prefijo `yyyy-mm-dd` de una fecha ISO
+ * @type {number}
+ */
+export const ISO_DATE_LENGTH = 10;
+
+/**
+ * Puerto HTTP por defecto del servidor
+ * @type {number}
+ */
+export const DEFAULT_PORT = 3000;
+
+/**
+ * Origen CORS por defecto (desarrollo)
+ * @type {string}
+ */
+export const DEFAULT_CORS_ORIGIN = `http://localhost:${DEFAULT_PORT}`;
+
+/**
+ * Tamaño máximo del cuerpo JSON aceptado por Express
+ * @type {string}
+ */
+export const JSON_BODY_LIMIT = '1mb';
+
+/**
+ * Rol de administrador del sistema
+ * @type {string}
+ */
+export const ADMIN_ROLE = 'ADMIN';
+
+/**
+ * Roles de usuario válidos
+ * @type {string[]}
+ */
+export const USER_ROLES = ['ADMIN', 'USER'];
+
+/**
+ * Códigos de error estandarizados de la API
+ * @type {Object<string, string>}
+ */
+export const ERROR_CODES = {
+  VALIDATION_ERROR: 'VALIDATION_ERROR',
+  NOT_FOUND: 'NOT_FOUND',
+  DUPLICATE_ERROR: 'DUPLICATE_ERROR',
+  INTERNAL_ERROR: 'INTERNAL_ERROR',
+  UNAUTHORIZED: 'UNAUTHORIZED',
+  FORBIDDEN: 'FORBIDDEN',
+  RATE_LIMITED: 'RATE_LIMITED',
+  EMAIL_ERROR: 'EMAIL_ERROR',
+  SERVICE_UNAVAILABLE: 'SERVICE_UNAVAILABLE',
+};
+
+/**
+ * Mensaje de error cuando falta la imagen (archivo o URL)
+ * @type {string}
+ */
+export const IMAGE_REQUIRED_MESSAGE = 'La imagen es obligatoria (archivo o URL)';
+
+/**
+ * Mensaje de respuesta al reordenar correctamente
+ * @type {string}
+ */
+export const REORDER_SUCCESS_MESSAGE = 'Orden actualizado correctamente';
+
+/**
+ * Mensaje de error cuando algún ID del reorder no existe
+ * @type {string}
+ */
+export const REORDER_INVALID_IDS_MESSAGE = 'Uno o más IDs no existen';
+
+/**
+ * Mensaje genérico de credenciales inválidas (login)
+ * @type {string}
+ */
+export const INVALID_CREDENTIALS_MESSAGE = 'Credenciales inválidas';

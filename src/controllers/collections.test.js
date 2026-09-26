@@ -581,7 +581,7 @@ describe('HU01 - Galería de Colecciones', () => {
     describe('remove', () => {
       describe('given existing collection', () => {
         it('should return 200 with success message', async () => {
-          mockPrisma.collection.findUnique.mockResolvedValue(undefined);
+          mockPrisma.collection.findUnique.mockResolvedValue({ id: 1, coverImage: null, coverImageId: null, paintings: [] });
           mockPrisma.collection.delete.mockResolvedValue({ id: 1 });
           req.params = { id: '1' };
 

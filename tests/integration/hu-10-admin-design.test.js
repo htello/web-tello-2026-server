@@ -345,6 +345,11 @@ describe('HU10 - Admin Design', () => {
   describe('DELETE /admin/design/:id', () => {
     describe('given admin token and existing project', () => {
       it('should return 200 with success message', async () => {
+        mockPrisma.designProject.findUnique.mockResolvedValue({
+          id: 1,
+          imageUrl: null,
+          imagePublicId: null,
+        });
         mockPrisma.designProject.delete.mockResolvedValue({ id: 1 });
 
         const res = await request(app)
@@ -373,6 +378,11 @@ describe('HU10 - Admin Design', () => {
 
     describe('given database error', () => {
       it('should return 500 INTERNAL_ERROR', async () => {
+        mockPrisma.designProject.findUnique.mockResolvedValue({
+          id: 1,
+          imageUrl: null,
+          imagePublicId: null,
+        });
         mockPrisma.designProject.delete.mockRejectedValue(
           new Error('Database connection failed')
         );
@@ -601,6 +611,11 @@ describe('HU10 - Admin Design', () => {
   describe('DELETE /admin/illustrations/:id', () => {
     describe('given admin token and existing illustration', () => {
       it('should return 200 with success message', async () => {
+        mockPrisma.illustration.findUnique.mockResolvedValue({
+          id: 1,
+          imageUrl: null,
+          imagePublicId: null,
+        });
         mockPrisma.illustration.delete.mockResolvedValue({ id: 1 });
 
         const res = await request(app)
@@ -629,6 +644,11 @@ describe('HU10 - Admin Design', () => {
 
     describe('given database error', () => {
       it('should return 500 INTERNAL_ERROR', async () => {
+        mockPrisma.illustration.findUnique.mockResolvedValue({
+          id: 1,
+          imageUrl: null,
+          imagePublicId: null,
+        });
         mockPrisma.illustration.delete.mockRejectedValue(
           new Error('Database connection failed')
         );

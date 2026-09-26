@@ -13,6 +13,7 @@
 import prisma from '../lib/prisma.js';
 import logger from '../services/logger.js';
 import { sendSuccess, sendError } from '../lib/http-response.js';
+import { ERROR_CODES } from '../lib/constants.js';
 
 /**
  * Comprueba la conectividad con la base de datos.
@@ -34,7 +35,7 @@ const dbCheck = async (req, res) => {
     });
   } catch (error) {
     logger.error('Health check de BD fallido', { error: error.message });
-    return sendError(res, 503, 'SERVICE_UNAVAILABLE', 'Base de datos no disponible');
+    return sendError(res, 503, ERROR_CODES.SERVICE_UNAVAILABLE, 'Base de datos no disponible');
   }
 };
 

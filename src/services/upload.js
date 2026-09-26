@@ -7,11 +7,16 @@
  * @module services/upload
  * @requires cloudinary
  * @requires multer
+ * @requires lib/constants
  */
 
 import { v2 as cloudinary } from 'cloudinary';
 import multer from 'multer';
-import { IMAGE_MAX_WIDTH, IMAGE_THUMBNAIL_WIDTH } from '../lib/constants.js';
+import {
+  IMAGE_MAX_WIDTH,
+  IMAGE_THUMBNAIL_WIDTH,
+  CLOUDINARY_BASE_FOLDER,
+} from '../lib/constants.js';
 
 /**
  * Tipos MIME permitidos para upload
@@ -95,8 +100,8 @@ const upload = multer({
  */
 const uploadToCloudinary = async (file, section = 'general') => {
   const folder = CLOUDINARY_FOLDERS.includes(section)
-    ? `portfolio-antonio-tello/${section}`
-    : 'portfolio-antonio-tello/general';
+    ? `${CLOUDINARY_BASE_FOLDER}/${section}`
+    : `${CLOUDINARY_BASE_FOLDER}/general`;
 
   const filename = sanitizeFilename(file.originalname);
   const publicId = `${filename}-${Date.now()}`;
@@ -120,15 +125,16 @@ const uploadToCloudinary = async (file, section = 'general') => {
   };
 };
 
-const uploadImageAsset = uploadToCloudinary;
-
 /**
  * Resuelve la imagen y conserva el identificador de Cloudinary.
+ *
+ * Si llega un archivo (Multer) lo sube a Cloudinary y retorna su URL y
+ * public_id; en caso contrario usa la URL proporcionada directamente.
  *
  * @param {Object} [file] - Archivo de Multer.
  * @param {string} [imageUrl] - URL proporcionada en el body.
  * @param {string} section - Sección para subcarpeta.
- * @returns {Promise<Object>} URL y public_id.
+ * @returns {Promise<{url: string|undefined, publicId: string|null}>} URL y public_id.
  */
 const resolveImageAsset = async (file, imageUrl, section) => {
   if (!file) return { url: imageUrl, publicId: null };
@@ -136,31 +142,10 @@ const resolveImageAsset = async (file, imageUrl, section) => {
   return uploadToCloudinary(file, section);
 };
 
-/**
- * Resuelve la URL de imagen final para un recurso.
- *
- * Si llega un archivo (Multer) lo sube a Cloudinary y usa su URL;
- * en caso contrario usa la URL proporcionada directamente.
- *
- * @param {Object} [file] - Archivo de Multer (buffer, mimetype, originalname)
- * @param {string} [imageUrl] - URL proporcionada en el body
- * @param {string} section - Sección para subcarpeta en Cloudinary
- * @returns {Promise<string|undefined>} URL final o undefined si no hay ni archivo ni URL
- */
-const resolveImageUrl = async (file, imageUrl, section) => {
-  const result = await resolveImageAsset(file, imageUrl, section);
-  return result.url;
-};
-
 export {
   upload,
   uploadToCloudinary,
-  uploadImageAsset,
   resolveImageAsset,
-  resolveImageUrl,
   fileFilter,
-  ALLOWED_TYPES,
-  MAX_SIZE,
   ALLOWED_SECTIONS,
-  CLOUDINARY_FOLDERS,
 };

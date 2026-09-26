@@ -12,7 +12,7 @@
  */
 
 import logger from '../services/logger.js';
-import { sendPaginated, sendError, sendInternalError } from './http-response.js';
+import { sendPaginated, sendValidationError, sendInternalError } from './http-response.js';
 import { parsePagination, buildPaginationMeta } from './pagination.js';
 
 /**
@@ -34,7 +34,7 @@ const createPaginatedListHandler = ({ model, findManyArgs = {}, buildWhere, seri
       const { where: baseWhere, ...restArgs } = findManyArgs;
       const filter = buildWhere ? buildWhere(req.query) : {};
       if (typeof filter === 'string') {
-        return sendError(res, 400, 'VALIDATION_ERROR', filter);
+        return sendValidationError(res, filter);
       }
       const where = { ...baseWhere, ...filter };
       const hasWhere = Object.keys(where).length > 0;

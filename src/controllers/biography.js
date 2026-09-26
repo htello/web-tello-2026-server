@@ -7,14 +7,18 @@
  * @module controllers/biography
  * @requires lib/prisma
  * @requires lib/http-response
+ * @requires lib/crud-factory
+ * @requires services/upload
+ * @requires services/cloudinary
  * @requires services/logger
  */
 
 import prisma from '../lib/prisma.js';
 import logger from '../services/logger.js';
 import { resolveImageAsset } from '../services/upload.js';
-import { sendSuccess, sendError, sendNotFound, sendInternalError } from '../lib/http-response.js';
-import { deleteCloudinaryImage, extractPublicId } from '../services/cloudinary.js';
+import { deleteCloudinaryImage } from '../services/cloudinary.js';
+import { sendSuccess, sendValidationError, sendNotFound, sendInternalError } from '../lib/http-response.js';
+import { imagePublicIdField } from '../lib/crud-factory.js';
 
 /**
  * HU11 - Leer biografía
@@ -56,7 +60,7 @@ const create = async (req, res) => {
 
     const existing = await prisma.biography.findFirst();
     if (existing) {
-      return sendError(res, 400, 'VALIDATION_ERROR', 'Ya existe una biografía');
+      return sendValidationError(res, 'Ya existe una biografía');
     }
 
     const imageAsset = await resolveImageAsset(req.file, imageUrl, 'general');
@@ -66,9 +70,7 @@ const create = async (req, res) => {
       data: {
         content,
         imageUrl: finalImageUrl || null,
-        ...((imageAsset.publicId || extractPublicId(finalImageUrl)) && {
-          imagePublicId: imageAsset.publicId || extractPublicId(finalImageUrl),
-        }),
+        ...imagePublicIdField(imageAsset, finalImageUrl),
       },
     });
 
@@ -106,8 +108,7 @@ const update = async (req, res) => {
     if (finalImageUrl) {
       await deleteCloudinaryImage(existing.imagePublicId, existing.imageUrl);
       data.imageUrl = finalImageUrl;
-      const imagePublicId = imageAsset.publicId || extractPublicId(finalImageUrl);
-      if (imagePublicId) data.imagePublicId = imagePublicId;
+      Object.assign(data, imagePublicIdField(imageAsset, finalImageUrl));
     }
 
     const biography = await prisma.biography.update({

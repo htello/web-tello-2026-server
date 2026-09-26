@@ -869,7 +869,7 @@ describe('HU07 - Admin Exposiciones', () => {
   describe('remove', () => {
     describe('given existing exhibition', () => {
       it('should return 200 with success message', async () => {
-        mockPrisma.exhibition.findUnique.mockResolvedValue(undefined);
+        mockPrisma.exhibition.findUnique.mockResolvedValue({ id: 1, images: [] });
         mockPrisma.exhibition.delete.mockResolvedValue({ id: 1 });
         req.params = { id: '1' };
 

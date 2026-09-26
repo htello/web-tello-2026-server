@@ -10,6 +10,7 @@
 
 import rateLimit from 'express-rate-limit';
 import {
+  ERROR_CODES,
   RATE_LIMIT_WINDOW_MS,
   RATE_LIMIT_CONTACT_MAX,
   RATE_LIMIT_LOGIN_MAX,
@@ -28,7 +29,7 @@ const createContactLimiter = (options = {}) => rateLimit({
   max: RATE_LIMIT_CONTACT_MAX,
   message: {
     error: 'Demasiadas peticiones. Intenta de nuevo en 1 minuto.',
-    code: 'RATE_LIMITED',
+    code: ERROR_CODES.RATE_LIMITED,
   },
   ...options,
 });
@@ -44,7 +45,7 @@ const createLoginLimiter = (options = {}) => rateLimit({
   max: RATE_LIMIT_LOGIN_MAX,
   message: {
     error: 'Demasiados intentos de inicio de sesión',
-    code: 'RATE_LIMITED',
+    code: ERROR_CODES.RATE_LIMITED,
   },
   ...options,
 });
@@ -60,7 +61,7 @@ const createPasswordResetLimiter = (options = {}) => rateLimit({
   max: RATE_LIMIT_PASSWORD_RESET_MAX,
   message: {
     error: `Demasiadas solicitudes de recuperación. Intenta de nuevo en ${RATE_LIMIT_PASSWORD_RESET_WINDOW_MS / RATE_LIMIT_WINDOW_MS} minutos.`,
-    code: 'RATE_LIMITED',
+    code: ERROR_CODES.RATE_LIMITED,
   },
   ...options,
 });

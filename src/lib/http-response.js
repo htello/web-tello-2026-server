@@ -5,7 +5,10 @@
  * eliminar bloques repetidos en los controladores.
  *
  * @module lib/http-response
+ * @requires lib/constants
  */
+
+import { ERROR_CODES } from './constants.js';
 
 /**
  * Envía una respuesta de éxito con la estructura `{ data }`.
@@ -40,13 +43,31 @@ const sendPaginated = (res, data, meta, status = 200) => res.status(status).json
 const sendError = (res, status, code, error) => res.status(status).json({ error, code });
 
 /**
+ * Envía un error 400 de validación.
+ *
+ * @param {Object} res - Response de Express
+ * @param {string} message - Mensaje descriptivo
+ * @returns {Object} Respuesta JSON de Express
+ */
+const sendValidationError = (res, message) => sendError(res, 400, ERROR_CODES.VALIDATION_ERROR, message);
+
+/**
+ * Envía un error 401 "no autenticado".
+ *
+ * @param {Object} res - Response de Express
+ * @param {string} message - Mensaje descriptivo
+ * @returns {Object} Respuesta JSON de Express
+ */
+const sendUnauthorized = (res, message) => sendError(res, 401, ERROR_CODES.UNAUTHORIZED, message);
+
+/**
  * Envía un error 404 "recurso no encontrado".
  *
  * @param {Object} res - Response de Express
  * @param {string} message - Mensaje descriptivo
  * @returns {Object} Respuesta JSON de Express
  */
-const sendNotFound = (res, message) => sendError(res, 404, 'NOT_FOUND', message);
+const sendNotFound = (res, message) => sendError(res, 404, ERROR_CODES.NOT_FOUND, message);
 
 /**
  * Envía un error 400 por violación de constraint único.
@@ -55,7 +76,7 @@ const sendNotFound = (res, message) => sendError(res, 404, 'NOT_FOUND', message)
  * @param {string} message - Mensaje descriptivo
  * @returns {Object} Respuesta JSON de Express
  */
-const sendDuplicate = (res, message) => sendError(res, 400, 'DUPLICATE_ERROR', message);
+const sendDuplicate = (res, message) => sendError(res, 400, ERROR_CODES.DUPLICATE_ERROR, message);
 
 /**
  * Registra el error y envía un 500 genérico.
@@ -68,7 +89,16 @@ const sendDuplicate = (res, message) => sendError(res, 400, 'DUPLICATE_ERROR', m
  */
 const sendInternalError = (res, logger, context, error) => {
   logger.error(context, { error: error.message });
-  return sendError(res, 500, 'INTERNAL_ERROR', 'Error interno del servidor');
+  return sendError(res, 500, ERROR_CODES.INTERNAL_ERROR, 'Error interno del servidor');
 };
 
-export { sendSuccess, sendPaginated, sendError, sendNotFound, sendDuplicate, sendInternalError };
+export {
+  sendSuccess,
+  sendPaginated,
+  sendError,
+  sendValidationError,
+  sendUnauthorized,
+  sendNotFound,
+  sendDuplicate,
+  sendInternalError,
+};

@@ -7,6 +7,15 @@ y este proyecto adherido al [Versionado Semántico](https://semver.org/lang/es/)
 
 ## [Unreleased]
 
+### Changed (refactor: dedupe, código muerto y magic numbers)
+- Nueva factory `src/lib/crud-factory.js`: `createReorderHandler` (5 reorder duplicados), `createFindManyHandler` (listados `listPublished`/`listFeatured` de pinturas, ilustraciones, diseño y exposiciones), `createGetByIdHandler` (ficha de pintura) y `createImageResourceHandlers` (create/update/remove de recursos con imagen: pinturas, ilustraciones, diseño).
+- Unificadas inconsistencias entre recursos de imagen: `GET /paintings/featured` ahora ordena por `position asc, id asc` (igual que ilustraciones/diseño) y `POST /admin/paintings` guarda `imagePublicId` extraído de URLs de Cloudinary (fallback `extractPublicId`, igual que ilustraciones/diseño).
+- Helpers `resolveImagePublicId`/`imagePublicIdField`: eliminan la doble evaluación `imageAsset.publicId || extractPublicId(url)` en ilustraciones, diseño y biografía.
+- Eliminado código muerto en `src/services/upload.js`: `uploadImageAsset` (alias sin uso) y `resolveImageUrl` (solo lo usaban tests); `fileFilter`/`ALLOWED_TYPES`/`MAX_SIZE`/`CLOUDINARY_FOLDERS` dejan de exportarse (config interna de Multer).
+- Nuevos helpers en `lib/http-response.js`: `sendValidationError` y `sendUnauthorized`; constantes compartidas en `lib/constants.js` (`ERROR_CODES`, `ADMIN_ROLE`, `USER_ROLES`, `MS_PER_MINUTE`, `CLOUDINARY_BASE_FOLDER/URL_MARKER/UPLOAD_SEGMENT`, `RESEND_TIMEOUT_MS`, `PASSWORD_MIN_LENGTH`, `ISO_DATE_LENGTH`, `DEFAULT_PORT`, `DEFAULT_CORS_ORIGIN`, `JSON_BODY_LIMIT`, `INVALID_CREDENTIALS_MESSAGE`, `IMAGE_REQUIRED_MESSAGE`, `REORDER_SUCCESS/INVALID_IDS_MESSAGE`).
+- Sustituidos magic numbers/strings en `app.js`, `controllers/*`, `middleware/auth.js`, `middleware/validate.js`, `services/upload.js`, `services/cloudinary.js`, `services/email.js`; `GET /admin/users` migra a `createPaginatedListHandler`; eliminados los `if (x)` redundantes tras las guardas de 404 en los `remove`.
+- Tests ajustados (mocks de `resolveImageUrl`, DELETE con `findUnique` sin mock y `orderBy` de paintings featured); sin cambios de contrato. Tests: 557 en total, lint OK, cobertura 100%.
+
 ### Added (filtros server-side en listados admin)
 - `createPaginatedListHandler` (`src/lib/paginated-list.js`) admite `buildWhere(query)`: aplica `where` a `findMany` y `count` (meta.total filtrado) y devuelve `400 VALIDATION_ERROR` si retorna un mensaje de error.
 - `GET /admin/paintings` acepta `?collectionId=` (entero positivo; no numérico o ≤ 0 → 400).

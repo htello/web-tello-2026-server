@@ -14,6 +14,7 @@
 import nodemailer from 'nodemailer';
 import logger from './logger.js';
 import {
+  RESEND_TIMEOUT_MS,
   SMTP_DEFAULT_PORT,
   SMTP_SECURE_PORT,
   SMTP_CONNECTION_TIMEOUT_MS,
@@ -85,7 +86,7 @@ const sendViaResend = async ({ to, subject, html, replyTo }) => {
       html,
       ...(replyTo && { reply_to: replyTo }),
     }),
-    signal: AbortSignal.timeout(15000),
+    signal: AbortSignal.timeout(RESEND_TIMEOUT_MS),
   });
 
   if (!response.ok) {

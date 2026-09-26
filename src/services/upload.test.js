@@ -1,3 +1,9 @@
+/**
+ * @fileoverview Tests unitarios del servicio de upload.
+ *
+ * @module services/upload.test
+ */
+
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 vi.mock('cloudinary', () => ({
@@ -7,16 +13,19 @@ vi.mock('cloudinary', () => ({
   },
 }));
 
-vi.mock('multer', () => {
-  const multer = vi.fn(() => ({
-    single: vi.fn(),
-  }));
-  multer.memoryStorage = vi.fn();
-  return { default: multer };
+const { multerMock, capturedConfig } = vi.hoisted(() => {
+  const captured = {};
+  const mock = vi.fn((config) => {
+    captured.value = config;
+    return { single: vi.fn() };
+  });
+  mock.memoryStorage = vi.fn();
+  return { multerMock: mock, capturedConfig: captured };
 });
 
+vi.mock('multer', () => ({ default: multerMock }));
+
 const cloudinary = (await import('cloudinary')).v2;
-const multer = (await import('multer')).default;
 
 describe('HU16 - Upload Service', () => {
   beforeEach(() => {
@@ -26,12 +35,33 @@ describe('HU16 - Upload Service', () => {
   describe('upload (multer config)', () => {
     it('should configure multer with memory storage', async () => {
       await import('./upload.js');
-      expect(multer.memoryStorage).toHaveBeenCalled();
+      expect(multerMock.memoryStorage).toHaveBeenCalled();
     });
 
     it('should accept allowed MIME types', async () => {
       const { upload } = await import('./upload.js');
       expect(upload).toBeDefined();
+    });
+
+    it('should limit file size to 5MB', async () => {
+      await import('./upload.js');
+      expect(capturedConfig.value.limits).toEqual({ fileSize: 5 * 1024 * 1024 });
+    });
+
+    it('should reject disallowed MIME types via fileFilter', async () => {
+      await import('./upload.js');
+      const cb = vi.fn();
+
+      capturedConfig.value.fileFilter({}, { mimetype: 'application/pdf' }, cb);
+      expect(cb).toHaveBeenCalledWith(expect.any(Error), false);
+    });
+
+    it('should accept image/webp via fileFilter', async () => {
+      await import('./upload.js');
+      const cb = vi.fn();
+
+      capturedConfig.value.fileFilter({}, { mimetype: 'image/webp' }, cb);
+      expect(cb).toHaveBeenCalledWith(null, true);
     });
   });
 
@@ -148,37 +178,17 @@ describe('HU16 - Upload Service', () => {
     });
   });
 
-  describe('uploadImageAsset', () => {
-    it('should return the Cloudinary public id', async () => {
-      cloudinary.uploader.upload.mockResolvedValue({
-        secure_url: 'https://res.cloudinary.com/test/image/upload/test.jpg',
-        public_id: 'portfolio-antonio-tello/general/test',
-        width: 1200,
-        height: 800,
-        format: 'jpg',
-      });
-      cloudinary.url.mockReturnValue('https://res.cloudinary.com/test/image/upload/test_thumb.jpg');
-
-      const { uploadImageAsset } = await import('./upload.js');
-      const result = await uploadImageAsset(
-        { buffer: Buffer.from('img'), mimetype: 'image/jpeg', originalname: 'test.jpg' },
-      );
-
-      expect(result.publicId).toBe('portfolio-antonio-tello/general/test');
-    });
-  });
-
-  describe('resolveImageUrl', () => {
+  describe('resolveImageAsset', () => {
     it('should return provided imageUrl when no file is present', async () => {
-      const { resolveImageUrl } = await import('./upload.js');
+      const { resolveImageAsset } = await import('./upload.js');
 
-      const result = await resolveImageUrl(null, 'https://example.com/p.jpg', 'pintura');
+      const result = await resolveImageAsset(null, 'https://example.com/p.jpg', 'pintura');
 
-      expect(result).toBe('https://example.com/p.jpg');
+      expect(result).toEqual({ url: 'https://example.com/p.jpg', publicId: null });
       expect(cloudinary.uploader.upload).not.toHaveBeenCalled();
     });
 
-    it('should upload file and return its url when file is present', async () => {
+    it('should upload file and return url and publicId when file is present', async () => {
       cloudinary.uploader.upload.mockResolvedValue({
         secure_url: 'https://res.cloudinary.com/test/image/upload/pintura.jpg',
         public_id: 'portfolio-antonio-tello/pintura/pintura',
@@ -188,32 +198,19 @@ describe('HU16 - Upload Service', () => {
       });
       cloudinary.url.mockReturnValue('https://res.cloudinary.com/test/image/upload/pintura_thumb.jpg');
 
-      const { resolveImageUrl } = await import('./upload.js');
+      const { resolveImageAsset } = await import('./upload.js');
       const file = { buffer: Buffer.from('img'), mimetype: 'image/jpeg', originalname: 'pintura.jpg' };
 
-      const result = await resolveImageUrl(file, undefined, 'pintura');
+      const result = await resolveImageAsset(file, undefined, 'pintura');
 
-      expect(result).toBe('https://res.cloudinary.com/test/image/upload/pintura.jpg');
+      expect(result).toMatchObject({
+        url: 'https://res.cloudinary.com/test/image/upload/pintura.jpg',
+        publicId: 'portfolio-antonio-tello/pintura/pintura',
+      });
       expect(cloudinary.uploader.upload).toHaveBeenCalledWith(
         expect.any(String),
         expect.objectContaining({ folder: 'portfolio-antonio-tello/pintura' })
       );
-    });
-  });
-
-  describe('ALLOWED_TYPES', () => {
-    it('should include image/jpeg, image/png, image/webp', async () => {
-      const { ALLOWED_TYPES } = await import('./upload.js');
-      expect(ALLOWED_TYPES).toContain('image/jpeg');
-      expect(ALLOWED_TYPES).toContain('image/png');
-      expect(ALLOWED_TYPES).toContain('image/webp');
-    });
-  });
-
-  describe('MAX_SIZE', () => {
-    it('should be 5MB', async () => {
-      const { MAX_SIZE } = await import('./upload.js');
-      expect(MAX_SIZE).toBe(5 * 1024 * 1024);
     });
   });
 
@@ -230,42 +227,6 @@ describe('HU16 - Upload Service', () => {
     it('should not include test (internal use only)', async () => {
       const { ALLOWED_SECTIONS } = await import('./upload.js');
       expect(ALLOWED_SECTIONS).not.toContain('test');
-    });
-  });
-
-  describe('CLOUDINARY_FOLDERS', () => {
-    it('should include all allowed sections plus test', async () => {
-      const { CLOUDINARY_FOLDERS, ALLOWED_SECTIONS } = await import('./upload.js');
-      ALLOWED_SECTIONS.forEach((section) => {
-        expect(CLOUDINARY_FOLDERS).toContain(section);
-      });
-      expect(CLOUDINARY_FOLDERS).toContain('test');
-    });
-  });
-
-  describe('fileFilter', () => {
-    it('should accept allowed MIME types', async () => {
-      const { fileFilter } = await import('./upload.js');
-      const cb = vi.fn();
-
-      fileFilter({}, { mimetype: 'image/jpeg' }, cb);
-      expect(cb).toHaveBeenCalledWith(null, true);
-
-      cb.mockClear();
-      fileFilter({}, { mimetype: 'image/png' }, cb);
-      expect(cb).toHaveBeenCalledWith(null, true);
-
-      cb.mockClear();
-      fileFilter({}, { mimetype: 'image/webp' }, cb);
-      expect(cb).toHaveBeenCalledWith(null, true);
-    });
-
-    it('should reject disallowed MIME types', async () => {
-      const { fileFilter } = await import('./upload.js');
-      const cb = vi.fn();
-
-      fileFilter({}, { mimetype: 'application/pdf' }, cb);
-      expect(cb).toHaveBeenCalledWith(expect.any(Error), false);
     });
   });
 });
