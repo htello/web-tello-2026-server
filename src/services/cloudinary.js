@@ -38,7 +38,11 @@ const deleteCloudinaryImage = async (publicId, imageUrl) => {
   const resolvedPublicId = publicId || extractPublicId(imageUrl);
   if (!resolvedPublicId) return;
 
-  await cloudinary.uploader.destroy(resolvedPublicId);
+  const result = await cloudinary.uploader.destroy(resolvedPublicId, { resource_type: 'image' });
+
+  if (result?.result !== 'ok') {
+    throw new Error(`Cloudinary no eliminó la imagen: ${resolvedPublicId}`);
+  }
 };
 
 export { deleteCloudinaryImage, extractPublicId };
