@@ -3,7 +3,7 @@ import { uploadFile } from './upload.js';
 
 vi.mock('../services/upload.js', () => ({
   uploadToCloudinary: vi.fn(),
-  ALLOWED_SECTIONS: ['pintura', 'ilustracion', 'diseno', 'general'],
+  ALLOWED_SECTIONS: ['pintura', 'ilustracion', 'diseno', 'general', 'exposiciones'],
 }));
 
 vi.mock('../services/logger.js', () => ({
@@ -67,6 +67,23 @@ describe('HU16 - Upload Controller', () => {
       expect(uploadToCloudinary).toHaveBeenCalledWith(req.file, 'pintura');
       expect(res.json).toHaveBeenCalled();
     });
+
+    it('should return 200 with exposiciones section', async () => {
+      req.file = { buffer: Buffer.from('img'), mimetype: 'image/jpeg', originalname: 'expo.jpg', size: 1024 };
+      req.body.section = 'exposiciones';
+      uploadToCloudinary.mockResolvedValue({
+        url: 'https://res.cloudinary.com/test/expo.jpg',
+        thumbnail: 'https://res.cloudinary.com/test/expo_thumb.jpg',
+        width: 1200,
+        height: 800,
+        format: 'jpg',
+      });
+
+      await uploadFile(req, res);
+
+      expect(uploadToCloudinary).toHaveBeenCalledWith(req.file, 'exposiciones');
+      expect(res.json).toHaveBeenCalled();
+    });
   });
 
   describe('given no file', () => {
@@ -92,9 +109,19 @@ describe('HU16 - Upload Controller', () => {
 
       expect(res.status).toHaveBeenCalledWith(400);
       expect(res.json).toHaveBeenCalledWith({
-        error: 'Sección no válida. Permitidas: pintura, ilustracion, diseno, general',
+        error: 'Sección no válida. Permitidas: pintura, ilustracion, diseno, general, exposiciones',
         code: 'VALIDATION_ERROR',
       });
+    });
+
+    it('should return 400 for internal test section', async () => {
+      req.file = { buffer: Buffer.from('img'), mimetype: 'image/jpeg', originalname: 'test.jpg', size: 1024 };
+      req.body.section = 'test';
+
+      await uploadFile(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(400);
+      expect(uploadToCloudinary).not.toHaveBeenCalled();
     });
   });
 

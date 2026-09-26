@@ -23,7 +23,7 @@ import { sendSuccess, sendError, sendInternalError } from '../lib/http-response.
  *
  * @param {Object} req - Request de Express
  * @param {Object} req.file - Archivo multer (buffer, mimetype)
- * @param {string} req.body.section - Sección para subcarpeta (pintura, ilustracion, diseno, general)
+ * @param {string} req.body.section - Sección para subcarpeta (pintura, ilustracion, diseno, general, exposiciones)
  * @param {Object} res - Response de Express
  * @returns {Promise<Object>} 200 con URLs, 400 o 500
  * @security Bearer token requerido (Admin)

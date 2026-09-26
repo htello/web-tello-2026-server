@@ -7,6 +7,11 @@ y este proyecto adherido al [Versionado Semántico](https://semver.org/lang/es/)
 
 ## [Unreleased]
 
+### Added (secciones Cloudinary: exposiciones y test)
+- `ALLOWED_SECTIONS` incluye `exposiciones`: `POST /admin/upload` acepta `section=exposiciones` y sube a `portfolio-antonio-tello/exposiciones`.
+- Nueva constante `CLOUDINARY_FOLDERS` (`ALLOWED_SECTIONS` + `test`): `uploadToCloudinary` admite la sección interna `test` (`portfolio-antonio-tello/test`) para scripts y pruebas; el endpoint `/admin/upload` la rechaza con `400 VALIDATION_ERROR`.
+- Se mantiene `diseno` (sin ñ) como carpeta de diseño. Sincronizados `docs/openapi.yaml` (enum de `section`) y `docs/openapi-INDEX.md`.
+
 ### Fixed (limpieza de imágenes en Cloudinary)
 - Las eliminaciones y reemplazos de pinturas, proyectos de diseño, ilustraciones, colecciones, exposiciones y biografía eliminan también sus imágenes de Cloudinary cuando la URL pertenece a Cloudinary.
 - Se persiste el `publicId` de Cloudinary en los recursos con imágenes y se añade fallback para URLs legacy; las URLs externas no se eliminan.

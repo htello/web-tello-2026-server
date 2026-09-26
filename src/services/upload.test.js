@@ -84,6 +84,48 @@ describe('HU16 - Upload Service', () => {
       );
     });
 
+    it('should upload file to exposiciones folder', async () => {
+      cloudinary.uploader.upload.mockResolvedValue({
+        secure_url: 'https://res.cloudinary.com/test/image/upload/expo.jpg',
+        public_id: 'portfolio-antonio-tello/exposiciones/expo',
+        width: 1200,
+        height: 800,
+        format: 'jpg',
+      });
+      cloudinary.url.mockReturnValue('https://res.cloudinary.com/test/image/upload/expo_thumb.jpg');
+
+      const { uploadToCloudinary } = await import('./upload.js');
+      const file = { buffer: Buffer.from('img'), mimetype: 'image/jpeg', originalname: 'expo.jpg' };
+
+      await uploadToCloudinary(file, 'exposiciones');
+
+      expect(cloudinary.uploader.upload).toHaveBeenCalledWith(
+        expect.any(String),
+        expect.objectContaining({ folder: 'portfolio-antonio-tello/exposiciones' })
+      );
+    });
+
+    it('should upload file to test folder for internal use', async () => {
+      cloudinary.uploader.upload.mockResolvedValue({
+        secure_url: 'https://res.cloudinary.com/test/image/upload/prueba.jpg',
+        public_id: 'portfolio-antonio-tello/test/prueba',
+        width: 1200,
+        height: 800,
+        format: 'jpg',
+      });
+      cloudinary.url.mockReturnValue('https://res.cloudinary.com/test/image/upload/prueba_thumb.jpg');
+
+      const { uploadToCloudinary } = await import('./upload.js');
+      const file = { buffer: Buffer.from('img'), mimetype: 'image/jpeg', originalname: 'prueba.jpg' };
+
+      await uploadToCloudinary(file, 'test');
+
+      expect(cloudinary.uploader.upload).toHaveBeenCalledWith(
+        expect.any(String),
+        expect.objectContaining({ folder: 'portfolio-antonio-tello/test' })
+      );
+    });
+
     it('should use general folder for invalid section', async () => {
       cloudinary.uploader.upload.mockResolvedValue({
         secure_url: 'https://res.cloudinary.com/test/image/upload/test.jpg',
@@ -176,12 +218,28 @@ describe('HU16 - Upload Service', () => {
   });
 
   describe('ALLOWED_SECTIONS', () => {
-    it('should include pintura, ilustracion, diseno, general', async () => {
+    it('should include pintura, ilustracion, diseno, general, exposiciones', async () => {
       const { ALLOWED_SECTIONS } = await import('./upload.js');
       expect(ALLOWED_SECTIONS).toContain('pintura');
       expect(ALLOWED_SECTIONS).toContain('ilustracion');
       expect(ALLOWED_SECTIONS).toContain('diseno');
       expect(ALLOWED_SECTIONS).toContain('general');
+      expect(ALLOWED_SECTIONS).toContain('exposiciones');
+    });
+
+    it('should not include test (internal use only)', async () => {
+      const { ALLOWED_SECTIONS } = await import('./upload.js');
+      expect(ALLOWED_SECTIONS).not.toContain('test');
+    });
+  });
+
+  describe('CLOUDINARY_FOLDERS', () => {
+    it('should include all allowed sections plus test', async () => {
+      const { CLOUDINARY_FOLDERS, ALLOWED_SECTIONS } = await import('./upload.js');
+      ALLOWED_SECTIONS.forEach((section) => {
+        expect(CLOUDINARY_FOLDERS).toContain(section);
+      });
+      expect(CLOUDINARY_FOLDERS).toContain('test');
     });
   });
 
