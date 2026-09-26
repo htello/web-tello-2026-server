@@ -134,7 +134,7 @@ describe('HU01 - Galería de Colecciones', () => {
 
   describe('listAll', () => {
     describe('given collections exist (published and unpublished)', () => {
-      it('should return 200 with all collections and paintingsCount', async () => {
+      it('should return 200 with paginated collections and paintingsCount', async () => {
         mockPrisma.collection.findMany.mockResolvedValue([
           {
             id: 1,
@@ -155,12 +155,13 @@ describe('HU01 - Galería de Colecciones', () => {
             _count: { paintings: 0 },
           },
         ]);
+        mockPrisma.collection.count.mockResolvedValue(2);
 
         await listAll(req, res);
 
         expect(res.status).toHaveBeenCalledWith(200);
 
-        const { data } = res.json.mock.calls[0][0];
+        const { data, meta } = res.json.mock.calls[0][0];
         expect(data).toHaveLength(2);
         expect(data[0]).toMatchObject({
           id: 1,
@@ -170,30 +171,69 @@ describe('HU01 - Galería de Colecciones', () => {
         });
         expect(data[1]).toMatchObject({ id: 2, isPublished: false, paintingsCount: 0 });
         expect(data[0]).not.toHaveProperty('_count');
+        expect(meta).toEqual({ total: 2, page: 1, limit: 20, pages: 1 });
       });
 
-      it('should query all collections ordered by position without published filter', async () => {
+      it('should query collections paginated and ordered by position without published filter', async () => {
         mockPrisma.collection.findMany.mockResolvedValue([]);
+        mockPrisma.collection.count.mockResolvedValue(0);
 
         await listAll(req, res);
 
         expect(mockPrisma.collection.findMany).toHaveBeenCalledWith({
+          skip: 0,
+          take: 20,
           orderBy: [{ position: 'asc' }, { id: 'asc' }],
           include: {
             _count: { select: { paintings: true } },
           },
         });
+        expect(mockPrisma.collection.count).toHaveBeenCalledWith();
+      });
+    });
+
+    describe('given pagination query params', () => {
+      it('should apply page and limit and return meta', async () => {
+        req.query = { page: '2', limit: '5' };
+        mockPrisma.collection.findMany.mockResolvedValue([]);
+        mockPrisma.collection.count.mockResolvedValue(7);
+
+        await listAll(req, res);
+
+        expect(mockPrisma.collection.findMany).toHaveBeenCalledWith(
+          expect.objectContaining({ skip: 5, take: 5 })
+        );
+        expect(res.json).toHaveBeenCalledWith({
+          data: [],
+          meta: { total: 7, page: 2, limit: 5, pages: 2 },
+        });
+      });
+
+      it('should cap limit at 100', async () => {
+        req.query = { limit: '500' };
+        mockPrisma.collection.findMany.mockResolvedValue([]);
+        mockPrisma.collection.count.mockResolvedValue(0);
+
+        await listAll(req, res);
+
+        expect(mockPrisma.collection.findMany).toHaveBeenCalledWith(
+          expect.objectContaining({ skip: 0, take: 100 })
+        );
       });
     });
 
     describe('given no collections', () => {
       it('should return 200 with an empty array', async () => {
         mockPrisma.collection.findMany.mockResolvedValue([]);
+        mockPrisma.collection.count.mockResolvedValue(0);
 
         await listAll(req, res);
 
         expect(res.status).toHaveBeenCalledWith(200);
-        expect(res.json).toHaveBeenCalledWith({ data: [] });
+        expect(res.json).toHaveBeenCalledWith({
+          data: [],
+          meta: { total: 0, page: 1, limit: 20, pages: 0 },
+        });
       });
     });
 

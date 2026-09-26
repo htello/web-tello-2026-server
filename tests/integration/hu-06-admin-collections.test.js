@@ -64,6 +64,7 @@ describe('HU06 - Admin Colecciones y Pinturas', () => {
             _count: { paintings: 0 },
           },
         ]);
+        mockPrisma.collection.count.mockResolvedValue(2);
 
         const res = await request(app)
           .get('/api/v1/admin/collections')
@@ -73,6 +74,23 @@ describe('HU06 - Admin Colecciones y Pinturas', () => {
         expect(res.body.data).toHaveLength(2);
         expect(res.body.data[0]).toMatchObject({ id: 1, isPublished: true, paintingsCount: 2 });
         expect(res.body.data[1]).toMatchObject({ id: 2, isPublished: false, paintingsCount: 0 });
+        expect(res.body.meta).toEqual({ total: 2, page: 1, limit: 20, pages: 1 });
+      });
+
+      it('should paginate with page and limit query params', async () => {
+        mockPrisma.collection.findMany.mockResolvedValue([]);
+        mockPrisma.collection.count.mockResolvedValue(7);
+
+        const res = await request(app)
+          .get('/api/v1/admin/collections')
+          .query({ page: 2, limit: 5 })
+          .set('Authorization', `Bearer ${adminToken}`);
+
+        expect(res.status).toBe(200);
+        expect(mockPrisma.collection.findMany).toHaveBeenCalledWith(
+          expect.objectContaining({ skip: 5, take: 5 })
+        );
+        expect(res.body.meta).toEqual({ total: 7, page: 2, limit: 5, pages: 2 });
       });
     });
 
@@ -376,6 +394,7 @@ describe('HU06 - Admin Colecciones y Pinturas', () => {
             collection: { id: 1, title: 'Colección Uno' },
           },
         ]);
+        mockPrisma.painting.count.mockResolvedValue(2);
 
         const res = await request(app)
           .get('/api/v1/admin/paintings')
@@ -384,6 +403,7 @@ describe('HU06 - Admin Colecciones y Pinturas', () => {
         expect(res.status).toBe(200);
         expect(res.body.data).toHaveLength(2);
         expect(res.body.data[1]).toMatchObject({ id: 2, isPublished: false });
+        expect(res.body.meta).toEqual({ total: 2, page: 1, limit: 20, pages: 1 });
       });
     });
 

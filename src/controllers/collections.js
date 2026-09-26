@@ -14,7 +14,8 @@
 import prisma from '../lib/prisma.js';
 import logger from '../services/logger.js';
 import { parseId, isNotFoundError, isDuplicateError, reorderByPosition } from '../lib/prisma-utils.js';
-import { sendSuccess, sendError, sendNotFound, sendDuplicate, sendInternalError } from '../lib/http-response.js';
+import { sendSuccess, sendPaginated, sendError, sendNotFound, sendDuplicate, sendInternalError } from '../lib/http-response.js';
+import { parsePagination, buildPaginationMeta } from '../lib/pagination.js';
 import { STABLE_POSITION_ORDER } from '../lib/constants.js';
 import { deleteCloudinaryImage, extractPublicId } from '../services/cloudinary.js';
 
@@ -58,25 +59,34 @@ const listPublished = async (req, res) => {
  * Endpoint GET /api/v1/admin/collections
  *
  * @param {Object} req - Request de Express
+ * @param {Object} req.query.page - Número de página (default 1)
+ * @param {Object} req.query.limit - Elementos por página (default 20, max 100)
  * @param {Object} res - Response de Express
- * @returns {Promise<Object>} 200 con todas las colecciones o 500
+ * @returns {Promise<Object>} 200 con data paginada y meta, o 500
  * @security Requiere Bearer token con rol ADMIN
  */
 const listAll = async (req, res) => {
   try {
-    const collections = await prisma.collection.findMany({
-      orderBy: STABLE_POSITION_ORDER,
-      include: {
-        _count: { select: { paintings: true } },
-      },
-    });
+    const { page, limit, skip } = parsePagination(req.query);
+
+    const [collections, total] = await Promise.all([
+      prisma.collection.findMany({
+        skip,
+        take: limit,
+        orderBy: STABLE_POSITION_ORDER,
+        include: {
+          _count: { select: { paintings: true } },
+        },
+      }),
+      prisma.collection.count(),
+    ]);
 
     const data = collections.map(({ _count, ...collection }) => ({
       ...collection,
       paintingsCount: _count.paintings,
     }));
 
-    return sendSuccess(res, data);
+    return sendPaginated(res, data, buildPaginationMeta(total, page, limit));
   } catch (error) {
     return sendInternalError(res, logger, 'Error al listar colecciones', error);
   }

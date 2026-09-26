@@ -14,7 +14,8 @@
 import prisma from '../lib/prisma.js';
 import logger from '../services/logger.js';
 import { parseId, isNotFoundError, reorderByPosition } from '../lib/prisma-utils.js';
-import { sendSuccess, sendError, sendNotFound, sendInternalError } from '../lib/http-response.js';
+import { sendSuccess, sendPaginated, sendError, sendNotFound, sendInternalError } from '../lib/http-response.js';
+import { parsePagination, buildPaginationMeta } from '../lib/pagination.js';
 import { STABLE_POSITION_ORDER } from '../lib/constants.js';
 import { deleteCloudinaryImage, extractPublicId } from '../services/cloudinary.js';
 
@@ -269,18 +270,27 @@ const listPublished = async (req, res) => {
  * Endpoint GET /api/v1/admin/exhibitions
  *
  * @param {Object} req - Request de Express
+ * @param {Object} req.query.page - Número de página (default 1)
+ * @param {Object} req.query.limit - Elementos por página (default 20, max 100)
  * @param {Object} res - Response de Express
- * @returns {Promise<Object>} 200 con todas las exposiciones o 500
+ * @returns {Promise<Object>} 200 con data paginada y meta, o 500
  * @security Requiere Bearer token con rol ADMIN
  */
 const listAll = async (req, res) => {
   try {
-    const exhibitions = await prisma.exhibition.findMany({
-      orderBy: STABLE_POSITION_ORDER,
-      include: IMAGES_INCLUDE,
-    });
+    const { page, limit, skip } = parsePagination(req.query);
 
-    return sendSuccess(res, exhibitions.map(serializeExhibition));
+    const [exhibitions, total] = await Promise.all([
+      prisma.exhibition.findMany({
+        skip,
+        take: limit,
+        orderBy: STABLE_POSITION_ORDER,
+        include: IMAGES_INCLUDE,
+      }),
+      prisma.exhibition.count(),
+    ]);
+
+    return sendPaginated(res, exhibitions.map(serializeExhibition), buildPaginationMeta(total, page, limit));
   } catch (error) {
     return sendInternalError(res, logger, 'Error al listar exposiciones', error);
   }

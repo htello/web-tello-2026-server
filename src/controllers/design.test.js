@@ -49,35 +49,76 @@ describe('HU09 - Admin Diseño', () => {
 
   describe('listAll', () => {
     describe('given projects exist (published and unpublished)', () => {
-      it('should return 200 with all projects without published filter', async () => {
+      it('should return 200 with paginated projects without published filter', async () => {
         mockPrisma.designProject.findMany.mockResolvedValue([
           { id: 1, title: 'Proyecto A', subcategory: 'imagen-corporativa', isPublished: true },
           { id: 2, title: 'Proyecto B', subcategory: 'editorial', isPublished: false },
         ]);
+        mockPrisma.designProject.count.mockResolvedValue(2);
 
         await listAll(req, res);
 
         expect(mockPrisma.designProject.findMany).toHaveBeenCalledWith({
+          skip: 0,
+          take: 20,
           orderBy: [{ position: 'asc' }, { id: 'asc' }],
         });
+        expect(mockPrisma.designProject.count).toHaveBeenCalledWith();
         expect(res.status).toHaveBeenCalledWith(200);
         expect(res.json).toHaveBeenCalledWith({
           data: [
             { id: 1, title: 'Proyecto A', subcategory: 'imagen-corporativa', isPublished: true },
             { id: 2, title: 'Proyecto B', subcategory: 'editorial', isPublished: false },
           ],
+          meta: { total: 2, page: 1, limit: 20, pages: 1 },
         });
+      });
+    });
+
+    describe('given pagination query params', () => {
+      it('should apply page and limit and return meta', async () => {
+        req.query = { page: '2', limit: '5' };
+        mockPrisma.designProject.findMany.mockResolvedValue([]);
+        mockPrisma.designProject.count.mockResolvedValue(7);
+
+        await listAll(req, res);
+
+        expect(mockPrisma.designProject.findMany).toHaveBeenCalledWith({
+          skip: 5,
+          take: 5,
+          orderBy: [{ position: 'asc' }, { id: 'asc' }],
+        });
+        expect(res.json).toHaveBeenCalledWith({
+          data: [],
+          meta: { total: 7, page: 2, limit: 5, pages: 2 },
+        });
+      });
+
+      it('should cap limit at 100', async () => {
+        req.query = { limit: '500' };
+        mockPrisma.designProject.findMany.mockResolvedValue([]);
+        mockPrisma.designProject.count.mockResolvedValue(0);
+
+        await listAll(req, res);
+
+        expect(mockPrisma.designProject.findMany).toHaveBeenCalledWith(
+          expect.objectContaining({ skip: 0, take: 100 })
+        );
       });
     });
 
     describe('given no projects', () => {
       it('should return 200 with an empty array', async () => {
         mockPrisma.designProject.findMany.mockResolvedValue([]);
+        mockPrisma.designProject.count.mockResolvedValue(0);
 
         await listAll(req, res);
 
         expect(res.status).toHaveBeenCalledWith(200);
-        expect(res.json).toHaveBeenCalledWith({ data: [] });
+        expect(res.json).toHaveBeenCalledWith({
+          data: [],
+          meta: { total: 0, page: 1, limit: 20, pages: 0 },
+        });
       });
     });
 

@@ -19,6 +19,7 @@ import logger from '../services/logger.js';
 import { BCRYPT_ROUNDS } from '../lib/constants.js';
 import { parseId, isNotFoundError, isDuplicateError } from '../lib/prisma-utils.js';
 import { sendSuccess, sendNotFound, sendDuplicate, sendPaginated, sendInternalError } from '../lib/http-response.js';
+import { parsePagination, buildPaginationMeta } from '../lib/pagination.js';
 
 /**
  * Campos públicos del usuario (sin password).
@@ -45,12 +46,11 @@ const USER_SELECT = {
  */
 const list = async (req, res) => {
   try {
-    const page = Math.max(Number.parseInt(req.query?.page, 10) || 1, 1);
-    const limit = Math.min(Number.parseInt(req.query?.limit, 10) || 20, 100);
+    const { page, limit, skip } = parsePagination(req.query);
 
     const [users, total] = await Promise.all([
       prisma.user.findMany({
-        skip: (page - 1) * limit,
+        skip,
         take: limit,
         orderBy: { id: 'asc' },
         select: USER_SELECT,
@@ -58,12 +58,7 @@ const list = async (req, res) => {
       prisma.user.count(),
     ]);
 
-    return sendPaginated(res, users, {
-      total,
-      page,
-      limit,
-      pages: Math.ceil(total / limit),
-    });
+    return sendPaginated(res, users, buildPaginationMeta(total, page, limit));
   } catch (error) {
     return sendInternalError(res, logger, 'Error al listar usuarios', error);
   }

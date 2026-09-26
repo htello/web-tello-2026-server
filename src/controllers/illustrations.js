@@ -17,7 +17,8 @@ import logger from '../services/logger.js';
 import { resolveImageAsset } from '../services/upload.js';
 import { deleteCloudinaryImage, extractPublicId } from '../services/cloudinary.js';
 import { parseId, isNotFoundError, isDuplicateError, reorderByPosition } from '../lib/prisma-utils.js';
-import { sendSuccess, sendError, sendNotFound, sendDuplicate, sendInternalError } from '../lib/http-response.js';
+import { sendSuccess, sendPaginated, sendError, sendNotFound, sendDuplicate, sendInternalError } from '../lib/http-response.js';
+import { parsePagination, buildPaginationMeta } from '../lib/pagination.js';
 import { STABLE_POSITION_ORDER } from '../lib/constants.js';
 
 /**
@@ -186,17 +187,26 @@ const listPublished = async (req, res) => {
  * Endpoint GET /api/v1/admin/illustrations
  *
  * @param {Object} req - Request de Express
+ * @param {Object} req.query.page - Número de página (default 1)
+ * @param {Object} req.query.limit - Elementos por página (default 20, max 100)
  * @param {Object} res - Response de Express
- * @returns {Promise<Object>} 200 con todas las ilustraciones o 500
+ * @returns {Promise<Object>} 200 con data paginada y meta, o 500
  * @security Requiere Bearer token con rol ADMIN
  */
 const listAll = async (req, res) => {
   try {
-    const illustrations = await prisma.illustration.findMany({
-      orderBy: STABLE_POSITION_ORDER,
-    });
+    const { page, limit, skip } = parsePagination(req.query);
 
-    return sendSuccess(res, illustrations);
+    const [illustrations, total] = await Promise.all([
+      prisma.illustration.findMany({
+        skip,
+        take: limit,
+        orderBy: STABLE_POSITION_ORDER,
+      }),
+      prisma.illustration.count(),
+    ]);
+
+    return sendPaginated(res, illustrations, buildPaginationMeta(total, page, limit));
   } catch (error) {
     return sendInternalError(res, logger, 'Error al listar ilustraciones', error);
   }

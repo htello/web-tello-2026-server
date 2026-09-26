@@ -7,6 +7,12 @@ y este proyecto adherido al [Versionado Semántico](https://semver.org/lang/es/)
 
 ## [Unreleased]
 
+### Added (paginación en listados admin)
+- Los GET admin de colecciones, pinturas, exposiciones, diseño e ilustraciones aceptan `?page` (default 1) y `?limit` (default 20, max 100) y responden `{ data, meta: { total, page, limit, pages } }` (mismo contrato que `GET /admin/users`). **Breaking para consumidores admin**: la respuesta ya no es solo `{ data }`.
+- Nuevo helper `src/lib/pagination.js` (`parsePagination`, `buildPaginationMeta`) reutilizado también por `GET /admin/users` (sin cambio de comportamiento; el límite ahora se fija a >= 1).
+- Los endpoints públicos (`/collections`, `/paintings`, `/exhibitions`, `/design`, `/illustrations`, featured, etc.) no cambian.
+- Sincronizados `docs/openapi.yaml` (params + `PaginationMeta` en los 5 GET admin) y `docs/openapi-INDEX.md`.
+
 ### Added (secciones Cloudinary: exposiciones y test)
 - `ALLOWED_SECTIONS` incluye `exposiciones`: `POST /admin/upload` acepta `section=exposiciones` y sube a `portfolio-antonio-tello/exposiciones`.
 - Nueva constante `CLOUDINARY_FOLDERS` (`ALLOWED_SECTIONS` + `test`): `uploadToCloudinary` admite la sección interna `test` (`portfolio-antonio-tello/test`) para scripts y pruebas; el endpoint `/admin/upload` la rechaza con `400 VALIDATION_ERROR`.

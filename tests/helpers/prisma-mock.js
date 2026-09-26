@@ -16,6 +16,7 @@ const createPrismaMock = () => ({
     create: vi.fn(),
     update: vi.fn(),
     delete: vi.fn(),
+    count: vi.fn(),
   },
   painting: {
     findUnique: vi.fn(),
@@ -23,6 +24,7 @@ const createPrismaMock = () => ({
     create: vi.fn(),
     update: vi.fn(),
     delete: vi.fn(),
+    count: vi.fn(),
   },
   exhibition: {
     findUnique: vi.fn(),
@@ -30,6 +32,7 @@ const createPrismaMock = () => ({
     create: vi.fn(),
     update: vi.fn(),
     delete: vi.fn(),
+    count: vi.fn(),
   },
   exhibitionImage: {
     findMany: vi.fn(),
@@ -42,6 +45,7 @@ const createPrismaMock = () => ({
     create: vi.fn(),
     update: vi.fn(),
     delete: vi.fn(),
+    count: vi.fn(),
   },
   illustration: {
     findUnique: vi.fn(),
@@ -49,6 +53,7 @@ const createPrismaMock = () => ({
     create: vi.fn(),
     update: vi.fn(),
     delete: vi.fn(),
+    count: vi.fn(),
   },
   biography: {
     findFirst: vi.fn(),
