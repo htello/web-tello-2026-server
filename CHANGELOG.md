@@ -13,6 +13,10 @@ y este proyecto adherido al [Versionado Semántico](https://semver.org/lang/es/)
 - Si Cloudinary falla, se conserva el registro de Prisma y la API devuelve error interno.
 - Nueva migración `add_cloudinary_public_ids` y servicio `src/services/cloudinary.js`. Tests: 500 en total, cobertura 100%.
 
+### Fixed (identificador real de Cloudinary)
+- Las subidas persisten el `public_id` devuelto por Cloudinary, evitando derivar identificadores potencialmente incorrectos desde la URL.
+- El borrado usa `resource_type: image` y valida la respuesta `result: ok`; respuestas `not found` se tratan como error y conservan el registro en Prisma.
+
 ### Added (imágenes múltiples en exposiciones)
 - Nuevo modelo `ExhibitionImage` (migración `add_exhibition_images`): relación 1-N con `Exhibition` (`onDelete: Cascade`), campos `url`, `thumbnail?`, `width?`, `height?` y `position`, e índice por `exhibitionId`. Permite adjuntar varias imágenes a una exposición.
 - `POST /admin/exhibitions` acepta `images: [{ url, thumbnail?, width?, height? }]` y las crea anidadas; el orden del array define el `position` de cada imagen.

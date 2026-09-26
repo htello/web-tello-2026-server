@@ -106,6 +106,11 @@ CAMBIOS DE fix/23-cloudinary-image-deletion (2026-09-26):
 - Nueva migración `add_cloudinary_public_ids` y servicio `src/services/cloudinary.js`.
 - Verificado: 500 tests, lint correcto y cobertura 100%. Migración pendiente de aplicar en entornos con PostgreSQL disponible.
 
+CAMBIOS DE fix/24-cloudinary-public-id (2026-09-26):
+- Las subidas persisten el `public_id` real devuelto por Cloudinary en pinturas.
+- `destroy` especifica `resource_type: image` y rechaza respuestas `not found` para evitar borrar la fila de Prisma cuando la imagen no se eliminó.
+- Verificación local: migración aplicada en PostgreSQL, health DB OK y tests de integración de HU06/HU10 OK.
+
 REGLAS DE SESIÓN (ESTRICTAS):
 1. Verificar siempre la rama antes de trabajar (`hu/XX-nombre`). NUNCA escribir código directo en `develop`.
 2. Seguir TDD estricto (RED → GREEN → REFACTOR) y mantener 100% de cobertura.

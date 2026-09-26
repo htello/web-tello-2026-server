@@ -11,6 +11,7 @@ const cloudinary = (await import('cloudinary')).v2;
 describe('Cloudinary deletion service', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    cloudinary.uploader.destroy.mockResolvedValue({ result: 'ok' });
   });
 
   it('should delete an image using its public id', async () => {
@@ -20,6 +21,7 @@ describe('Cloudinary deletion service', () => {
 
     expect(cloudinary.uploader.destroy).toHaveBeenCalledWith(
       'portfolio-antonio-tello/pintura/obra-1',
+      { resource_type: 'image' },
     );
   });
 
@@ -30,7 +32,7 @@ describe('Cloudinary deletion service', () => {
     expect(extractPublicId(imageUrl)).toBe('portfolio/obra');
     await deleteCloudinaryImage(null, imageUrl);
 
-    expect(cloudinary.uploader.destroy).toHaveBeenCalledWith('portfolio/obra');
+    expect(cloudinary.uploader.destroy).toHaveBeenCalledWith('portfolio/obra', { resource_type: 'image' });
   });
 
   it('should ignore external URLs without a public id', async () => {
@@ -58,5 +60,14 @@ describe('Cloudinary deletion service', () => {
     const { extractPublicId } = await import('./cloudinary.js');
 
     expect(extractPublicId('https://res.cloudinary.com/demo/image/upload/')).toBeNull();
+  });
+
+  it('should reject when Cloudinary reports that the image was not found', async () => {
+    cloudinary.uploader.destroy.mockResolvedValue({ result: 'not found' });
+    const { deleteCloudinaryImage } = await import('./cloudinary.js');
+
+    await expect(deleteCloudinaryImage('portfolio/missing')).rejects.toThrow(
+      'Cloudinary no eliminó la imagen',
+    );
   });
 });
