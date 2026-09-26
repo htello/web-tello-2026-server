@@ -40,7 +40,7 @@ const deleteCloudinaryImage = async (publicId, imageUrl) => {
 
   const result = await cloudinary.uploader.destroy(resolvedPublicId, { resource_type: 'image' });
 
-  if (result?.result !== 'ok') {
+  if (!['ok', 'not found'].includes(result?.result)) {
     throw new Error(`Cloudinary no eliminó la imagen: ${resolvedPublicId}`);
   }
 };

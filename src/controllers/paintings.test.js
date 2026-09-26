@@ -313,6 +313,21 @@ describe('HU06 - Admin Pinturas', () => {
           data: expect.objectContaining({ imagePublicId: 'portfolio/new' }),
         });
       });
+
+      it('should reject removing the image without a replacement', async () => {
+        req.params = { id: '1' };
+        req.body = { imageUrl: null };
+
+        await update(req, res);
+
+        expect(res.status).toHaveBeenCalledWith(400);
+        expect(res.json).toHaveBeenCalledWith({
+          error: 'La imagen es obligatoria (archivo o URL)',
+          code: 'VALIDATION_ERROR',
+        });
+        expect(mockPrisma.painting.update).not.toHaveBeenCalled();
+        expect(deleteCloudinaryImage).not.toHaveBeenCalled();
+      });
     });
 
     it('should delete the previous image when updating the image', async () => {

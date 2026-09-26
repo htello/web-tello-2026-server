@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { authenticate, requireAdmin } from '../middleware/auth.js';
-import { validate, biographySchema } from '../middleware/validate.js';
+import { validate, biographySchema, biographyUpdateSchema } from '../middleware/validate.js';
 import { upload } from '../services/upload.js';
 import * as controller from '../controllers/biography.js';
 
@@ -28,7 +28,7 @@ router.put(
   authenticate,
   requireAdmin,
   upload.single('image'),
-  validate(biographySchema),
+  validate(biographyUpdateSchema),
   controller.update
 );
 
