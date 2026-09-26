@@ -15,7 +15,7 @@ ESTADO DEL PROYECTO:
 - Rama actual: develop
 - Cobertura de tests: 100% obligatorio (Vitest)
 - Última HU completada y mergeada: HU13/HU14/HU15 - Formulario de Contacto + Email + Rate Limiting
-- Última rama mergeada: refactor/admin-list-handlers (factory createPaginatedListHandler para los listAll admin paginados)
+- Última rama mergeada: refactor/magic-numbers (constantes centralizadas en lib/constants.js) + fix client fix/exhibition-upload-section (imágenes de exposiciones a sección exposiciones)
 - gh CLI autenticado en este equipo (cuenta htello)
 
 ESTADO DE LAS HUS POR FASE:
@@ -138,6 +138,16 @@ CAMBIOS DE refactor/admin-list-handlers (2026-09-26):
 - Los `listAll` de colecciones, pinturas, exposiciones, diseño e ilustraciones delegan en la factory; comportamiento y contrato idénticos (tests existentes sin cambios).
 - Imports limpios en controladores (`sendPaginated`/`parsePagination` ya no se usan ahí).
 - Verificado: 543 tests, lint correcto y cobertura 100%.
+
+CAMBIOS DE refactor/magic-numbers (2026-09-26):
+- Centralizados en `src/lib/constants.js`: paginación (`PAGINATION_DEFAULT_PAGE/DEFAULT_LIMIT/MIN_LIMIT/MAX_LIMIT`), rate limiting (`RATE_LIMIT_WINDOW_MS`, `RATE_LIMIT_CONTACT_MAX=5`, `RATE_LIMIT_LOGIN_MAX=10`, `RATE_LIMIT_PASSWORD_RESET_*`), imágenes (`IMAGE_MAX_WIDTH=1200`, `IMAGE_THUMBNAIL_WIDTH=300`), validación Joi (`MAX_EXHIBITION_IMAGES=50`, `EXHIBITION_YEAR_MIN=1900`, `EXHIBITION_YEAR_MAX=2100`, `MIN_TEXT_LENGTH=10`), SMTP (`SMTP_DEFAULT_PORT=587`, `SMTP_SECURE_PORT=465`, `SMTP_*_TIMEOUT_MS`) y auth (`RESET_TOKEN_BYTES=32`).
+- Consumidores refactorizados sin cambio de comportamiento: `lib/pagination.js`, `middleware/rateLimiter.js` (mensaje de minutos derivado), `middleware/validate.js` (mensajes con template literals, strings idénticos), `services/upload.js`, `services/email.js`, `controllers/auth.js`.
+- Verificado: 549 tests, lint correcto y cobertura 100%.
+
+CAMBIOS EN CLIENT fix/exhibition-upload-section (2026-09-26, repo ../client):
+- Bug: las imágenes de exposiciones se subían a `portfolio-antonio-tello/general` porque `UPLOAD_SECTIONS` del client no incluía `exposiciones` (fallback silencioso a general) y `AdminExhibitions.jsx` usaba `section: 'general'`.
+- Fix: `UPLOAD_SECTIONS` += 'exposiciones', campo imágenes con `section: 'exposiciones'`, JSDoc y AGENTS.md del client actualizados. Las imágenes ya subidas siguen en general (moverlas rompería urls/publicIds de la DB).
+- Verificado en client: 458 tests, lint y build OK. Mergeado a develop del client (06e087e).
 
 REGLAS DE SESIÓN (ESTRICTAS):
 1. Verificar siempre la rama antes de trabajar (`hu/XX-nombre`). NUNCA escribir código directo en `develop`.

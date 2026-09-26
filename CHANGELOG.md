@@ -7,6 +7,11 @@ y este proyecto adherido al [Versionado Semántico](https://semver.org/lang/es/)
 
 ## [Unreleased]
 
+### Changed (centralización de magic numbers)
+- Nuevas constantes en `src/lib/constants.js`: paginación (`PAGINATION_DEFAULT_PAGE/DEFAULT_LIMIT/MIN_LIMIT/MAX_LIMIT`), rate limiting (`RATE_LIMIT_WINDOW_MS`, `RATE_LIMIT_CONTACT_MAX`, `RATE_LIMIT_LOGIN_MAX`, `RATE_LIMIT_PASSWORD_RESET_*`), imágenes Cloudinary (`IMAGE_MAX_WIDTH`, `IMAGE_THUMBNAIL_WIDTH`), validación Joi (`MAX_EXHIBITION_IMAGES`, `EXHIBITION_YEAR_MIN/MAX`, `MIN_TEXT_LENGTH`), SMTP (`SMTP_DEFAULT_PORT`, `SMTP_SECURE_PORT`, `SMTP_*_TIMEOUT_MS`) y auth (`RESET_TOKEN_BYTES`).
+- Consumidores refactorizados sin cambio de comportamiento: `lib/pagination.js` (elimina constantes locales duplicadas), `middleware/rateLimiter.js` (mensaje de minutos derivado de la constante), `middleware/validate.js` (mensajes Joi con template literals, strings idénticos), `services/upload.js`, `services/email.js`, `controllers/auth.js`.
+- Tests: 549 en total, cobertura 100%.
+
 ### Changed (refactor listados admin paginados)
 - Nueva factory `src/lib/paginated-list.js` (`createPaginatedListHandler`): genera los handlers de listado paginado a partir del modelo Prisma, argumentos de `findMany`, serializador opcional y mensaje de error.
 - Los `listAll` de colecciones, pinturas, exposiciones, diseño e ilustraciones delegan en la factory; sin cambios de comportamiento ni de contrato (543 tests, cobertura 100%).
