@@ -18,9 +18,15 @@ vi.mock('../services/logger.js', () => ({
   default: { info: vi.fn(), error: vi.fn(), warn: vi.fn() },
 }));
 
+vi.mock('../services/cloudinary.js', () => ({
+  deleteCloudinaryImage: vi.fn(),
+  extractPublicId: vi.fn(() => null),
+}));
+
 const { create, update, remove, reorder, listAll, listFiltered, listFeatured } = await import('./design.js');
 const { resolveImageUrl } = await import('../services/upload.js');
 const logger = (await import('../services/logger.js')).default;
+const { deleteCloudinaryImage, extractPublicId } = await import('../services/cloudinary.js');
 
 describe('HU09 - Admin Diseño', () => {
   let req, res;
@@ -32,6 +38,7 @@ describe('HU09 - Admin Diseño', () => {
       json: vi.fn(),
     };
     vi.clearAllMocks();
+    extractPublicId.mockReturnValue(null);
     resolveImageUrl.mockImplementation(async (_file, imageUrl) => imageUrl);
   });
 
@@ -353,6 +360,18 @@ describe('HU09 - Admin Diseño', () => {
     });
   });
 
+  it('should persist the public id for a Cloudinary image', async () => {
+    extractPublicId.mockReturnValue('portfolio/new');
+    mockPrisma.designProject.create.mockResolvedValue({ id: 1, imageUrl: 'https://res.cloudinary.com/demo/new.jpg' });
+    req.body = { title: 'Nuevo', imageUrl: 'https://res.cloudinary.com/demo/new.jpg', subcategory: 'LOGO' };
+
+    await create(req, res);
+
+    expect(mockPrisma.designProject.create).toHaveBeenCalledWith({
+      data: expect.objectContaining({ imagePublicId: 'portfolio/new' }),
+    });
+  });
+
   describe('update', () => {
     describe('given valid data', () => {
       it('should return 200 with updated project', async () => {
@@ -407,6 +426,34 @@ describe('HU09 - Admin Diseño', () => {
         });
         expect(res.status).toHaveBeenCalledWith(200);
       });
+
+      it('should persist the public id when updating with a Cloudinary URL', async () => {
+        extractPublicId.mockReturnValue('portfolio/new');
+        mockPrisma.designProject.update.mockResolvedValue({ id: 1, imageUrl: 'https://res.cloudinary.com/demo/new.jpg' });
+        req.params = { id: '1' };
+        req.body = { imageUrl: 'https://res.cloudinary.com/demo/new.jpg' };
+
+        await update(req, res);
+
+        expect(mockPrisma.designProject.update).toHaveBeenCalledWith({
+          where: { id: 1 },
+          data: expect.objectContaining({ imagePublicId: 'portfolio/new' }),
+        });
+      });
+    });
+
+    it('should delete the previous image when updating the image', async () => {
+      mockPrisma.designProject.findUnique.mockResolvedValue({
+        imageUrl: 'https://res.cloudinary.com/demo/old.jpg',
+        imagePublicId: 'portfolio/old',
+      });
+      mockPrisma.designProject.update.mockResolvedValue({ id: 1, imageUrl: 'https://example.com/new.jpg' });
+      req.params = { id: '1' };
+      req.body = { imageUrl: 'https://example.com/new.jpg' };
+
+      await update(req, res);
+
+      expect(deleteCloudinaryImage).toHaveBeenCalledWith('portfolio/old', expect.any(String));
     });
 
     describe('given isPublished and isFeatured', () => {
@@ -445,6 +492,15 @@ describe('HU09 - Admin Diseño', () => {
           error: 'Proyecto de diseño no encontrado',
           code: 'NOT_FOUND',
         });
+      });
+
+      it('should return 404 when the project lookup returns null', async () => {
+        mockPrisma.designProject.findUnique.mockResolvedValue(null);
+        req.params = { id: '999' };
+
+        await remove(req, res);
+
+        expect(res.status).toHaveBeenCalledWith(404);
       });
     });
 
@@ -486,6 +542,7 @@ describe('HU09 - Admin Diseño', () => {
   describe('remove', () => {
     describe('given existing project', () => {
       it('should return 200 with success message', async () => {
+        mockPrisma.designProject.findUnique.mockResolvedValue(undefined);
         mockPrisma.designProject.delete.mockResolvedValue({ id: 1 });
         req.params = { id: '1' };
 
@@ -498,6 +555,20 @@ describe('HU09 - Admin Diseño', () => {
         });
         expect(logger.info).toHaveBeenCalled();
       });
+    });
+
+    it('should delete the Cloudinary image before the design project', async () => {
+      mockPrisma.designProject.findUnique.mockResolvedValue({
+        imageUrl: 'https://res.cloudinary.com/demo/image/upload/v1/obra.jpg',
+        imagePublicId: 'portfolio/obra',
+      });
+      mockPrisma.designProject.delete.mockResolvedValue({ id: 1 });
+      req.params = { id: '1' };
+
+      await remove(req, res);
+
+      expect(deleteCloudinaryImage).toHaveBeenCalledWith('portfolio/obra', expect.any(String));
+      expect(mockPrisma.designProject.delete).toHaveBeenCalledWith({ where: { id: 1 } });
     });
 
     describe('given project does not exist', () => {

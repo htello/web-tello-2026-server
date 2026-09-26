@@ -14,6 +14,7 @@ import prisma from '../lib/prisma.js';
 import logger from '../services/logger.js';
 import { resolveImageUrl } from '../services/upload.js';
 import { sendSuccess, sendError, sendNotFound, sendInternalError } from '../lib/http-response.js';
+import { deleteCloudinaryImage, extractPublicId } from '../services/cloudinary.js';
 
 /**
  * HU11 - Leer biografía
@@ -61,7 +62,11 @@ const create = async (req, res) => {
     const finalImageUrl = await resolveImageUrl(req.file, imageUrl, 'general');
 
     const biography = await prisma.biography.create({
-      data: { content, imageUrl: finalImageUrl || null },
+      data: {
+        content,
+        imageUrl: finalImageUrl || null,
+        ...(extractPublicId(finalImageUrl) && { imagePublicId: extractPublicId(finalImageUrl) }),
+      },
     });
 
     logger.info('Biografía creada', { id: biography.id });
@@ -94,7 +99,10 @@ const update = async (req, res) => {
 
     const data = { content };
     if (finalImageUrl) {
+      await deleteCloudinaryImage(existing.imagePublicId, existing.imageUrl);
       data.imageUrl = finalImageUrl;
+      const imagePublicId = extractPublicId(finalImageUrl);
+      if (imagePublicId) data.imagePublicId = imagePublicId;
     }
 
     const biography = await prisma.biography.update({

@@ -14,8 +14,14 @@ vi.mock('../services/logger.js', () => ({
   default: { info: vi.fn(), error: vi.fn(), warn: vi.fn() },
 }));
 
+vi.mock('../services/cloudinary.js', () => ({
+  deleteCloudinaryImage: vi.fn(),
+  extractPublicId: vi.fn(() => null),
+}));
+
 const { create, update, remove, reorder, listPublished, listAll } = await import('./exhibitions.js');
 const logger = (await import('../services/logger.js')).default;
+const { deleteCloudinaryImage, extractPublicId } = await import('../services/cloudinary.js');
 
 const ORDER = [{ position: 'asc' }, { id: 'asc' }];
 const IMAGES_INCLUDE = { images: { orderBy: ORDER } };
@@ -30,6 +36,33 @@ describe('HU07 - Admin Exposiciones', () => {
       json: vi.fn(),
     };
     vi.clearAllMocks();
+    extractPublicId.mockReturnValue(null);
+  });
+
+  it('should persist the public id for Cloudinary exhibition images', async () => {
+    extractPublicId.mockReturnValue('portfolio/exhibition');
+    mockPrisma.exhibition.create.mockResolvedValue({
+      id: 1,
+      title: 'Expo',
+      date: new Date('2024-06-01T00:00:00Z'),
+      images: [],
+    });
+    req.body = {
+      title: 'Expo',
+      date: '2024-06-01',
+      images: [{ url: 'https://res.cloudinary.com/demo/expo.jpg' }],
+    };
+
+    await create(req, res);
+
+    expect(mockPrisma.exhibition.create).toHaveBeenCalledWith({
+      data: expect.objectContaining({
+        images: expect.objectContaining({
+          create: [expect.objectContaining({ publicId: 'portfolio/exhibition' })],
+        }),
+      }),
+      include: IMAGES_INCLUDE,
+    });
   });
 
   describe('listPublished', () => {
@@ -669,6 +702,28 @@ describe('HU07 - Admin Exposiciones', () => {
         });
       });
 
+      it('should persist public ids when replacing Cloudinary exhibition images', async () => {
+        extractPublicId.mockReturnValue('portfolio/new-exhibition');
+        mockPrisma.exhibitionImage.findMany.mockResolvedValue([]);
+        mockPrisma.exhibition.update.mockResolvedValue({ id: 1 });
+        mockPrisma.exhibitionImage.deleteMany.mockResolvedValue({ count: 0 });
+        mockPrisma.exhibitionImage.createMany.mockResolvedValue({ count: 1 });
+        mockPrisma.exhibition.findUnique.mockResolvedValue({
+          id: 1,
+          title: 'Expo',
+          date: new Date('2024-06-01T00:00:00Z'),
+          images: [],
+        });
+        req.params = { id: '1' };
+        req.body = { images: [{ url: 'https://res.cloudinary.com/demo/new.jpg' }] };
+
+        await update(req, res);
+
+        expect(mockPrisma.exhibitionImage.createMany).toHaveBeenCalledWith({
+          data: [expect.objectContaining({ publicId: 'portfolio/new-exhibition' })],
+        });
+      });
+
       it('should clear images when an empty array is provided', async () => {
         mockPrisma.exhibition.update.mockResolvedValue({ id: 1 });
         mockPrisma.exhibitionImage.deleteMany.mockResolvedValue({ count: 2 });
@@ -742,6 +797,15 @@ describe('HU07 - Admin Exposiciones', () => {
           code: 'NOT_FOUND',
         });
       });
+
+      it('should return 404 when the exhibition lookup returns null', async () => {
+        mockPrisma.exhibition.findUnique.mockResolvedValue(null);
+        req.params = { id: '999' };
+
+        await remove(req, res);
+
+        expect(res.status).toHaveBeenCalledWith(404);
+      });
     });
 
     describe('given a database error', () => {
@@ -764,6 +828,7 @@ describe('HU07 - Admin Exposiciones', () => {
   describe('remove', () => {
     describe('given existing exhibition', () => {
       it('should return 200 with success message', async () => {
+        mockPrisma.exhibition.findUnique.mockResolvedValue(undefined);
         mockPrisma.exhibition.delete.mockResolvedValue({ id: 1 });
         req.params = { id: '1' };
 
@@ -776,6 +841,19 @@ describe('HU07 - Admin Exposiciones', () => {
         });
         expect(logger.info).toHaveBeenCalled();
       });
+    });
+
+    it('should delete exhibition images before the exhibition', async () => {
+      mockPrisma.exhibition.findUnique.mockResolvedValue({
+        images: [{ url: 'https://res.cloudinary.com/demo/expo.jpg', publicId: 'portfolio/expo' }],
+      });
+      mockPrisma.exhibition.delete.mockResolvedValue({ id: 1 });
+      req.params = { id: '1' };
+
+      await remove(req, res);
+
+      expect(deleteCloudinaryImage).toHaveBeenCalledWith('portfolio/expo', expect.any(String));
+      expect(mockPrisma.exhibition.delete).toHaveBeenCalledWith({ where: { id: 1 } });
     });
 
     describe('given exhibition does not exist', () => {
