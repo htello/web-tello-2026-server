@@ -15,8 +15,12 @@ ESTADO DEL PROYECTO:
 - Rama actual: develop (limpia; sin ramas HU pendientes)
 - Cobertura de tests: 100% obligatorio (Vitest)
 - Última HU completada y mergeada: HU13/HU14/HU15 - Formulario de Contacto + Email + Rate Limiting
-- Última rama mergeada: fix/stdout-eio (guard EIO stdout/stderr) + chore/readme-sync-license (README en español + licencia UNLICENSED) + refactor/dedupe-cleanup (factories, código muerto, magic numbers) + filtros server-side en listados admin
+- Última rama mergeada: chore/readme-deploy-postman (README: Despliegue + Troubleshooting + Postman) + fix/stdout-eio (guard EIO stdout/stderr) + chore/readme-sync-license (README en español + licencia UNLICENSED) + refactor/dedupe-cleanup (factories, código muerto, magic numbers) + filtros server-side en listados admin
 - gh CLI autenticado en este equipo (cuenta htello)
+
+CAMBIO DE rama chore/readme-deploy-postman (mergeado a develop):
+- README: nueva sección "Despliegue (producción)" (URL https://portfolio-api-u5sx.onrender.com, características Render Docker free + Supabase Frankfurt, ping anti-pausa, Resend, Sentry, ciclo de release, tabla de Troubleshooting) y subsección "Colección de Postman" en Endpoints (52 requests, importación, baseUrl dev/prod, authToken automático, usuario de pruebas del seed admin@test.com/Admin123! solo desarrollo local).
+- Solo documentación: sin cambios de código, contratos ni tests. Verificado: 561 tests, lint OK. docs/openapi.yaml no requiere sync.
 
 CAMBIO DE rama fix/stdout-eio (mergeado a develop):
 - Nuevo servicio src/services/fdGuard.js: listeners de error en process.stdout/process.stderr que ignoran EIO/EPIPE/EAGAIN/ERR_STREAM_DESTROYED y re-lanzan el resto (attachFdGuard idempotente). Cableado en src/app.js tras el init de Sentry.
