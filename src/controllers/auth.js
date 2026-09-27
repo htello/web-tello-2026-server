@@ -27,8 +27,12 @@ import {
   BCRYPT_ROUNDS,
   FRONTEND_URL,
   RESET_TOKEN_EXPIRES_MINUTES,
+  RESET_TOKEN_BYTES,
+  ADMIN_ROLE,
+  MS_PER_MINUTE,
+  INVALID_CREDENTIALS_MESSAGE,
 } from '../lib/constants.js';
-import { sendSuccess, sendError, sendInternalError } from '../lib/http-response.js';
+import { sendSuccess, sendValidationError, sendUnauthorized, sendInternalError } from '../lib/http-response.js';
 
 /**
  * Calcula el hash SHA-256 de un token de recuperación.
@@ -54,12 +58,12 @@ const login = async (req, res) => {
 
     const user = await prisma.user.findUnique({ where: { email } });
     if (!user) {
-      return sendError(res, 401, 'UNAUTHORIZED', 'Credenciales inválidas');
+      return sendUnauthorized(res, INVALID_CREDENTIALS_MESSAGE);
     }
 
     const isValidPassword = await bcrypt.compare(password, user.password);
     if (!isValidPassword) {
-      return sendError(res, 401, 'UNAUTHORIZED', 'Credenciales inválidas');
+      return sendUnauthorized(res, INVALID_CREDENTIALS_MESSAGE);
     }
 
     const token = jwt.sign(
@@ -99,7 +103,7 @@ const register = async (req, res) => {
 
     const existingUser = await prisma.user.findUnique({ where: { email } });
     if (existingUser) {
-      return sendError(res, 400, 'VALIDATION_ERROR', 'El email ya está registrado');
+      return sendValidationError(res, 'El email ya está registrado');
     }
 
     const hashedPassword = await bcrypt.hash(password, BCRYPT_ROUNDS);
@@ -109,7 +113,7 @@ const register = async (req, res) => {
         email,
         password: hashedPassword,
         name,
-        role: 'ADMIN',
+        role: ADMIN_ROLE,
       },
     });
 
@@ -148,8 +152,8 @@ const forgotPassword = async (req, res) => {
     const user = await prisma.user.findUnique({ where: { email } });
 
     if (user) {
-      const rawToken = randomBytes(32).toString('hex');
-      const passwordResetExpires = new Date(Date.now() + RESET_TOKEN_EXPIRES_MINUTES * 60 * 1000);
+      const rawToken = randomBytes(RESET_TOKEN_BYTES).toString('hex');
+      const passwordResetExpires = new Date(Date.now() + RESET_TOKEN_EXPIRES_MINUTES * MS_PER_MINUTE);
 
       await prisma.user.update({
         where: { id: user.id },
@@ -197,7 +201,7 @@ const resetPassword = async (req, res) => {
     });
 
     if (!user || !user.passwordResetExpires || user.passwordResetExpires < new Date()) {
-      return sendError(res, 400, 'VALIDATION_ERROR', 'Token inválido o expirado');
+      return sendValidationError(res, 'Token inválido o expirado');
     }
 
     const hashedPassword = await bcrypt.hash(password, BCRYPT_ROUNDS);

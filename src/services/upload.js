@@ -7,10 +7,16 @@
  * @module services/upload
  * @requires cloudinary
  * @requires multer
+ * @requires lib/constants
  */
 
 import { v2 as cloudinary } from 'cloudinary';
 import multer from 'multer';
+import {
+  IMAGE_MAX_WIDTH,
+  IMAGE_THUMBNAIL_WIDTH,
+  CLOUDINARY_BASE_FOLDER,
+} from '../lib/constants.js';
 
 /**
  * Tipos MIME permitidos para upload
@@ -26,9 +32,18 @@ const MAX_SIZE = 5 * 1024 * 1024;
 
 /**
  * Secciones permitidas para subcarpetas en Cloudinary
+ * (válidas como `section` en POST /admin/upload)
  * @type {string[]}
  */
-const ALLOWED_SECTIONS = ['pintura', 'ilustracion', 'diseno', 'general'];
+const ALLOWED_SECTIONS = ['pintura', 'ilustracion', 'diseno', 'general', 'exposiciones'];
+
+/**
+ * Carpetas Cloudinary válidas para uploadToCloudinary.
+ * Incluye 'test' para uso interno (scripts y pruebas);
+ * no se expone en el endpoint de upload.
+ * @type {string[]}
+ */
+const CLOUDINARY_FOLDERS = [...ALLOWED_SECTIONS, 'test'];
 
 /**
  * Limpia el nombre del archivo para usarlo como public_id en Cloudinary
@@ -80,13 +95,13 @@ const upload = multer({
  * @param {Buffer} file.buffer - Contenido del archivo
  * @param {string} file.mimetype - Tipo MIME del archivo
  * @param {string} file.originalname - Nombre original del archivo
- * @param {string} section - Sección para subcarpeta (pintura, ilustracion, diseno, general)
+ * @param {string} section - Sección para subcarpeta (pintura, ilustracion, diseno, general, exposiciones, test)
  * @returns {Promise<Object>} URLs y metadata de la imagen subida
  */
 const uploadToCloudinary = async (file, section = 'general') => {
-  const folder = ALLOWED_SECTIONS.includes(section)
-    ? `portfolio-antonio-tello/${section}`
-    : 'portfolio-antonio-tello/general';
+  const folder = CLOUDINARY_FOLDERS.includes(section)
+    ? `${CLOUDINARY_BASE_FOLDER}/${section}`
+    : `${CLOUDINARY_BASE_FOLDER}/general`;
 
   const filename = sanitizeFilename(file.originalname);
   const publicId = `${filename}-${Date.now()}`;
@@ -97,28 +112,29 @@ const uploadToCloudinary = async (file, section = 'general') => {
   const result = await cloudinary.uploader.upload(dataURI, {
     folder,
     public_id: publicId,
-    transformation: [{ width: 1200, crop: 'limit' }],
+    transformation: [{ width: IMAGE_MAX_WIDTH, crop: 'limit' }],
   });
 
   return {
     url: result.secure_url,
     publicId: result.public_id,
-    thumbnail: cloudinary.url(result.public_id, { width: 300, crop: 'limit' }),
+    thumbnail: cloudinary.url(result.public_id, { width: IMAGE_THUMBNAIL_WIDTH, crop: 'limit' }),
     width: result.width,
     height: result.height,
     format: result.format,
   };
 };
 
-const uploadImageAsset = uploadToCloudinary;
-
 /**
  * Resuelve la imagen y conserva el identificador de Cloudinary.
+ *
+ * Si llega un archivo (Multer) lo sube a Cloudinary y retorna su URL y
+ * public_id; en caso contrario usa la URL proporcionada directamente.
  *
  * @param {Object} [file] - Archivo de Multer.
  * @param {string} [imageUrl] - URL proporcionada en el body.
  * @param {string} section - Sección para subcarpeta.
- * @returns {Promise<Object>} URL y public_id.
+ * @returns {Promise<{url: string|undefined, publicId: string|null}>} URL y public_id.
  */
 const resolveImageAsset = async (file, imageUrl, section) => {
   if (!file) return { url: imageUrl, publicId: null };
@@ -126,30 +142,10 @@ const resolveImageAsset = async (file, imageUrl, section) => {
   return uploadToCloudinary(file, section);
 };
 
-/**
- * Resuelve la URL de imagen final para un recurso.
- *
- * Si llega un archivo (Multer) lo sube a Cloudinary y usa su URL;
- * en caso contrario usa la URL proporcionada directamente.
- *
- * @param {Object} [file] - Archivo de Multer (buffer, mimetype, originalname)
- * @param {string} [imageUrl] - URL proporcionada en el body
- * @param {string} section - Sección para subcarpeta en Cloudinary
- * @returns {Promise<string|undefined>} URL final o undefined si no hay ni archivo ni URL
- */
-const resolveImageUrl = async (file, imageUrl, section) => {
-  const result = await resolveImageAsset(file, imageUrl, section);
-  return result.url;
-};
-
 export {
   upload,
   uploadToCloudinary,
-  uploadImageAsset,
   resolveImageAsset,
-  resolveImageUrl,
   fileFilter,
-  ALLOWED_TYPES,
-  MAX_SIZE,
   ALLOWED_SECTIONS,
 };

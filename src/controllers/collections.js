@@ -7,14 +7,18 @@
  * @module controllers/collections
  * @requires lib/prisma
  * @requires lib/prisma-utils
+ * @requires lib/crud-factory
  * @requires lib/http-response
- * @requires services/logger
+ * @requires lib/constants
+ * @requires services/cloudinary
  */
 
 import prisma from '../lib/prisma.js';
 import logger from '../services/logger.js';
-import { parseId, isNotFoundError, isDuplicateError, reorderByPosition } from '../lib/prisma-utils.js';
-import { sendSuccess, sendError, sendNotFound, sendDuplicate, sendInternalError } from '../lib/http-response.js';
+import { parseId, isNotFoundError, isDuplicateError } from '../lib/prisma-utils.js';
+import { sendSuccess, sendNotFound, sendDuplicate, sendInternalError } from '../lib/http-response.js';
+import { createPaginatedListHandler } from '../lib/paginated-list.js';
+import { createReorderHandler } from '../lib/crud-factory.js';
 import { STABLE_POSITION_ORDER } from '../lib/constants.js';
 import { deleteCloudinaryImage, extractPublicId } from '../services/cloudinary.js';
 
@@ -58,29 +62,26 @@ const listPublished = async (req, res) => {
  * Endpoint GET /api/v1/admin/collections
  *
  * @param {Object} req - Request de Express
+ * @param {Object} req.query.page - Número de página (default 1)
+ * @param {Object} req.query.limit - Elementos por página (default 20, max 100)
  * @param {Object} res - Response de Express
- * @returns {Promise<Object>} 200 con todas las colecciones o 500
+ * @returns {Promise<Object>} 200 con data paginada y meta, o 500
  * @security Requiere Bearer token con rol ADMIN
  */
-const listAll = async (req, res) => {
-  try {
-    const collections = await prisma.collection.findMany({
-      orderBy: STABLE_POSITION_ORDER,
-      include: {
-        _count: { select: { paintings: true } },
-      },
-    });
-
-    const data = collections.map(({ _count, ...collection }) => ({
-      ...collection,
-      paintingsCount: _count.paintings,
-    }));
-
-    return sendSuccess(res, data);
-  } catch (error) {
-    return sendInternalError(res, logger, 'Error al listar colecciones', error);
-  }
-};
+const listAll = createPaginatedListHandler({
+  model: prisma.collection,
+  findManyArgs: {
+    orderBy: STABLE_POSITION_ORDER,
+    include: {
+      _count: { select: { paintings: true } },
+    },
+  },
+  serialize: ({ _count, ...collection }) => ({
+    ...collection,
+    paintingsCount: _count.paintings,
+  }),
+  errorMessage: 'Error al listar colecciones',
+});
 
 /**
  * HU06 - Crear colección
@@ -94,13 +95,14 @@ const listAll = async (req, res) => {
 const create = async (req, res) => {
   try {
     const { title, description, coverImage, position, isPublished } = req.body;
+    const coverImageId = extractPublicId(coverImage);
 
     const collection = await prisma.collection.create({
       data: {
         title,
         description: description || null,
         coverImage: coverImage || null,
-        ...(extractPublicId(coverImage) && { coverImageId: extractPublicId(coverImage) }),
+        ...(coverImageId && { coverImageId }),
         ...(position !== undefined && { position }),
         ...(isPublished !== undefined && { isPublished }),
       },
@@ -130,6 +132,7 @@ const update = async (req, res) => {
   try {
     const { id } = req.params;
     const { title, description, coverImage, position, isPublished } = req.body;
+    const coverImageId = extractPublicId(coverImage);
 
     if (coverImage) {
       const previousCollection = await prisma.collection.findUnique({
@@ -148,7 +151,7 @@ const update = async (req, res) => {
         ...(title !== undefined && { title }),
         ...(description !== undefined && { description }),
         ...(coverImage !== undefined && { coverImage }),
-        ...(coverImage && extractPublicId(coverImage) && { coverImageId: extractPublicId(coverImage) }),
+        ...(coverImage && coverImageId && { coverImageId }),
         ...(position !== undefined && { position }),
         ...(isPublished !== undefined && { isPublished }),
       },
@@ -175,33 +178,29 @@ const update = async (req, res) => {
  */
 const remove = async (req, res) => {
   try {
-    const { id } = req.params;
+    const recordId = parseId(req.params.id);
 
     const collection = await prisma.collection.findUnique({
-      where: { id: parseId(id) },
+      where: { id: recordId },
       include: {
         paintings: { select: { imageUrl: true, imagePublicId: true } },
       },
     });
 
-    if (collection === null) {
+    if (!collection) {
       return sendNotFound(res, 'Colección no encontrada');
     }
 
-    if (collection) {
-      await deleteCloudinaryImage(collection.coverImageId, collection.coverImage);
-      await Promise.all(
-        collection.paintings.map((painting) =>
-          deleteCloudinaryImage(painting.imagePublicId, painting.imageUrl),
-        ),
-      );
-    }
+    await deleteCloudinaryImage(collection.coverImageId, collection.coverImage);
+    await Promise.all(
+      collection.paintings.map((painting) =>
+        deleteCloudinaryImage(painting.imagePublicId, painting.imageUrl),
+      ),
+    );
 
-    await prisma.collection.delete({
-      where: { id: parseId(id) },
-    });
+    await prisma.collection.delete({ where: { id: recordId } });
 
-    logger.info('Colección eliminada', { id: parseId(id) });
+    logger.info('Colección eliminada', { id: recordId });
 
     return sendSuccess(res, { message: 'Colección eliminada correctamente' });
   } catch (error) {
@@ -219,22 +218,11 @@ const remove = async (req, res) => {
  * @returns {Promise<Object>} 200 con confirmación o 500
  * @security Requiere Bearer token con rol ADMIN
  */
-const reorder = async (req, res) => {
-  try {
-    const { orderedIds } = req.body;
-
-    await reorderByPosition(prisma, prisma.collection, orderedIds);
-
-    logger.info('Colecciones reordenadas', { count: orderedIds.length });
-
-    return sendSuccess(res, { message: 'Orden actualizado correctamente' });
-  } catch (error) {
-    if (isNotFoundError(error)) {
-      return sendError(res, 400, 'VALIDATION_ERROR', 'Uno o más IDs no existen');
-    }
-    return sendInternalError(res, logger, 'Error al reordenar colecciones', error);
-  }
-};
+const reorder = createReorderHandler({
+  model: prisma.collection,
+  logLabel: 'Colecciones reordenadas',
+  errorMessage: 'Error al reordenar colecciones',
+});
 
 /**
  * HU02 - Detalle de colección

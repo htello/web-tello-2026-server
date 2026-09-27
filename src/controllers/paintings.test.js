@@ -425,7 +425,10 @@ describe('HU06 - Admin Pinturas', () => {
   describe('remove', () => {
     describe('given existing painting', () => {
       it('should return 200 with success message', async () => {
-        mockPrisma.painting.findUnique.mockResolvedValue(undefined);
+        mockPrisma.painting.findUnique.mockResolvedValue({
+          imageUrl: 'https://example.com/1.jpg',
+          imagePublicId: null,
+        });
         mockPrisma.painting.delete.mockResolvedValue({ id: 1 });
         req.params = { id: '1' };
 
@@ -491,6 +494,7 @@ describe('HU06 - Admin Pinturas', () => {
 
     describe('given a database error', () => {
       it('should return 500 INTERNAL_ERROR', async () => {
+        mockPrisma.painting.findUnique.mockResolvedValue({ imageUrl: 'x', imagePublicId: null });
         mockPrisma.painting.delete.mockRejectedValue(new Error('DB Error'));
         req.params = { id: '1' };
 
@@ -581,6 +585,7 @@ describe('HU06 - Admin Pinturas', () => {
 
         expect(mockPrisma.painting.findMany).toHaveBeenCalledWith({
           where: { isFeatured: true, isPublished: true },
+          orderBy: [{ position: 'asc' }, { id: 'asc' }],
           include: { collection: { select: { id: true, title: true } } },
         });
         expect(res.status).toHaveBeenCalledWith(200);
@@ -684,7 +689,7 @@ describe('HU06 - Admin Pinturas', () => {
 
   describe('listAll', () => {
     describe('given paintings exist (published and unpublished)', () => {
-      it('should return 200 with an array including collection', async () => {
+      it('should return 200 with paginated paintings including collection', async () => {
         mockPrisma.painting.findMany.mockResolvedValue([
           {
             id: 1,
@@ -701,28 +706,125 @@ describe('HU06 - Admin Pinturas', () => {
             collection: { id: 3, title: 'Colección Uno' },
           },
         ]);
+        mockPrisma.painting.count.mockResolvedValue(2);
 
         await listAll(req, res);
 
         expect(mockPrisma.painting.findMany).toHaveBeenCalledWith({
+          skip: 0,
+          take: 20,
           orderBy: [{ position: 'asc' }, { id: 'asc' }],
           include: { collection: { select: { id: true, title: true } } },
         });
+        expect(mockPrisma.painting.count).toHaveBeenCalledWith();
         expect(res.status).toHaveBeenCalledWith(200);
-        const { data } = res.json.mock.calls[0][0];
+        const { data, meta } = res.json.mock.calls[0][0];
         expect(data).toHaveLength(2);
         expect(data[1]).toMatchObject({ id: 2, isPublished: false });
+        expect(meta).toEqual({ total: 2, page: 1, limit: 20, pages: 1 });
+      });
+    });
+
+    describe('given pagination query params', () => {
+      it('should apply page and limit and return meta', async () => {
+        req.query = { page: '2', limit: '5' };
+        mockPrisma.painting.findMany.mockResolvedValue([]);
+        mockPrisma.painting.count.mockResolvedValue(7);
+
+        await listAll(req, res);
+
+        expect(mockPrisma.painting.findMany).toHaveBeenCalledWith(
+          expect.objectContaining({ skip: 5, take: 5 })
+        );
+        expect(res.json).toHaveBeenCalledWith({
+          data: [],
+          meta: { total: 7, page: 2, limit: 5, pages: 2 },
+        });
+      });
+
+      it('should cap limit at 100', async () => {
+        req.query = { limit: '500' };
+        mockPrisma.painting.findMany.mockResolvedValue([]);
+        mockPrisma.painting.count.mockResolvedValue(0);
+
+        await listAll(req, res);
+
+        expect(mockPrisma.painting.findMany).toHaveBeenCalledWith(
+          expect.objectContaining({ skip: 0, take: 100 })
+        );
       });
     });
 
     describe('given no paintings', () => {
       it('should return 200 with an empty array', async () => {
         mockPrisma.painting.findMany.mockResolvedValue([]);
+        mockPrisma.painting.count.mockResolvedValue(0);
 
         await listAll(req, res);
 
         expect(res.status).toHaveBeenCalledWith(200);
-        expect(res.json).toHaveBeenCalledWith({ data: [] });
+        expect(res.json).toHaveBeenCalledWith({
+          data: [],
+          meta: { total: 0, page: 1, limit: 20, pages: 0 },
+        });
+      });
+    });
+
+    describe('given collectionId query param', () => {
+      it('should filter findMany and count by collectionId', async () => {
+        req.query = { collectionId: '3' };
+        mockPrisma.painting.findMany.mockResolvedValue([]);
+        mockPrisma.painting.count.mockResolvedValue(0);
+
+        await listAll(req, res);
+
+        expect(mockPrisma.painting.findMany).toHaveBeenCalledWith({
+          skip: 0,
+          take: 20,
+          where: { collectionId: 3 },
+          orderBy: [{ position: 'asc' }, { id: 'asc' }],
+          include: { collection: { select: { id: true, title: true } } },
+        });
+        expect(mockPrisma.painting.count).toHaveBeenCalledWith({ where: { collectionId: 3 } });
+        expect(res.status).toHaveBeenCalledWith(200);
+      });
+
+      it('should ignore an empty collectionId', async () => {
+        req.query = { collectionId: '' };
+        mockPrisma.painting.findMany.mockResolvedValue([]);
+        mockPrisma.painting.count.mockResolvedValue(0);
+
+        await listAll(req, res);
+
+        expect(mockPrisma.painting.findMany).toHaveBeenCalledWith(
+          expect.not.objectContaining({ where: expect.anything() })
+        );
+        expect(mockPrisma.painting.count).toHaveBeenCalledWith();
+      });
+
+      it('should return 400 VALIDATION_ERROR for a non-numeric collectionId', async () => {
+        req.query = { collectionId: 'abc' };
+
+        await listAll(req, res);
+
+        expect(res.status).toHaveBeenCalledWith(400);
+        expect(res.json).toHaveBeenCalledWith({
+          error: 'El collectionId debe ser un entero positivo',
+          code: 'VALIDATION_ERROR',
+        });
+        expect(mockPrisma.painting.findMany).not.toHaveBeenCalled();
+      });
+
+      it('should return 400 VALIDATION_ERROR for a non-positive collectionId', async () => {
+        req.query = { collectionId: '0' };
+
+        await listAll(req, res);
+
+        expect(res.status).toHaveBeenCalledWith(400);
+        expect(res.json).toHaveBeenCalledWith({
+          error: 'El collectionId debe ser un entero positivo',
+          code: 'VALIDATION_ERROR',
+        });
       });
     });
 

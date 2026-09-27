@@ -1006,6 +1006,18 @@ paths:
     get:
       tags: [Collections]
       summary: Listar todas las colecciones (admin)
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+            maximum: 100
       responses:
         '200':
           description: Lista de colecciones
@@ -1018,6 +1030,8 @@ paths:
                     type: array
                     items:
                       $ref: '#/components/schemas/Collection'
+                  meta:
+                    $ref: '#/components/schemas/PaginationMeta'
         '401':
           description: No autenticado
           content:
@@ -1233,6 +1247,24 @@ paths:
     get:
       tags: [Paintings]
       summary: Listar todas las pinturas (admin)
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+            maximum: 100
+        - name: collectionId
+          in: query
+          description: Filtra las pinturas por colección (entero positivo). Inválido → 400.
+          schema:
+            type: integer
+            minimum: 1
       responses:
         '200':
           description: Lista de pinturas
@@ -1245,6 +1277,14 @@ paths:
                     type: array
                     items:
                       $ref: '#/components/schemas/PaintingDetail'
+                  meta:
+                    $ref: '#/components/schemas/PaginationMeta'
+        '400':
+          description: collectionId no numérico o no positivo
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
         '401':
           description: No autenticado
           content:
@@ -1414,6 +1454,18 @@ paths:
     get:
       tags: [Exhibitions]
       summary: Listar todas las exposiciones (admin)
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+            maximum: 100
       responses:
         '200':
           description: Lista de exposiciones
@@ -1426,6 +1478,8 @@ paths:
                     type: array
                     items:
                       $ref: '#/components/schemas/Exhibition'
+                  meta:
+                    $ref: '#/components/schemas/PaginationMeta'
         '401':
           description: No autenticado
           content:
@@ -1637,6 +1691,24 @@ paths:
     get:
       tags: [Design]
       summary: Listar todos los proyectos de diseño (admin)
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+            maximum: 100
+        - name: subcategory
+          in: query
+          description: Filtra los proyectos por subcategoría. Inválida → 400.
+          schema:
+            type: string
+            enum: [imagen-corporativa, packaging-expositores, carteleria, editorial]
       responses:
         '200':
           description: Lista de proyectos de diseño
@@ -1649,6 +1721,14 @@ paths:
                     type: array
                     items:
                       $ref: '#/components/schemas/DesignProject'
+                  meta:
+                    $ref: '#/components/schemas/PaginationMeta'
+        '400':
+          description: subcategory no válida
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
         '401':
           description: No autenticado
           content:
@@ -1836,6 +1916,18 @@ paths:
     get:
       tags: [Illustrations]
       summary: Listar todas las ilustraciones (admin)
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+            maximum: 100
       responses:
         '200':
           description: Lista de ilustraciones
@@ -1848,6 +1940,8 @@ paths:
                     type: array
                     items:
                       $ref: '#/components/schemas/Illustration'
+                  meta:
+                    $ref: '#/components/schemas/PaginationMeta'
         '401':
           description: No autenticado
           content:
@@ -2137,8 +2231,9 @@ paths:
                     - ilustracion
                     - diseno
                     - general
+                    - exposiciones
                   default: general
-                  description: Subcarpeta de destino en Cloudinary. Si se omite, se usa "general". Un valor fuera del enum devuelve 400.
+                  description: Subcarpeta de destino en Cloudinary (portfolio-antonio-tello/{section}). Si se omite, se usa "general". Un valor fuera del enum devuelve 400. La carpeta "test" es de uso interno y no se acepta en este endpoint.
       responses:
         '200':
           description: Imagen subida

@@ -15,7 +15,7 @@
 
 import { uploadToCloudinary, ALLOWED_SECTIONS } from '../services/upload.js';
 import logger from '../services/logger.js';
-import { sendSuccess, sendError, sendInternalError } from '../lib/http-response.js';
+import { sendSuccess, sendValidationError, sendInternalError } from '../lib/http-response.js';
 
 /**
  * HU16 - Upload de Archivos
@@ -23,7 +23,7 @@ import { sendSuccess, sendError, sendInternalError } from '../lib/http-response.
  *
  * @param {Object} req - Request de Express
  * @param {Object} req.file - Archivo multer (buffer, mimetype)
- * @param {string} req.body.section - Sección para subcarpeta (pintura, ilustracion, diseno, general)
+ * @param {string} req.body.section - Sección para subcarpeta (pintura, ilustracion, diseno, general, exposiciones)
  * @param {Object} res - Response de Express
  * @returns {Promise<Object>} 200 con URLs, 400 o 500
  * @security Bearer token requerido (Admin)
@@ -31,18 +31,13 @@ import { sendSuccess, sendError, sendInternalError } from '../lib/http-response.
 const uploadFile = async (req, res) => {
   try {
     if (!req.file) {
-      return sendError(res, 400, 'VALIDATION_ERROR', 'No se proporcionó archivo');
+      return sendValidationError(res, 'No se proporcionó archivo');
     }
 
     const section = req.body?.section || 'general';
 
     if (!ALLOWED_SECTIONS.includes(section)) {
-      return sendError(
-        res,
-        400,
-        'VALIDATION_ERROR',
-        `Sección no válida. Permitidas: ${ALLOWED_SECTIONS.join(', ')}`
-      );
+      return sendValidationError(res, `Sección no válida. Permitidas: ${ALLOWED_SECTIONS.join(', ')}`);
     }
 
     const result = await uploadToCloudinary(req.file, section);

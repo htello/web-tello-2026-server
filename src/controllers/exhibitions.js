@@ -13,9 +13,11 @@
 
 import prisma from '../lib/prisma.js';
 import logger from '../services/logger.js';
-import { parseId, isNotFoundError, reorderByPosition } from '../lib/prisma-utils.js';
-import { sendSuccess, sendError, sendNotFound, sendInternalError } from '../lib/http-response.js';
-import { STABLE_POSITION_ORDER } from '../lib/constants.js';
+import { parseId, isNotFoundError } from '../lib/prisma-utils.js';
+import { sendSuccess, sendNotFound, sendInternalError } from '../lib/http-response.js';
+import { createPaginatedListHandler } from '../lib/paginated-list.js';
+import { createReorderHandler, createFindManyHandler } from '../lib/crud-factory.js';
+import { STABLE_POSITION_ORDER, ISO_DATE_LENGTH } from '../lib/constants.js';
 import { deleteCloudinaryImage, extractPublicId } from '../services/cloudinary.js';
 
 /**
@@ -25,8 +27,8 @@ import { deleteCloudinaryImage, extractPublicId } from '../services/cloudinary.j
  */
 const toDateString = (value) => {
   if (!value) return null;
-  if (value instanceof Date) return value.toISOString().slice(0, 10);
-  return String(value).slice(0, 10);
+  if (value instanceof Date) return value.toISOString().slice(0, ISO_DATE_LENGTH);
+  return String(value).slice(0, ISO_DATE_LENGTH);
 };
 
 /** Include reutilizable para cargar las imágenes ordenadas por position. */
@@ -185,28 +187,24 @@ const update = async (req, res) => {
  */
 const remove = async (req, res) => {
   try {
-    const { id } = req.params;
+    const recordId = parseId(req.params.id);
 
     const exhibition = await prisma.exhibition.findUnique({
-      where: { id: parseId(id) },
+      where: { id: recordId },
       include: { images: { select: { url: true, publicId: true } } },
     });
 
-    if (exhibition === null) {
+    if (!exhibition) {
       return sendNotFound(res, 'Exposición no encontrada');
     }
 
-    if (exhibition) {
-      await Promise.all(
-        exhibition.images.map((image) => deleteCloudinaryImage(image.publicId, image.url)),
-      );
-    }
+    await Promise.all(
+      exhibition.images.map((image) => deleteCloudinaryImage(image.publicId, image.url)),
+    );
 
-    await prisma.exhibition.delete({
-      where: { id: parseId(id) },
-    });
+    await prisma.exhibition.delete({ where: { id: recordId } });
 
-    logger.info('Exposición eliminada', { id: parseId(id) });
+    logger.info('Exposición eliminada', { id: recordId });
 
     return sendSuccess(res, { message: 'Exposición eliminada correctamente' });
   } catch (error) {
@@ -224,22 +222,11 @@ const remove = async (req, res) => {
  * @returns {Promise<Object>} 200 con confirmación o 500
  * @security Requiere Bearer token con rol ADMIN
  */
-const reorder = async (req, res) => {
-  try {
-    const { orderedIds } = req.body;
-
-    await reorderByPosition(prisma, prisma.exhibition, orderedIds);
-
-    logger.info('Exposiciones reordenadas', { count: orderedIds.length });
-
-    return sendSuccess(res, { message: 'Orden actualizado correctamente' });
-  } catch (error) {
-    if (isNotFoundError(error)) {
-      return sendError(res, 400, 'VALIDATION_ERROR', 'Uno o más IDs no existen');
-    }
-    return sendInternalError(res, logger, 'Error al reordenar exposiciones', error);
-  }
-};
+const reorder = createReorderHandler({
+  model: prisma.exhibition,
+  logLabel: 'Exposiciones reordenadas',
+  errorMessage: 'Error al reordenar exposiciones',
+});
 
 /**
  * HU05 - Listar exposiciones publicadas
@@ -250,40 +237,36 @@ const reorder = async (req, res) => {
  * @returns {Promise<Object>} 200 con exposiciones publicadas o 500
  * @security Endpoint público (no requiere autenticación)
  */
-const listPublished = async (req, res) => {
-  try {
-    const exhibitions = await prisma.exhibition.findMany({
-      where: { isPublished: true },
-      orderBy: STABLE_POSITION_ORDER,
-      include: IMAGES_INCLUDE,
-    });
-
-    return sendSuccess(res, exhibitions.map(serializeExhibition));
-  } catch (error) {
-    return sendInternalError(res, logger, 'Error al listar exposiciones', error);
-  }
-};
+const listPublished = createFindManyHandler({
+  model: prisma.exhibition,
+  args: {
+    where: { isPublished: true },
+    orderBy: STABLE_POSITION_ORDER,
+    include: IMAGES_INCLUDE,
+  },
+  serialize: serializeExhibition,
+  errorMessage: 'Error al listar exposiciones',
+});
 
 /**
  * HU07 - Listar todas las exposiciones (admin)
  * Endpoint GET /api/v1/admin/exhibitions
  *
  * @param {Object} req - Request de Express
+ * @param {Object} req.query.page - Número de página (default 1)
+ * @param {Object} req.query.limit - Elementos por página (default 20, max 100)
  * @param {Object} res - Response de Express
- * @returns {Promise<Object>} 200 con todas las exposiciones o 500
+ * @returns {Promise<Object>} 200 con data paginada y meta, o 500
  * @security Requiere Bearer token con rol ADMIN
  */
-const listAll = async (req, res) => {
-  try {
-    const exhibitions = await prisma.exhibition.findMany({
-      orderBy: STABLE_POSITION_ORDER,
-      include: IMAGES_INCLUDE,
-    });
-
-    return sendSuccess(res, exhibitions.map(serializeExhibition));
-  } catch (error) {
-    return sendInternalError(res, logger, 'Error al listar exposiciones', error);
-  }
-};
+const listAll = createPaginatedListHandler({
+  model: prisma.exhibition,
+  findManyArgs: {
+    orderBy: STABLE_POSITION_ORDER,
+    include: IMAGES_INCLUDE,
+  },
+  serialize: serializeExhibition,
+  errorMessage: 'Error al listar exposiciones',
+});
 
 export { create, update, remove, reorder, listPublished, listAll };

@@ -41,6 +41,7 @@ describe('HU04 - Obras Destacadas', () => {
         });
         expect(mockPrisma.painting.findMany).toHaveBeenCalledWith({
           where: { isFeatured: true, isPublished: true },
+          orderBy: [{ position: 'asc' }, { id: 'asc' }],
           include: { collection: { select: { id: true, title: true } } },
         });
       });

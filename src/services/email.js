@@ -13,6 +13,14 @@
 
 import nodemailer from 'nodemailer';
 import logger from './logger.js';
+import {
+  RESEND_TIMEOUT_MS,
+  SMTP_DEFAULT_PORT,
+  SMTP_SECURE_PORT,
+  SMTP_CONNECTION_TIMEOUT_MS,
+  SMTP_GREETING_TIMEOUT_MS,
+  SMTP_SOCKET_TIMEOUT_MS,
+} from '../lib/constants.js';
 
 /** URL de la API de Resend para envío de emails. */
 const RESEND_API_URL = 'https://api.resend.com/emails';
@@ -39,19 +47,19 @@ const escapeHtml = (value) => String(value)
  *
  * @type {import('nodemailer').Transporter}
  */
-const smtpPort = Number(process.env.SMTP_PORT) || 587;
+const smtpPort = Number(process.env.SMTP_PORT) || SMTP_DEFAULT_PORT;
 
 const transporter = nodemailer.createTransport({
   host: process.env.SMTP_HOST,
   port: smtpPort,
-  secure: smtpPort === 465,
+  secure: smtpPort === SMTP_SECURE_PORT,
   auth: {
     user: process.env.SMTP_USER,
     pass: process.env.SMTP_PASS,
   },
-  connectionTimeout: 10000,
-  greetingTimeout: 10000,
-  socketTimeout: 30000,
+  connectionTimeout: SMTP_CONNECTION_TIMEOUT_MS,
+  greetingTimeout: SMTP_GREETING_TIMEOUT_MS,
+  socketTimeout: SMTP_SOCKET_TIMEOUT_MS,
 });
 
 /**
@@ -78,7 +86,7 @@ const sendViaResend = async ({ to, subject, html, replyTo }) => {
       html,
       ...(replyTo && { reply_to: replyTo }),
     }),
-    signal: AbortSignal.timeout(15000),
+    signal: AbortSignal.timeout(RESEND_TIMEOUT_MS),
   });
 
   if (!response.ok) {

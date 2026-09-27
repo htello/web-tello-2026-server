@@ -5,6 +5,7 @@
  */
 
 import { v2 as cloudinary } from 'cloudinary';
+import { CLOUDINARY_URL_MARKER, CLOUDINARY_UPLOAD_SEGMENT } from '../lib/constants.js';
 
 /**
  * Extrae el public_id de una URL de Cloudinary.
@@ -13,13 +14,13 @@ import { v2 as cloudinary } from 'cloudinary';
  * @returns {string|null} public_id o null si no es Cloudinary.
  */
 const extractPublicId = (imageUrl) => {
-  if (!imageUrl || !imageUrl.includes('res.cloudinary.com')) return null;
+  if (!imageUrl || !imageUrl.includes(CLOUDINARY_URL_MARKER)) return null;
 
   const pathname = new URL(imageUrl).pathname;
-  const uploadIndex = pathname.indexOf('/upload/');
+  const uploadIndex = pathname.indexOf(CLOUDINARY_UPLOAD_SEGMENT);
   if (uploadIndex === -1) return null;
 
-  const segments = pathname.slice(uploadIndex + '/upload/'.length).split('/');
+  const segments = pathname.slice(uploadIndex + CLOUDINARY_UPLOAD_SEGMENT.length).split('/');
   const versionIndex = segments.findIndex((segment) => /^v\d+$/.test(segment));
   const publicIdSegments = versionIndex === -1 ? segments : segments.slice(versionIndex + 1);
   const publicId = publicIdSegments.join('/').replace(/\.[^/.]+$/, '');

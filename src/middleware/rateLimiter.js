@@ -9,6 +9,14 @@
  */
 
 import rateLimit from 'express-rate-limit';
+import {
+  ERROR_CODES,
+  RATE_LIMIT_WINDOW_MS,
+  RATE_LIMIT_CONTACT_MAX,
+  RATE_LIMIT_LOGIN_MAX,
+  RATE_LIMIT_PASSWORD_RESET_WINDOW_MS,
+  RATE_LIMIT_PASSWORD_RESET_MAX,
+} from '../lib/constants.js';
 
 /**
  * Crea un limiter de contacto con la configuración indicada.
@@ -17,11 +25,11 @@ import rateLimit from 'express-rate-limit';
  * @returns {import('express-rate-limit').RateLimitRequestHandler} Middleware de rate limiting
  */
 const createContactLimiter = (options = {}) => rateLimit({
-  windowMs: 60 * 1000,
-  max: 5,
+  windowMs: RATE_LIMIT_WINDOW_MS,
+  max: RATE_LIMIT_CONTACT_MAX,
   message: {
     error: 'Demasiadas peticiones. Intenta de nuevo en 1 minuto.',
-    code: 'RATE_LIMITED',
+    code: ERROR_CODES.RATE_LIMITED,
   },
   ...options,
 });
@@ -33,11 +41,11 @@ const createContactLimiter = (options = {}) => rateLimit({
  * @returns {import('express-rate-limit').RateLimitRequestHandler} Middleware de rate limiting
  */
 const createLoginLimiter = (options = {}) => rateLimit({
-  windowMs: 60 * 1000,
-  max: 10,
+  windowMs: RATE_LIMIT_WINDOW_MS,
+  max: RATE_LIMIT_LOGIN_MAX,
   message: {
     error: 'Demasiados intentos de inicio de sesión',
-    code: 'RATE_LIMITED',
+    code: ERROR_CODES.RATE_LIMITED,
   },
   ...options,
 });
@@ -49,11 +57,11 @@ const createLoginLimiter = (options = {}) => rateLimit({
  * @returns {import('express-rate-limit').RateLimitRequestHandler} Middleware de rate limiting
  */
 const createPasswordResetLimiter = (options = {}) => rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 5,
+  windowMs: RATE_LIMIT_PASSWORD_RESET_WINDOW_MS,
+  max: RATE_LIMIT_PASSWORD_RESET_MAX,
   message: {
-    error: 'Demasiadas solicitudes de recuperación. Intenta de nuevo en 15 minutos.',
-    code: 'RATE_LIMITED',
+    error: `Demasiadas solicitudes de recuperación. Intenta de nuevo en ${RATE_LIMIT_PASSWORD_RESET_WINDOW_MS / RATE_LIMIT_WINDOW_MS} minutos.`,
+    code: ERROR_CODES.RATE_LIMITED,
   },
   ...options,
 });

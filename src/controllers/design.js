@@ -2,164 +2,76 @@
  * @fileoverview Controlador de proyectos de diseño.
  *
  * Implementa los handlers públicos (HU08) y de administración
- * (HU10) para la sección de diseño e ilustración.
+ * (HU10) para la sección de diseño e ilustración, apoyándose en
+ * las factorías compartidas de `lib/crud-factory`.
  *
  * @module controllers/design
  * @requires lib/prisma
- * @requires lib/prisma-utils
+ * @requires lib/crud-factory
+ * @requires lib/paginated-list
  * @requires lib/http-response
  * @requires lib/constants
- * @requires services/upload
- * @requires services/logger
  */
 
 import prisma from '../lib/prisma.js';
 import logger from '../services/logger.js';
-import { resolveImageAsset } from '../services/upload.js';
-import { deleteCloudinaryImage, extractPublicId } from '../services/cloudinary.js';
-import { parseId, isNotFoundError, isDuplicateError, reorderByPosition } from '../lib/prisma-utils.js';
-import { sendSuccess, sendError, sendNotFound, sendDuplicate, sendInternalError } from '../lib/http-response.js';
+import { sendSuccess, sendNotFound, sendValidationError, sendInternalError } from '../lib/http-response.js';
+import { createPaginatedListHandler } from '../lib/paginated-list.js';
+import {
+  createReorderHandler,
+  createFindManyHandler,
+  createImageResourceHandlers,
+  imagePublicIdField,
+} from '../lib/crud-factory.js';
 import { DESIGN_SUBCATEGORIES, STABLE_POSITION_ORDER } from '../lib/constants.js';
 
-/**
- * HU10 - Crear proyecto de diseño
- * Endpoint POST /api/v1/admin/design
- *
- * @param {Object} req - Request de Express
- * @param {Object} res - Response de Express
- * @returns {Promise<Object>} 201 con proyecto creado, 400 o 500
- * @security Requiere Bearer token con rol ADMIN
- */
-const create = async (req, res) => {
-  try {
-    const { title, description, imageUrl, subcategory, isPublished, isFeatured } = req.body;
-
-    const imageAsset = await resolveImageAsset(req.file, imageUrl, 'diseno');
-    const finalImageUrl = imageAsset.url;
-
-    if (!finalImageUrl) {
-      return sendError(res, 400, 'VALIDATION_ERROR', 'La imagen es obligatoria (archivo o URL)');
-    }
-
-    const project = await prisma.designProject.create({
-      data: {
-        title,
-        description: description || null,
-        imageUrl: finalImageUrl,
-        ...((imageAsset.publicId || extractPublicId(finalImageUrl)) && {
-          imagePublicId: imageAsset.publicId || extractPublicId(finalImageUrl),
-        }),
-        subcategory,
-        ...(isPublished !== undefined && { isPublished }),
-        ...(isFeatured !== undefined && { isFeatured }),
-      },
-    });
-
-    logger.info('Proyecto de diseño creado', { id: project.id, title: project.title });
-
-    return sendSuccess(res, project, 201);
-  } catch (error) {
-    if (isDuplicateError(error)) {
-      return sendDuplicate(res, 'Ya existe un proyecto de diseño con ese título');
-    }
-    return sendInternalError(res, logger, 'Error al crear proyecto de diseño', error);
-  }
-};
+const { create, update, remove } = createImageResourceHandlers({
+  model: prisma.designProject,
+  section: 'diseno',
+  buildCreateData: ({ body, imageAsset, finalImageUrl }) => ({
+    title: body.title,
+    description: body.description || null,
+    imageUrl: finalImageUrl,
+    ...imagePublicIdField(imageAsset, finalImageUrl),
+    subcategory: body.subcategory,
+    ...(body.isPublished !== undefined && { isPublished: body.isPublished }),
+    ...(body.isFeatured !== undefined && { isFeatured: body.isFeatured }),
+  }),
+  buildUpdateData: ({ body, imageAsset, finalImageUrl }) => ({
+    ...(body.title !== undefined && { title: body.title }),
+    ...(body.description !== undefined && { description: body.description }),
+    ...(finalImageUrl !== undefined && { imageUrl: finalImageUrl }),
+    ...(finalImageUrl ? imagePublicIdField(imageAsset, finalImageUrl) : {}),
+    ...(body.subcategory !== undefined && { subcategory: body.subcategory }),
+    ...(body.isPublished !== undefined && { isPublished: body.isPublished }),
+    ...(body.isFeatured !== undefined && { isFeatured: body.isFeatured }),
+  }),
+  labels: {
+    created: 'Proyecto de diseño creado',
+    updated: 'Proyecto de diseño actualizado',
+    removed: 'Proyecto de diseño eliminado',
+    notFound: 'Proyecto de diseño no encontrado',
+    removedMessage: 'Proyecto de diseño eliminado correctamente',
+    duplicate: 'Ya existe un proyecto de diseño con ese título',
+    createError: 'Error al crear proyecto de diseño',
+    updateError: 'Error al actualizar proyecto de diseño',
+    removeError: 'Error al eliminar proyecto de diseño',
+  },
+});
 
 /**
- * HU10 - Actualizar proyecto de diseño
- * Endpoint PUT /api/v1/admin/design/:id
+ * Construye el filtro `where` del listado admin según la query.
  *
- * @param {Object} req - Request de Express
- * @param {Object} res - Response de Express
- * @returns {Promise<Object>} 200 con proyecto actualizado, 404, 400 o 500
- * @security Requiere Bearer token con rol ADMIN
+ * @param {Object} query - Query del request (req.query)
+ * @param {string} [query.subcategory] - Filtra por subcategoría válida
+ * @returns {Object|string} Objeto `where` (o `{}`) o mensaje de error de validación
  */
-const update = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const { title, description, imageUrl, subcategory, isPublished, isFeatured } = req.body;
-
-    const imageAsset = await resolveImageAsset(req.file, imageUrl, 'diseno');
-    const finalImageUrl = imageAsset.url;
-
-    if (Object.prototype.hasOwnProperty.call(req.body, 'imageUrl') && !req.file && !finalImageUrl) {
-      return sendError(res, 400, 'VALIDATION_ERROR', 'La imagen es obligatoria (archivo o URL)');
-    }
-
-    if (finalImageUrl) {
-      const previousProject = await prisma.designProject.findUnique({
-        where: { id: parseId(id) },
-        select: { imageUrl: true, imagePublicId: true },
-      });
-
-      if (previousProject && previousProject.imageUrl !== finalImageUrl) {
-        await deleteCloudinaryImage(previousProject.imagePublicId, previousProject.imageUrl);
-      }
-    }
-
-    const project = await prisma.designProject.update({
-      where: { id: parseId(id) },
-      data: {
-        ...(title !== undefined && { title }),
-        ...(description !== undefined && { description }),
-        ...(finalImageUrl !== undefined && { imageUrl: finalImageUrl }),
-        ...(finalImageUrl && (imageAsset.publicId || extractPublicId(finalImageUrl)) && {
-          imagePublicId: imageAsset.publicId || extractPublicId(finalImageUrl),
-        }),
-        ...(subcategory !== undefined && { subcategory }),
-        ...(isPublished !== undefined && { isPublished }),
-        ...(isFeatured !== undefined && { isFeatured }),
-      },
-    });
-
-    logger.info('Proyecto de diseño actualizado', { id: project.id });
-
-    return sendSuccess(res, project);
-  } catch (error) {
-    if (isNotFoundError(error)) return sendNotFound(res, 'Proyecto de diseño no encontrado');
-    if (isDuplicateError(error)) return sendDuplicate(res, 'Ya existe un proyecto de diseño con ese título');
-    return sendInternalError(res, logger, 'Error al actualizar proyecto de diseño', error);
+const buildListWhere = ({ subcategory } = {}) => {
+  if (subcategory === undefined || subcategory === '') return {};
+  if (!DESIGN_SUBCATEGORIES.includes(subcategory)) {
+    return `La subcategoría debe ser: ${DESIGN_SUBCATEGORIES.join(', ')}`;
   }
-};
-
-/**
- * HU10 - Eliminar proyecto de diseño
- * Endpoint DELETE /api/v1/admin/design/:id
- *
- * @param {Object} req - Request de Express
- * @param {Object} res - Response de Express
- * @returns {Promise<Object>} 200 con confirmación, 404 o 500
- * @security Requiere Bearer token con rol ADMIN
- */
-const remove = async (req, res) => {
-  try {
-    const { id } = req.params;
-
-    const project = await prisma.designProject.findUnique({
-      where: { id: parseId(id) },
-      select: { imageUrl: true, imagePublicId: true },
-    });
-
-    if (project === null) {
-      return sendNotFound(res, 'Proyecto de diseño no encontrado');
-    }
-
-    if (project) {
-      await deleteCloudinaryImage(project.imagePublicId, project.imageUrl);
-    }
-
-    await prisma.designProject.delete({
-      where: { id: parseId(id) },
-    });
-
-    logger.info('Proyecto de diseño eliminado', { id: parseId(id) });
-
-    return sendSuccess(res, { message: 'Proyecto de diseño eliminado correctamente' });
-  } catch (error) {
-    if (isNotFoundError(error)) return sendNotFound(res, 'Proyecto de diseño no encontrado');
-    return sendInternalError(res, logger, 'Error al eliminar proyecto de diseño', error);
-  }
+  return { subcategory };
 };
 
 /**
@@ -167,21 +79,21 @@ const remove = async (req, res) => {
  * Endpoint GET /api/v1/admin/design
  *
  * @param {Object} req - Request de Express
+ * @param {Object} req.query.page - Número de página (default 1)
+ * @param {Object} req.query.limit - Elementos por página (default 20, max 100)
+ * @param {Object} req.query.subcategory - Filtro opcional por subcategoría
  * @param {Object} res - Response de Express
- * @returns {Promise<Object>} 200 con todos los proyectos o 500
+ * @returns {Promise<Object>} 200 con data paginada y meta, 400 o 500
  * @security Requiere Bearer token con rol ADMIN
  */
-const listAll = async (req, res) => {
-  try {
-    const projects = await prisma.designProject.findMany({
-      orderBy: STABLE_POSITION_ORDER,
-    });
-
-    return sendSuccess(res, projects);
-  } catch (error) {
-    return sendInternalError(res, logger, 'Error al listar proyectos de diseño', error);
-  }
-};
+const listAll = createPaginatedListHandler({
+  model: prisma.designProject,
+  findManyArgs: {
+    orderBy: STABLE_POSITION_ORDER,
+  },
+  buildWhere: buildListWhere,
+  errorMessage: 'Error al listar proyectos de diseño',
+});
 
 /**
  * HU10 - Reordenar proyectos de diseño
@@ -192,22 +104,11 @@ const listAll = async (req, res) => {
  * @returns {Promise<Object>} 200 con confirmación, 400 o 500
  * @security Requiere Bearer token con rol ADMIN
  */
-const reorder = async (req, res) => {
-  try {
-    const { orderedIds } = req.body;
-
-    await reorderByPosition(prisma, prisma.designProject, orderedIds);
-
-    logger.info('Proyectos de diseño reordenados', { count: orderedIds.length });
-
-    return sendSuccess(res, { message: 'Orden actualizado correctamente' });
-  } catch (error) {
-    if (isNotFoundError(error)) {
-      return sendError(res, 400, 'VALIDATION_ERROR', 'Uno o más IDs no existen');
-    }
-    return sendInternalError(res, logger, 'Error al reordenar proyectos de diseño', error);
-  }
-};
+const reorder = createReorderHandler({
+  model: prisma.designProject,
+  logLabel: 'Proyectos de diseño reordenados',
+  errorMessage: 'Error al reordenar proyectos de diseño',
+});
 
 /**
  * HU08 - Filtrar Diseño
@@ -225,7 +126,7 @@ const listFiltered = async (req, res) => {
     const { subcategory } = req.query;
 
     if (!subcategory) {
-      return sendError(res, 400, 'VALIDATION_ERROR', 'La subcategoría es obligatoria');
+      return sendValidationError(res, 'La subcategoría es obligatoria');
     }
 
     if (!DESIGN_SUBCATEGORIES.includes(subcategory)) {
@@ -252,17 +153,13 @@ const listFiltered = async (req, res) => {
  * @returns {Promise<Object>} 200 con proyectos destacados o 500
  * @security Endpoint público (no requiere autenticación)
  */
-const listFeatured = async (req, res) => {
-  try {
-    const projects = await prisma.designProject.findMany({
-      where: { isFeatured: true, isPublished: true },
-      orderBy: STABLE_POSITION_ORDER,
-    });
-
-    return sendSuccess(res, projects);
-  } catch (error) {
-    return sendInternalError(res, logger, 'Error al listar proyectos de diseño destacados', error);
-  }
-};
+const listFeatured = createFindManyHandler({
+  model: prisma.designProject,
+  args: {
+    where: { isFeatured: true, isPublished: true },
+    orderBy: STABLE_POSITION_ORDER,
+  },
+  errorMessage: 'Error al listar proyectos de diseño destacados',
+});
 
 export { create, update, remove, reorder, listAll, listFiltered, listFeatured };

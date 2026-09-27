@@ -25,6 +25,7 @@ describe('HU07 - Admin Exhibitions', () => {
           { id: 1, title: 'Publicada', position: 0, isPublished: true },
           { id: 2, title: 'Borrador', position: 1, isPublished: false },
         ]);
+        mockPrisma.exhibition.count.mockResolvedValue(2);
 
         const res = await request(app)
           .get('/api/v1/admin/exhibitions')
@@ -33,6 +34,7 @@ describe('HU07 - Admin Exhibitions', () => {
         expect(res.status).toBe(200);
         expect(res.body.data).toHaveLength(2);
         expect(res.body.data[1]).toMatchObject({ id: 2, isPublished: false });
+        expect(res.body.meta).toEqual({ total: 2, page: 1, limit: 20, pages: 1 });
       });
     });
 

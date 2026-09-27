@@ -12,6 +12,7 @@
 import { sendContactEmail } from '../services/email.js';
 import logger from '../services/logger.js';
 import { sendSuccess, sendError, sendInternalError } from '../lib/http-response.js';
+import { ERROR_CODES } from '../lib/constants.js';
 
 /**
  * Envía el mensaje de contacto al administrador.
@@ -33,7 +34,7 @@ const send = async (req, res) => {
       return sendError(
         res,
         502,
-        'EMAIL_ERROR',
+        ERROR_CODES.EMAIL_ERROR,
         'No se pudo enviar el mensaje. Inténtalo de nuevo más tarde'
       );
     }

@@ -154,36 +154,75 @@ describe('HU07 - Admin Exposiciones', () => {
 
   describe('listAll', () => {
     describe('given exhibitions exist (published and unpublished)', () => {
-      it('should return 200 with all exhibitions ordered by position', async () => {
+      it('should return 200 with paginated exhibitions ordered by position', async () => {
         mockPrisma.exhibition.findMany.mockResolvedValue([
           { id: 1, title: 'Expo Uno', date: new Date('2024-06-01T00:00:00Z'), endDate: null, position: 0, isPublished: true },
           { id: 2, title: 'Expo Dos', date: new Date('2024-07-01T00:00:00Z'), endDate: null, position: 1, isPublished: false },
         ]);
+        mockPrisma.exhibition.count.mockResolvedValue(2);
 
         await listAll(req, res);
 
         expect(mockPrisma.exhibition.findMany).toHaveBeenCalledWith({
+          skip: 0,
+          take: 20,
           orderBy: ORDER,
           include: IMAGES_INCLUDE,
         });
+        expect(mockPrisma.exhibition.count).toHaveBeenCalledWith();
         expect(res.status).toHaveBeenCalledWith(200);
         expect(res.json).toHaveBeenCalledWith({
           data: [
             { id: 1, title: 'Expo Uno', date: '2024-06-01', endDate: null, position: 0, isPublished: true, images: [] },
             { id: 2, title: 'Expo Dos', date: '2024-07-01', endDate: null, position: 1, isPublished: false, images: [] },
           ],
+          meta: { total: 2, page: 1, limit: 20, pages: 1 },
         });
+      });
+    });
+
+    describe('given pagination query params', () => {
+      it('should apply page and limit and return meta', async () => {
+        req.query = { page: '2', limit: '5' };
+        mockPrisma.exhibition.findMany.mockResolvedValue([]);
+        mockPrisma.exhibition.count.mockResolvedValue(7);
+
+        await listAll(req, res);
+
+        expect(mockPrisma.exhibition.findMany).toHaveBeenCalledWith(
+          expect.objectContaining({ skip: 5, take: 5 })
+        );
+        expect(res.json).toHaveBeenCalledWith({
+          data: [],
+          meta: { total: 7, page: 2, limit: 5, pages: 2 },
+        });
+      });
+
+      it('should cap limit at 100', async () => {
+        req.query = { limit: '500' };
+        mockPrisma.exhibition.findMany.mockResolvedValue([]);
+        mockPrisma.exhibition.count.mockResolvedValue(0);
+
+        await listAll(req, res);
+
+        expect(mockPrisma.exhibition.findMany).toHaveBeenCalledWith(
+          expect.objectContaining({ skip: 0, take: 100 })
+        );
       });
     });
 
     describe('given no exhibitions', () => {
       it('should return 200 with an empty array', async () => {
         mockPrisma.exhibition.findMany.mockResolvedValue([]);
+        mockPrisma.exhibition.count.mockResolvedValue(0);
 
         await listAll(req, res);
 
         expect(res.status).toHaveBeenCalledWith(200);
-        expect(res.json).toHaveBeenCalledWith({ data: [] });
+        expect(res.json).toHaveBeenCalledWith({
+          data: [],
+          meta: { total: 0, page: 1, limit: 20, pages: 0 },
+        });
       });
     });
 
@@ -199,6 +238,7 @@ describe('HU07 - Admin Exposiciones', () => {
             isPublished: true,
           },
         ]);
+        mockPrisma.exhibition.count.mockResolvedValue(1);
 
         await listAll(req, res);
 
@@ -215,6 +255,7 @@ describe('HU07 - Admin Exposiciones', () => {
               images: [],
             },
           ],
+          meta: { total: 1, page: 1, limit: 20, pages: 1 },
         });
       });
     });
@@ -828,7 +869,7 @@ describe('HU07 - Admin Exposiciones', () => {
   describe('remove', () => {
     describe('given existing exhibition', () => {
       it('should return 200 with success message', async () => {
-        mockPrisma.exhibition.findUnique.mockResolvedValue(undefined);
+        mockPrisma.exhibition.findUnique.mockResolvedValue({ id: 1, images: [] });
         mockPrisma.exhibition.delete.mockResolvedValue({ id: 1 });
         req.params = { id: '1' };
 

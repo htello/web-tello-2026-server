@@ -11,7 +11,15 @@
  */
 
 import Joi from 'joi';
-import { DESIGN_SUBCATEGORIES } from '../lib/constants.js';
+import {
+  PASSWORD_MIN_LENGTH,
+  USER_ROLES,
+  DESIGN_SUBCATEGORIES,
+  MAX_EXHIBITION_IMAGES,
+  EXHIBITION_YEAR_MIN,
+  EXHIBITION_YEAR_MAX,
+  MIN_TEXT_LENGTH,
+} from '../lib/constants.js';
 
 /**
  * Middleware de validación de input
@@ -66,12 +74,12 @@ const emailField = ({ withEmpty = true } = {}) => Joi.string()
  */
 const passwordField = ({ strong = false } = {}) => {
   const messages = {
-    'string.min': 'La contraseña debe tener al menos 8 caracteres',
+    'string.min': `La contraseña debe tener al menos ${PASSWORD_MIN_LENGTH} caracteres`,
     'any.required': 'La contraseña es obligatoria',
     'string.empty': 'La contraseña no puede estar vacía',
   };
 
-  let field = Joi.string().min(8);
+  let field = Joi.string().min(PASSWORD_MIN_LENGTH);
 
   if (strong) {
     field = field.pattern(/^(?=.*[A-Z])(?=.*[^a-zA-Z0-9\s]).*$/);
@@ -170,10 +178,10 @@ const imagesField = () => Joi.array()
       height: Joi.number().integer().positive().optional().allow(null),
     })
   )
-  .max(50)
+  .max(MAX_EXHIBITION_IMAGES)
   .optional()
   .messages({
-    'array.max': 'Máximo 50 imágenes por exposición',
+    'array.max': `Máximo ${MAX_EXHIBITION_IMAGES} imágenes por exposición`,
   });
 
 /**
@@ -190,8 +198,8 @@ const imagesField = () => Joi.array()
 const yearField = ({ required = false } = {}) => {
   const base = Joi.number()
     .integer()
-    .min(1900)
-    .max(2100)
+    .min(EXHIBITION_YEAR_MIN)
+    .max(EXHIBITION_YEAR_MAX)
     .empty('');
   const field = required ? base.required() : base.optional().allow(null);
   return field.messages({
@@ -302,7 +310,7 @@ const userUpdateSchema = Joi.object({
       'string.empty': 'El rol no puede estar vacío',
     })
     .custom((value, helpers) => {
-      if (!['ADMIN', 'USER'].includes(value)) {
+      if (!USER_ROLES.includes(value)) {
         return helpers.message('El rol debe ser ADMIN o USER');
       }
       return value;
@@ -477,11 +485,11 @@ const illustrationUpdateSchema = Joi.object({
  */
 const biographySchema = Joi.object({
   content: Joi.string()
-    .min(10)
+    .min(MIN_TEXT_LENGTH)
     .required()
     .messages({
       'any.required': 'El contenido es obligatorio',
-      'string.min': 'El contenido debe tener al menos 10 caracteres',
+      'string.min': `El contenido debe tener al menos ${MIN_TEXT_LENGTH} caracteres`,
       'string.empty': 'El contenido no puede estar vacío',
     }),
   imageUrl: imageUrlField(),
@@ -493,10 +501,10 @@ const biographySchema = Joi.object({
  */
 const biographyUpdateSchema = Joi.object({
   content: Joi.string()
-    .min(10)
+    .min(MIN_TEXT_LENGTH)
     .optional()
     .messages({
-      'string.min': 'El contenido debe tener al menos 10 caracteres',
+      'string.min': `El contenido debe tener al menos ${MIN_TEXT_LENGTH} caracteres`,
       'string.empty': 'El contenido no puede estar vacío',
     }),
   imageUrl: imageUrlField(),
@@ -523,11 +531,11 @@ const contactSchema = Joi.object({
       'string.empty': 'El asunto no puede estar vacío',
     }),
   message: Joi.string()
-    .min(10)
+    .min(MIN_TEXT_LENGTH)
     .required()
     .messages({
       'any.required': 'El mensaje es obligatorio',
-      'string.min': 'El mensaje debe tener al menos 10 caracteres',
+      'string.min': `El mensaje debe tener al menos ${MIN_TEXT_LENGTH} caracteres`,
       'string.empty': 'El mensaje no puede estar vacío',
     }),
 });

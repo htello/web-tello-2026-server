@@ -18,10 +18,11 @@ import cors from 'cors';
 import logger from './services/logger.js';
 import routes from './routes/index.js';
 import { loginLimiter } from './middleware/rateLimiter.js';
+import { DEFAULT_PORT, DEFAULT_CORS_ORIGIN, JSON_BODY_LIMIT, ERROR_CODES } from './lib/constants.js';
 import { dbCheck } from './controllers/health.js';
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || DEFAULT_PORT;
 
 // Seguridad: Helmet agrega headers HTTP seguros
 app.use(helmet());
@@ -30,12 +31,12 @@ app.disable('x-powered-by');
 
 // CORS: Permitir solicitudes desde el frontend
 app.use(cors({
-  origin: process.env.CORS_ORIGIN || 'http://localhost:3000',
+  origin: process.env.CORS_ORIGIN || DEFAULT_CORS_ORIGIN,
   credentials: true,
 }));
 
 // Parsing de JSON con límite de 1MB
-app.use(express.json({ limit: '1mb' }));
+app.use(express.json({ limit: JSON_BODY_LIMIT }));
 
 /**
  * Rate limiting para endpoint de login
@@ -81,7 +82,7 @@ app.use((err, req, res, _next) => {
   logger.error('Unhandled error', { error: err.message });
   res.status(500).json({
     error: 'Error interno del servidor',
-    code: 'INTERNAL_ERROR',
+    code: ERROR_CODES.INTERNAL_ERROR,
   });
 });
 

@@ -7,6 +7,53 @@ y este proyecto adherido al [Versionado Semántico](https://semver.org/lang/es/)
 
 ## [Unreleased]
 
+### Changed (documentación: README en español y licencia)
+- `README.md` reescrito íntegramente en español (se mantienen en inglés solo código, comandos y términos técnicos) y sincronizado con la implementación real: punto de entrada `src/app.js`, `DATABASE_URL` con puerto 5433, variables de entorno completas (`FRONTEND_URL`, `CORS_ORIGIN`, `RESEND_API_KEY`, `EMAIL_FROM`, `SENTRY_RELEASE`, `PORT`), endpoints que faltaban (auth forgot/reset-password, CRUD de usuarios admin, listados admin paginados con filtros `?collectionId`/`?subcategory`, `GET /paintings` público, `featured` de diseño/ilustraciones, reorders de diseño/ilustraciones, `health/db`) y eliminación de los toggles `/feature` y `/publish` (inexistentes desde refactor/magic-numbers).
+- Sección `## Licencia` eliminada del README (no existe archivo LICENSE; proyecto privado).
+- `package.json`: `license` de `ISC` (default de npm) a `UNLICENSED` y añadido `private: true` (paquete no publicable).
+- Solo documentación/metadatos: sin cambios de código, contratos ni tests (557 tests, lint OK, cobertura 100%).
+
+### Changed (refactor: dedupe, código muerto y magic numbers)
+- Nueva factory `src/lib/crud-factory.js`: `createReorderHandler` (5 reorder duplicados), `createFindManyHandler` (listados `listPublished`/`listFeatured` de pinturas, ilustraciones, diseño y exposiciones), `createGetByIdHandler` (ficha de pintura) y `createImageResourceHandlers` (create/update/remove de recursos con imagen: pinturas, ilustraciones, diseño).
+- Unificadas inconsistencias entre recursos de imagen: `GET /paintings/featured` ahora ordena por `position asc, id asc` (igual que ilustraciones/diseño) y `POST /admin/paintings` guarda `imagePublicId` extraído de URLs de Cloudinary (fallback `extractPublicId`, igual que ilustraciones/diseño).
+- Helpers `resolveImagePublicId`/`imagePublicIdField`: eliminan la doble evaluación `imageAsset.publicId || extractPublicId(url)` en ilustraciones, diseño y biografía.
+- Eliminado código muerto en `src/services/upload.js`: `uploadImageAsset` (alias sin uso) y `resolveImageUrl` (solo lo usaban tests); `fileFilter`/`ALLOWED_TYPES`/`MAX_SIZE`/`CLOUDINARY_FOLDERS` dejan de exportarse (config interna de Multer).
+- Nuevos helpers en `lib/http-response.js`: `sendValidationError` y `sendUnauthorized`; constantes compartidas en `lib/constants.js` (`ERROR_CODES`, `ADMIN_ROLE`, `USER_ROLES`, `MS_PER_MINUTE`, `CLOUDINARY_BASE_FOLDER/URL_MARKER/UPLOAD_SEGMENT`, `RESEND_TIMEOUT_MS`, `PASSWORD_MIN_LENGTH`, `ISO_DATE_LENGTH`, `DEFAULT_PORT`, `DEFAULT_CORS_ORIGIN`, `JSON_BODY_LIMIT`, `INVALID_CREDENTIALS_MESSAGE`, `IMAGE_REQUIRED_MESSAGE`, `REORDER_SUCCESS/INVALID_IDS_MESSAGE`).
+- Sustituidos magic numbers/strings en `app.js`, `controllers/*`, `middleware/auth.js`, `middleware/validate.js`, `services/upload.js`, `services/cloudinary.js`, `services/email.js`; `GET /admin/users` migra a `createPaginatedListHandler`; eliminados los `if (x)` redundantes tras las guardas de 404 en los `remove`.
+- Tests ajustados (mocks de `resolveImageUrl`, DELETE con `findUnique` sin mock y `orderBy` de paintings featured); sin cambios de contrato. Tests: 557 en total, lint OK, cobertura 100%.
+
+### Added (filtros server-side en listados admin)
+- `createPaginatedListHandler` (`src/lib/paginated-list.js`) admite `buildWhere(query)`: aplica `where` a `findMany` y `count` (meta.total filtrado) y devuelve `400 VALIDATION_ERROR` si retorna un mensaje de error.
+- `GET /admin/paintings` acepta `?collectionId=` (entero positivo; no numérico o ≤ 0 → 400).
+- `GET /admin/design` acepta `?subcategory=` (validada contra `DESIGN_SUBCATEGORIES`; inválida → 400).
+- Sincronizados `docs/openapi.yaml` (params + respuesta 400 en ambos GET) y `docs/openapi-INDEX.md`. Tests: 560 en total, cobertura 100%.
+
+### Changed (seed aditivo con datos reales)
+- `prisma/seed.js` ya no es destructivo: elimina los `deleteMany` y es idempotente (re-ejecutable sin duplicar registros).
+- Enriquece los registros existentes del usuario (rellena solo campos null: técnica, dimensiones, descripciones, portadas).
+- Añade datos reales con URLs de Wikimedia Commons (validadas, no se sube nada a Cloudinary): 6 colecciones de pintura (11 obras c/u, top-ups de las 2 colecciones existentes a 10), 19 ilustraciones, 48 proyectos de diseño (15 por subcategoría) y 3 exposiciones (12 fotos c/u) + top-up de fotos de exposición.
+- Nuevo módulo de datos `prisma/seed-data.js` generado desde Wikimedia Commons.
+
+### Changed (centralización de magic numbers)
+- Nuevas constantes en `src/lib/constants.js`: paginación (`PAGINATION_DEFAULT_PAGE/DEFAULT_LIMIT/MIN_LIMIT/MAX_LIMIT`), rate limiting (`RATE_LIMIT_WINDOW_MS`, `RATE_LIMIT_CONTACT_MAX`, `RATE_LIMIT_LOGIN_MAX`, `RATE_LIMIT_PASSWORD_RESET_*`), imágenes Cloudinary (`IMAGE_MAX_WIDTH`, `IMAGE_THUMBNAIL_WIDTH`), validación Joi (`MAX_EXHIBITION_IMAGES`, `EXHIBITION_YEAR_MIN/MAX`, `MIN_TEXT_LENGTH`), SMTP (`SMTP_DEFAULT_PORT`, `SMTP_SECURE_PORT`, `SMTP_*_TIMEOUT_MS`) y auth (`RESET_TOKEN_BYTES`).
+- Consumidores refactorizados sin cambio de comportamiento: `lib/pagination.js` (elimina constantes locales duplicadas), `middleware/rateLimiter.js` (mensaje de minutos derivado de la constante), `middleware/validate.js` (mensajes Joi con template literals, strings idénticos), `services/upload.js`, `services/email.js`, `controllers/auth.js`.
+- Tests: 549 en total, cobertura 100%.
+
+### Changed (refactor listados admin paginados)
+- Nueva factory `src/lib/paginated-list.js` (`createPaginatedListHandler`): genera los handlers de listado paginado a partir del modelo Prisma, argumentos de `findMany`, serializador opcional y mensaje de error.
+- Los `listAll` de colecciones, pinturas, exposiciones, diseño e ilustraciones delegan en la factory; sin cambios de comportamiento ni de contrato (543 tests, cobertura 100%).
+
+### Added (paginación en listados admin)
+- Los GET admin de colecciones, pinturas, exposiciones, diseño e ilustraciones aceptan `?page` (default 1) y `?limit` (default 20, max 100) y responden `{ data, meta: { total, page, limit, pages } }` (mismo contrato que `GET /admin/users`). **Breaking para consumidores admin**: la respuesta ya no es solo `{ data }`.
+- Nuevo helper `src/lib/pagination.js` (`parsePagination`, `buildPaginationMeta`) reutilizado también por `GET /admin/users` (sin cambio de comportamiento; el límite ahora se fija a >= 1).
+- Los endpoints públicos (`/collections`, `/paintings`, `/exhibitions`, `/design`, `/illustrations`, featured, etc.) no cambian.
+- Sincronizados `docs/openapi.yaml` (params + `PaginationMeta` en los 5 GET admin) y `docs/openapi-INDEX.md`.
+
+### Added (secciones Cloudinary: exposiciones y test)
+- `ALLOWED_SECTIONS` incluye `exposiciones`: `POST /admin/upload` acepta `section=exposiciones` y sube a `portfolio-antonio-tello/exposiciones`.
+- Nueva constante `CLOUDINARY_FOLDERS` (`ALLOWED_SECTIONS` + `test`): `uploadToCloudinary` admite la sección interna `test` (`portfolio-antonio-tello/test`) para scripts y pruebas; el endpoint `/admin/upload` la rechaza con `400 VALIDATION_ERROR`.
+- Se mantiene `diseno` (sin ñ) como carpeta de diseño. Sincronizados `docs/openapi.yaml` (enum de `section`) y `docs/openapi-INDEX.md`.
+
 ### Fixed (limpieza de imágenes en Cloudinary)
 - Las eliminaciones y reemplazos de pinturas, proyectos de diseño, ilustraciones, colecciones, exposiciones y biografía eliminan también sus imágenes de Cloudinary cuando la URL pertenece a Cloudinary.
 - Se persiste el `publicId` de Cloudinary en los recursos con imágenes y se añade fallback para URLs legacy; las URLs externas no se eliminan.
