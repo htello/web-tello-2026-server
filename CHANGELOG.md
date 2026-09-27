@@ -7,6 +7,12 @@ y este proyecto adherido al [Versionado Semántico](https://semver.org/lang/es/)
 
 ## [Unreleased]
 
+### Changed (documentación: README en español y licencia)
+- `README.md` reescrito íntegramente en español (se mantienen en inglés solo código, comandos y términos técnicos) y sincronizado con la implementación real: punto de entrada `src/app.js`, `DATABASE_URL` con puerto 5433, variables de entorno completas (`FRONTEND_URL`, `CORS_ORIGIN`, `RESEND_API_KEY`, `EMAIL_FROM`, `SENTRY_RELEASE`, `PORT`), endpoints que faltaban (auth forgot/reset-password, CRUD de usuarios admin, listados admin paginados con filtros `?collectionId`/`?subcategory`, `GET /paintings` público, `featured` de diseño/ilustraciones, reorders de diseño/ilustraciones, `health/db`) y eliminación de los toggles `/feature` y `/publish` (inexistentes desde refactor/magic-numbers).
+- Sección `## Licencia` eliminada del README (no existe archivo LICENSE; proyecto privado).
+- `package.json`: `license` de `ISC` (default de npm) a `UNLICENSED` y añadido `private: true` (paquete no publicable).
+- Solo documentación/metadatos: sin cambios de código, contratos ni tests (557 tests, lint OK, cobertura 100%).
+
 ### Changed (refactor: dedupe, código muerto y magic numbers)
 - Nueva factory `src/lib/crud-factory.js`: `createReorderHandler` (5 reorder duplicados), `createFindManyHandler` (listados `listPublished`/`listFeatured` de pinturas, ilustraciones, diseño y exposiciones), `createGetByIdHandler` (ficha de pintura) y `createImageResourceHandlers` (create/update/remove de recursos con imagen: pinturas, ilustraciones, diseño).
 - Unificadas inconsistencias entre recursos de imagen: `GET /paintings/featured` ahora ordena por `position asc, id asc` (igual que ilustraciones/diseño) y `POST /admin/paintings` guarda `imagePublicId` extraído de URLs de Cloudinary (fallback `extractPublicId`, igual que ilustraciones/diseño).

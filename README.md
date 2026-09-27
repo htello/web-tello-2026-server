@@ -2,169 +2,213 @@
 
 API REST para la gestión del portfolio artístico. Permite la administración de colecciones, pinturas, exposiciones, diseño, ilustraciones, biografía y contacto.
 
-## Tech Stack
+## Stack tecnológico
 
-- **Runtime**: Node.js + Express 5
+- **Runtime**: Node.js >= 18 + Express 5
 - **ORM**: Prisma
-- **Database**: PostgreSQL 16 (Docker)
-- **Testing**: Vitest (100% cobertura obligatoria)
-- **Package Manager**: pnpm
+- **Base de datos**: PostgreSQL 16 (Docker)
+- **Testing**: Vitest + Supertest (100% cobertura obligatoria)
+- **Gestor de paquetes**: pnpm
 - **CI/CD**: GitHub Actions
-- **API Spec**: OpenAPI 3.0.3
+- **Especificación de API**: OpenAPI 3.0.3 (`docs/openapi.yaml`)
+- **Email**: Resend (producción) / Nodemailer SMTP (desarrollo)
+- **Almacenamiento**: Cloudinary
+- **Logging**: Winston · **Errores**: Sentry (opcional)
 
-## Quick Start
+## Inicio rápido
 
-### Prerequisites
+### Requisitos previos
 
 - Node.js >= 18
 - Docker + Docker Compose
 - pnpm
 
-### Installation
+### Instalación
 
 ```bash
-# 1. Clone the repository
-git clone https://github.com/user/portfolio-tello.git
-cd portfolio-tello/server
+# 1. Clona el repositorio
+git clone https://github.com/htello/web-tello-2026-server.git
+cd web-tello-2026-server
 
-# 2. Start PostgreSQL
+# 2. Arranca PostgreSQL (expone el puerto 5433 en el host)
 docker compose up -d
 
-# 3. Install dependencies
+# 3. Instala las dependencias
 pnpm install
 
-# 4. Create .env file
+# 4. Crea el archivo .env
 cp .env.example .env
-# Edit .env with your credentials
+# Edita .env con tus credenciales
 
-# 5. Run migrations
-pnpm exec prisma migrate dev --name init
+# 5. Ejecuta las migraciones
+pnpm exec prisma migrate dev
 
-# 6. Seed database
+# 6. Poblar la base de datos (seed)
 pnpm exec prisma db seed
 
-# 7. Start development server
+# 7. Arranca el servidor de desarrollo (auto-reload)
 pnpm run dev
 ```
 
-The server will start at `http://localhost:3000`
+El servidor arranca en `http://localhost:3000`.
 
-## Environment Variables
+> **Producción:** `pnpm start` (ejecuta `node --env-file=.env src/app.js`). El punto de entrada es `src/app.js`.
+
+## Variables de entorno
+
+Copia `.env.example` en `.env` y completa los valores. Variables reconocidas:
 
 ```env
-# Database
-DATABASE_URL=postgresql://portfolio:portfolio@localhost:5432/portfolio_db
+# Base de datos (puerto 5433 mapeado por docker compose)
+DATABASE_URL=postgresql://portfolio:portfolio@localhost:5433/portfolio_db
 
-# Authentication
-JWT_SECRET=your-secret-key-min-32-chars
+# Autenticación
+JWT_SECRET=tu-clave-secreta-aqui-minimo-32-caracteres
 
-# Cloudinary (image uploads)
+# Frontend (base para enlaces de email, p. ej. recuperación de contraseña)
+FRONTEND_URL=http://localhost:5173
+
+# CORS: origen del frontend permitido
+CORS_ORIGIN=http://localhost:5173
+
+# Cloudinary (upload de imágenes)
 CLOUDINARY_URL=cloudinary://api_key:api_secret@cloud_name
 
-# Email (Nodemailer)
+# Email — vía Resend (obligatoria en Render free: bloquea SMTP 25/465/587)
+# Si RESEND_API_KEY está definida se usa Resend; si no, SMTP (desarrollo local)
+RESEND_API_KEY=
+EMAIL_FROM=onboarding@resend.dev
+
+# Email — vía SMTP (Nodemailer, fallback para desarrollo local)
 SMTP_HOST=smtp.gmail.com
 SMTP_PORT=587
-SMTP_USER=your-email@gmail.com
-SMTP_PASS=your-app-password
+SMTP_USER=tu-email@gmail.com
+SMTP_PASS=tu-app-password
 
 # Logging
 LOG_LEVEL=info
 
-# Sentry (optional)
-SENTRY_DSN=https://...@sentry.io/...
+# Sentry (opcional)
+SENTRY_DSN=
+SENTRY_RELEASE=
+
+# Puerto del servidor
+PORT=3000
 ```
 
-## API Endpoints
+## Endpoints de la API
 
-### Base URL
+### URL base
 
 ```
 http://localhost:3000/api/v1
 ```
 
-### Authentication
+- **Auth** = cabecera `Authorization: Bearer <JWT>` con rol `ADMIN`.
+- Las rutas de escritura de pinturas, diseño, ilustraciones y biografía aceptan **multipart/form-data** con campo de imagen `image` (archivo o `imageUrl`).
+- Respuesta de error estándar: `{ "error": "...", "code": "..." }`.
 
-| Method | Endpoint | Description | Auth |
+### Health
+
+| Método | Endpoint | Descripción | Auth |
 |--------|----------|-------------|------|
-| POST | `/api/v1/auth/login` | Login, returns JWT | No |
-| POST | `/api/v1/admin/users/register` | Register new admin | Admin JWT |
+| GET | `/health` | Estado del servidor y timestamp | No |
+| GET | `/health/db` | 200 si la BD responde, 503 en caso contrario | No |
 
-### Collections (Public)
+### Autenticación y usuarios
 
-| Method | Endpoint | Description | Auth |
+| Método | Endpoint | Descripción | Auth |
 |--------|----------|-------------|------|
-| GET | `/collections` | List published collections | No |
-| GET | `/collections/:id` | Collection detail with paintings | No |
+| POST | `/auth/login` | Login, retorna JWT (10 req/min) | No |
+| POST | `/auth/forgot-password` | Solicita enlace de recuperación (5 req/15min) | No |
+| POST | `/auth/reset-password` | Nueva contraseña con token (5 req/15min) | No |
+| POST | `/admin/users/register` | Registra nuevo admin | Admin JWT |
+| GET | `/admin/users` | Listar usuarios | Admin JWT |
+| GET | `/admin/users/:id` | Detalle de usuario | Admin JWT |
+| PUT | `/admin/users/:id` | Editar usuario | Admin JWT |
+| DELETE | `/admin/users/:id` | Eliminar usuario | Admin JWT |
+| PUT | `/admin/users/:id/password` | Resetear contraseña | Admin JWT |
 
-### Collections (Admin)
+### Colecciones
 
-| Method | Endpoint | Description | Auth |
+| Método | Endpoint | Descripción | Auth |
 |--------|----------|-------------|------|
-| POST | `/admin/collections` | Create collection | JWT |
-| PUT | `/admin/collections/:id` | Update collection | JWT |
-| DELETE | `/admin/collections/:id` | Delete collection | JWT |
-| PUT | `/admin/collections/reorder` | Reorder collections | JWT |
+| GET | `/collections` | Listar colecciones publicadas | No |
+| GET | `/collections/:id` | Detalle de colección con pinturas | No |
+| GET | `/admin/collections` | Listar todas las colecciones | JWT |
+| POST | `/admin/collections` | Crear colección | JWT |
+| PUT | `/admin/collections/reorder` | Reordenar colecciones | JWT |
+| PUT | `/admin/collections/:id` | Actualizar colección | JWT |
+| DELETE | `/admin/collections/:id` | Eliminar colección | JWT |
 
-### Paintings
+### Pinturas
 
-| Method | Endpoint | Description | Auth |
+| Método | Endpoint | Descripción | Auth |
 |--------|----------|-------------|------|
-| GET | `/paintings/featured` | Featured paintings (homepage) | No |
-| GET | `/paintings/:id` | Painting detail | No |
-| POST | `/admin/paintings` | Create painting | JWT |
-| PUT | `/admin/paintings/:id` | Update painting | JWT |
-| DELETE | `/admin/paintings/:id` | Delete painting | JWT |
-| PUT | `/admin/paintings/:id/feature` | Toggle featured | JWT |
-| PUT | `/admin/paintings/:id/publish` | Toggle published | JWT |
-| PUT | `/admin/paintings/reorder` | Reorder paintings | JWT |
+| GET | `/paintings` | Listar pinturas publicadas | No |
+| GET | `/paintings/featured` | Obras destacadas (homepage) | No |
+| GET | `/paintings/:id` | Ficha de pintura | No |
+| GET | `/admin/paintings?collectionId=<id>` | Listar todas las pinturas (filtro opcional) | JWT |
+| POST | `/admin/paintings` | Crear pintura (multipart) | JWT |
+| PUT | `/admin/paintings/reorder` | Reordenar pinturas | JWT |
+| PUT | `/admin/paintings/:id` | Actualizar pintura (incluye toggles destacada/publicada) | JWT |
+| DELETE | `/admin/paintings/:id` | Eliminar pintura | JWT |
 
-### Exhibitions
+### Exposiciones
 
-| Method | Endpoint | Description | Auth |
+| Método | Endpoint | Descripción | Auth |
 |--------|----------|-------------|------|
-| GET | `/exhibitions` | List exhibitions | No |
-| POST | `/admin/exhibitions` | Create exhibition | JWT |
-| PUT | `/admin/exhibitions/:id` | Update exhibition | JWT |
-| DELETE | `/admin/exhibitions/:id` | Delete exhibition | JWT |
-| PUT | `/admin/exhibitions/reorder` | Reorder exhibitions | JWT |
+| GET | `/exhibitions` | Listar exposiciones publicadas | No |
+| GET | `/admin/exhibitions` | Listar todas las exposiciones | JWT |
+| POST | `/admin/exhibitions` | Crear exposición | JWT |
+| PUT | `/admin/exhibitions/reorder` | Reordenar exposiciones | JWT |
+| PUT | `/admin/exhibitions/:id` | Actualizar exposición | JWT |
+| DELETE | `/admin/exhibitions/:id` | Eliminar exposición | JWT |
 
-### Design
+### Diseño
 
-| Method | Endpoint | Description | Auth |
+| Método | Endpoint | Descripción | Auth |
 |--------|----------|-------------|------|
-| GET | `/design` | List design projects | No |
-| POST | `/admin/design` | Create design project | JWT |
-| PUT | `/admin/design/:id` | Update design project | JWT |
-| DELETE | `/admin/design/:id` | Delete design project | JWT |
+| GET | `/design?subcategory=<slug>` | Listar proyectos publicados (subcategoría obligatoria) | No |
+| GET | `/design/featured` | Proyectos de diseño destacados | No |
+| GET | `/admin/design?subcategory=<slug>` | Listar todos los proyectos (filtro opcional) | JWT |
+| POST | `/admin/design` | Crear proyecto (multipart) | JWT |
+| PUT | `/admin/design/reorder` | Reordenar proyectos | JWT |
+| PUT | `/admin/design/:id` | Actualizar proyecto | JWT |
+| DELETE | `/admin/design/:id` | Eliminar proyecto | JWT |
 
-### Illustrations
+Subcategorías válidas (`subcategory`): `imagen-corporativa`, `packaging-expositores`, `carteleria`, `editorial`.
 
-| Method | Endpoint | Description | Auth |
+### Ilustraciones
+
+| Método | Endpoint | Descripción | Auth |
 |--------|----------|-------------|------|
-| GET | `/illustrations` | List illustrations | No |
-| POST | `/admin/illustrations` | Create illustration | JWT |
-| PUT | `/admin/illustrations/:id` | Update illustration | JWT |
-| DELETE | `/admin/illustrations/:id` | Delete illustration | JWT |
+| GET | `/illustrations` | Listar ilustraciones publicadas | No |
+| GET | `/illustrations/featured` | Ilustraciones destacadas | No |
+| GET | `/admin/illustrations` | Listar todas las ilustraciones | JWT |
+| POST | `/admin/illustrations` | Crear ilustración (multipart) | JWT |
+| PUT | `/admin/illustrations/reorder` | Reordenar ilustraciones | JWT |
+| PUT | `/admin/illustrations/:id` | Actualizar ilustración | JWT |
+| DELETE | `/admin/illustrations/:id` | Eliminar ilustración | JWT |
 
-### Biography
+### Biografía
 
-| Method | Endpoint | Description | Auth |
+| Método | Endpoint | Descripción | Auth |
 |--------|----------|-------------|------|
-| GET | `/biography` | Get biography | No |
-| POST | `/admin/biography` | Create biography | JWT |
-| PUT | `/admin/biography` | Update biography | JWT |
+| GET | `/biography` | Obtener biografía | No |
+| POST | `/admin/biography` | Crear biografía (multipart) | JWT |
+| PUT | `/admin/biography` | Actualizar biografía (multipart) | JWT |
 
-### Other
+### Contacto y subida de archivos
 
-| Method | Endpoint | Description | Auth |
+| Método | Endpoint | Descripción | Auth |
 |--------|----------|-------------|------|
-| POST | `/contact` | Send contact message | No |
-| POST | `/admin/upload` | Upload image | JWT |
-| GET | `/health` | Health check | No |
+| POST | `/contact` | Enviar mensaje de contacto (5 req/min) | No |
+| POST | `/admin/upload` | Subir imagen a Cloudinary (campo `file`) | JWT |
 
-## Request/Response Format
+## Formato de petición/respuesta
 
-### Success (200, 201)
+### Éxito (200, 201)
 
 ```json
 {
@@ -175,11 +219,13 @@ http://localhost:3000/api/v1
 }
 ```
 
-### Success with Pagination
+### Éxito con paginación
+
+Los listados admiten `?page=` y `?limit=` (por defecto `limit=20`, máximo `100`).
 
 ```json
 {
-  "data": [...],
+  "data": [],
   "meta": {
     "total": 100,
     "page": 1,
@@ -189,7 +235,7 @@ http://localhost:3000/api/v1
 }
 ```
 
-### Error (400, 401, 403, 404, 429, 500)
+### Error (400, 401, 403, 404, 429, 500, 502, 503)
 
 ```json
 {
@@ -198,83 +244,84 @@ http://localhost:3000/api/v1
 }
 ```
 
-### Error Codes
+### Códigos de error
 
-| Code | HTTP Status | Description |
-|------|-------------|-------------|
-| `VALIDATION_ERROR` | 400 | Invalid input data |
-| `UNAUTHORIZED` | 401 | Missing or invalid token |
-| `FORBIDDEN` | 403 | Insufficient permissions |
-| `NOT_FOUND` | 404 | Resource not found |
-| `RATE_LIMITED` | 429 | Too many requests |
-| `INTERNAL_ERROR` | 500 | Server error |
+| Código | Estado HTTP | Descripción |
+|--------|-------------|-------------|
+| `VALIDATION_ERROR` | 400 | Datos de entrada inválidos |
+| `DUPLICATE_ERROR` | 400 | Violación de constraint único |
+| `UNAUTHORIZED` | 401 | Token ausente o inválido |
+| `FORBIDDEN` | 403 | Permisos insuficientes |
+| `NOT_FOUND` | 404 | Recurso no encontrado |
+| `RATE_LIMITED` | 429 | Demasiadas peticiones |
+| `INTERNAL_ERROR` | 500 | Error del servidor |
+| `EMAIL_ERROR` | 502 | Fallo al enviar el email |
+| `SERVICE_UNAVAILABLE` | 503 | Base de datos no disponible |
 
-## Testing
+## Pruebas
 
 ```bash
-# Run all tests
+# Todos los tests
 pnpm test
 
-# Run specific test
-pnpm test -- tests/unit/hu-01-gallery.test.js
+# Un test concreto
+pnpm test -- tests/integration/hu-01-gallery.test.js
 
-# Watch mode
+# Modo watch
 pnpm run test:watch
 
-# Coverage report
+# Reporte de cobertura
 pnpm run test:coverage
 ```
 
-**Coverage requirement**: 100% (CI/CD will fail otherwise)
+**Requisito de cobertura**: 100% (CI/CD falla si no se cumple).
 
-## Development
+## Desarrollo
 
 ```bash
-# Start dev server (auto-reload)
+# Servidor de desarrollo (auto-reload)
 pnpm run dev
 
-# Run linting
+# Linting
 pnpm run lint
+pnpm run lint:fix
 
-# Database operations
-pnpm exec prisma migrate dev    # Create migration
-pnpm exec prisma generate       # Regenerate Prisma client
-pnpm exec prisma db seed        # Seed database
-pnpm exec prisma studio         # Open Prisma Studio
+# Operaciones de base de datos
+pnpm exec prisma migrate dev    # Crear migración
+pnpm exec prisma generate       # Regenerar cliente Prisma
+pnpm exec prisma db seed        # Poblar base de datos
+pnpm exec prisma studio         # Abrir Prisma Studio
 ```
 
 ## Docker
 
 ```bash
-# Start PostgreSQL
+# Arrancar PostgreSQL
 docker compose up -d
 
-# Stop PostgreSQL
+# Detener PostgreSQL
 docker compose down
 
-# View logs
-docker compose logs -f postgres
+# Ver logs
+docker compose logs -f db
 ```
 
-## Security
+## Seguridad
 
-- JWT authentication for admin routes
-- Rate limiting: 5 req/min (contact), 10 req/min (login)
-- Helmet.js for HTTP headers
-- Input validation on all endpoints
-- SQL injection prevention via Prisma
-- CORS configuration
-- Environment variables for secrets
+- Autenticación JWT para rutas admin (expiración 24h, bcrypt 12 rondas)
+- Rate limiting: contacto 5/min, login 10/min, recuperación de contraseña 5/15min
+- Helmet.js para cabeceras HTTP
+- Validación de entrada con Joi en todos los endpoints
+- Prevención de inyección SQL vía Prisma
+- Configuración CORS (origen en `CORS_ORIGIN`)
+- Secrets en variables de entorno (nunca hardcodeados)
+- Logger Winston: no registra passwords, tokens ni datos sensibles
 
-## API Documentation
+## Documentación de la API
 
-Full OpenAPI 3.0.3 specification is available at `docs/openapi.yaml`.
+La especificación completa OpenAPI 3.0.3 está en `docs/openapi.yaml` (fuente de verdad).
 
-You can view it using:
+Puedes visualizarla con:
 - [Swagger Editor](https://editor.swagger.io/)
 - [Redocly](https://redocly.github.io/redoc/)
-- VS Code with OpenAPI extension
-
-## License
-
-MIT
+- VS Code con la extensión OpenAPI
