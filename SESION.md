@@ -12,10 +12,10 @@ CONTEXTO Y DOCUMENTACIÓN:
 - Orden de fases y HUs: docs/0002-IMPLEMENTATION-ORDER.md
 
 ESTADO DEL PROYECTO:
-- Rama actual: refactor/dedupe-cleanup (pendiente de merge a develop)
+- Rama actual: chore/readme-sync-license (pendiente de push y merge a develop)
 - Cobertura de tests: 100% obligatorio (Vitest)
 - Última HU completada y mergeada: HU13/HU14/HU15 - Formulario de Contacto + Email + Rate Limiting
-- Última rama mergeada: refactor/magic-numbers (constantes centralizadas en lib/constants.js) + fix client fix/exhibition-upload-section (imágenes de exposiciones a sección exposiciones)
+- Última rama mergeada: refactor/dedupe-cleanup (factories crud-factory/paginated-list, código muerto, magic numbers) + filtros server-side en listados admin
 - gh CLI autenticado en este equipo (cuenta htello)
 
 CAMBIO DE rama refactor/dedupe-cleanup (en curso, pendiente de merge a develop):
@@ -156,6 +156,12 @@ CAMBIOS EN CLIENT fix/exhibition-upload-section (2026-09-26, repo ../client):
 - Bug: las imágenes de exposiciones se subían a `portfolio-antonio-tello/general` porque `UPLOAD_SECTIONS` del client no incluía `exposiciones` (fallback silencioso a general) y `AdminExhibitions.jsx` usaba `section: 'general'`.
 - Fix: `UPLOAD_SECTIONS` += 'exposiciones', campo imágenes con `section: 'exposiciones'`, JSDoc y AGENTS.md del client actualizados. Las imágenes ya subidas siguen en general (moverlas rompería urls/publicIds de la DB).
 - Verificado en client: 458 tests, lint y build OK. Mergeado a develop del client (06e087e).
+
+CAMBIOS DE chore/readme-sync-license (2026-09-27, rama en curso):
+- Backend dado por FINALIZADO: smoke test en local (health, health/db, públicos 200, design exige subcategory, admin 401 sin token) + 557 tests, lint OK, cobertura 100%.
+- `README.md` reescrito en español (solo código/términos técnicos en inglés) y sincronizado con la implementación: punto de entrada `src/app.js`, BD en puerto 5433, servicio compose `db`, envs completas, endpoints que faltaban (forgot/reset-password, CRUD users admin, listados admin con filtros `?collectionId`/`?subcategory`, `GET /paintings` público, featured de diseño/ilustraciones, reorders, health/db), eliminados toggles `/feature` y `/publish`; sección Licencia quitada (no hay archivo LICENSE).
+- `package.json`: `"license": "UNLICENSED"` + `"private": true`.
+- Solo documentación/metadatos; sin cambios de código ni contratos.
 
 REGLAS DE SESIÓN (ESTRICTAS):
 1. Verificar siempre la rama antes de trabajar (`hu/XX-nombre`). NUNCA escribir código directo en `develop`.

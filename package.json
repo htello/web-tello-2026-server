@@ -2,6 +2,7 @@
   "name": "server",
   "version": "1.0.0",
   "description": "",
+  "private": true,
   "type": "module",
   "main": "src/app.js",
   "scripts": {
@@ -19,7 +20,7 @@
   },
   "keywords": [],
   "author": "",
-  "license": "ISC",
+  "license": "UNLICENSED",
   "dependencies": {
     "@prisma/client": "^6.19.3",
     "@sentry/node": "^10.75.0",
