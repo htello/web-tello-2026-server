@@ -12,6 +12,7 @@
  */
 
 import { Sentry, isEnabled } from './services/sentry.js';
+import { attachFdGuard } from './services/fdGuard.js';
 import express from 'express';
 import helmet from 'helmet';
 import cors from 'cors';
@@ -20,6 +21,10 @@ import routes from './routes/index.js';
 import { loginLimiter } from './middleware/rateLimiter.js';
 import { DEFAULT_PORT, DEFAULT_CORS_ORIGIN, JSON_BODY_LIMIT, ERROR_CODES } from './lib/constants.js';
 import { dbCheck } from './controllers/health.js';
+
+// Evitar uncaughtException por errores de I/O (write EIO) en los pipes
+// de logs stdout/stderr del contenedor (Render)
+attachFdGuard();
 
 const app = express();
 const PORT = process.env.PORT || DEFAULT_PORT;

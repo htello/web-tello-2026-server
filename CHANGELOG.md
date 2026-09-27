@@ -7,6 +7,16 @@ y este proyecto adherido al [Versionado Semántico](https://semver.org/lang/es/)
 
 ## [Unreleased]
 
+### Changed (documentación: despliegue y Postman en README)
+- README: nueva sección `## Despliegue (producción)` con URL de producción (`https://portfolio-api-u5sx.onrender.com`), tabla de características del despliegue (Render Docker free + Supabase Frankfurt, entrypoint con `prisma migrate deploy`, ping anti-pausa, Resend, Sentry, ciclo de release) y tabla de Troubleshooting (cold start, Supabase pausada, SMTP bloqueado, CORS, 429, `write EIO`, bootstrap-admin).
+- README: nueva subsección `### Colección de Postman` en Endpoints (52 requests, pasos de importación, variables `baseUrl`/`authToken`, usuario de pruebas del seed `admin@test.com` solo para desarrollo local) y URL base de producción junto a la de desarrollo.
+- Solo documentación: sin cambios de código, contratos ni tests.
+
+### Fixed (guard de errores de I/O en stdout/stderr)
+- Nuevo servicio `src/services/fdGuard.js`: listeners de `error` en `process.stdout`/`process.stderr` que ignoran códigos de descriptor (`EIO`, `EPIPE`, `EAGAIN`, `ERR_STREAM_DESTROYED`) y re-lanzan el resto. Evita `uncaughtException: write EIO` detectado en producción (Render) cuando el pipe del colector de logs se cierra transitoriamente, que provocaba reinicios del proceso.
+- Wiring de `attachFdGuard()` en `src/app.js` (idempotente).
+- Tests unitarios `src/services/fdGuard.test.js` (4 tests). 561 tests, lint OK, cobertura 100%.
+
 ### Changed (documentación: README en español y licencia)
 - `README.md` reescrito íntegramente en español (se mantienen en inglés solo código, comandos y términos técnicos) y sincronizado con la implementación real: punto de entrada `src/app.js`, `DATABASE_URL` con puerto 5433, variables de entorno completas (`FRONTEND_URL`, `CORS_ORIGIN`, `RESEND_API_KEY`, `EMAIL_FROM`, `SENTRY_RELEASE`, `PORT`), endpoints que faltaban (auth forgot/reset-password, CRUD de usuarios admin, listados admin paginados con filtros `?collectionId`/`?subcategory`, `GET /paintings` público, `featured` de diseño/ilustraciones, reorders de diseño/ilustraciones, `health/db`) y eliminación de los toggles `/feature` y `/publish` (inexistentes desde refactor/magic-numbers).
 - Sección `## Licencia` eliminada del README (no existe archivo LICENSE; proyecto privado).

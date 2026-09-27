@@ -101,12 +101,35 @@ PORT=3000
 ### URL base
 
 ```
-http://localhost:3000/api/v1
+http://localhost:3000/api/v1            # desarrollo
+https://portfolio-api-u5sx.onrender.com/api/v1   # producción
 ```
 
 - **Auth** = cabecera `Authorization: Bearer <JWT>` con rol `ADMIN`.
 - Las rutas de escritura de pinturas, diseño, ilustraciones y biografía aceptan **multipart/form-data** con campo de imagen `image` (archivo o `imageUrl`).
 - Respuesta de error estándar: `{ "error": "...", "code": "..." }`.
+
+### Colección de Postman
+
+Existe una colección con las **52 requests** de la API en `docs/postman/portfolio-api.postman_collection.json` (índice ligero en `docs/postman/INDEX.md`).
+
+Pasos para usarla:
+
+1. **Importar**: Postman → `Import` → seleccionar `docs/postman/portfolio-api.postman_collection.json`.
+2. **Elegir entorno** en las variables de la colección:
+   - `baseUrl` = `http://localhost:3000/api/v1` (desarrollo local, por defecto).
+   - Producción: `https://portfolio-api-u5sx.onrender.com/api/v1`.
+3. **Login**: ejecutar `POST /auth/login`. El script de tests guarda automáticamente el JWT en la variable `authToken`, que usan el resto de requests de admin (`Authorization: Bearer {{authToken}}`).
+4. **Probar**: las requests están agrupadas por recurso (Health, Auth, Users, Collections, Paintings, Exhibitions, Design, Illustrations, Biography, Contact, Upload).
+
+**Usuario de pruebas** (solo válido en desarrollo local con datos del seed, `pnpm exec prisma db seed`):
+
+```
+email: admin@test.com
+password: Admin123!
+```
+
+> ⚠️ Estas credenciales **no existen en producción** (no ejecutar el seed en prod). En producción se requiere la cuenta admin creada vía `scripts/bootstrap-admin.js` (ver `docs/DEPLOY.md`).
 
 ### Health
 
@@ -305,6 +328,40 @@ docker compose down
 # Ver logs
 docker compose logs -f db
 ```
+
+## Despliegue (producción)
+
+**URL de producción**: `https://portfolio-api-u5sx.onrender.com` (API base: `/api/v1`).
+
+### Características del despliegue
+
+| Componente | Detalle |
+|------------|---------|
+| Plataforma | Render — Web Service **free**, runtime **Docker**, región Frankfurt, definido en `render.yaml` (Blueprint, rama `main`) |
+| Base de datos | Supabase PostgreSQL (free, Frankfurt) vía connection string **Session pooler** |
+| Despliegue | Automático al pushear `main`; el entrypoint ejecuta `prisma migrate deploy` antes de arrancar |
+| Health checks | `GET /api/v1/health` (healthcheck de Render) y `GET /api/v1/health/db` |
+| Ping anti-pausa | cron-job.org → `GET /api/v1/health/db` cada 10 min (evita el spin-down de Render a los 15 min y la pausa de Supabase a los ~7 días) |
+| Email | Resend (HTTPS 443) — Render free bloquea SMTP saliente 25/465/587 |
+| Errores | Sentry (`SENTRY_DSN`), eventos con `environment: production` |
+| Logs | Winston en formato JSON → panel de logs de Render |
+| Ciclo de release | Rama `fix/*`/`chore/*` → `develop` (CI: tests + cobertura 100%) → `main` (redeploy) |
+
+Guía completa paso a paso: `docs/DEPLOY.md`.
+
+### Troubleshooting
+
+| Síntoma | Causa probable / solución |
+|---------|---------------------------|
+| Primera petición tarda 30-60s o falla con 502/503 | **Cold start** de Render free tras inactividad; reintentar. El ping anti-pausa lo mitiga |
+| `/health/db` devuelve 503 | BD de Supabase **pausada** (~7 días sin actividad) o `DATABASE_URL` incorrecta; reanudar en el dashboard de Supabase |
+| Migraciones no aplicadas tras deploy | Fallo de `prisma migrate deploy` en el entrypoint; revisar logs de Render. Si el pooler falla, migrar temporalmente con la **Direct connection** |
+| Emails no se envían en producción | Render free bloquea SMTP: es obligatorio `RESEND_API_KEY`. Sin dominio verificado, Resend solo envía a la dirección de la propia cuenta; `EMAIL_FROM` debe ser `onboarding@resend.dev` o el dominio verificado |
+| Errores CORS desde el frontend | `CORS_ORIGIN` solo admite **un** origen; ajustarlo al origen exacto del front (protocolo+host+puerto) |
+| 429 `RATE_LIMITED` | Rate limiting activo (login 10/min, contacto 5/min, forgot/reset 5/15min); esperar a que se cierre la ventana |
+| 401 `UNAUTHORIZED` tras login correcto | JWT expirado (24h) o `JWT_SECRET` regenerado en un redeploy; volver a hacer login |
+| Proceso reiniciado / `write EIO` en Sentry | Pipe de logs del contenedor cerrado transitoriamente; mitigado por `src/services/fdGuard.js` (pendiente de llegar a `main`) |
+| Admin no puede loguearse en prod | La cuenta admin de prod se crea con `scripts/bootstrap-admin.js` (nunca con `prisma db seed`); re-ejecutar el script con el mismo email actualiza la contraseña |
 
 ## Seguridad
 
