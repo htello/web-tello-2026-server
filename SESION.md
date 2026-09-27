@@ -12,13 +12,13 @@ CONTEXTO Y DOCUMENTACIÓN:
 - Orden de fases y HUs: docs/0002-IMPLEMENTATION-ORDER.md
 
 ESTADO DEL PROYECTO:
-- Rama actual: chore/readme-sync-license (pendiente de push y merge a develop)
+- Rama actual: develop (limpia; sin ramas HU pendientes)
 - Cobertura de tests: 100% obligatorio (Vitest)
 - Última HU completada y mergeada: HU13/HU14/HU15 - Formulario de Contacto + Email + Rate Limiting
-- Última rama mergeada: refactor/dedupe-cleanup (factories crud-factory/paginated-list, código muerto, magic numbers) + filtros server-side en listados admin
+- Última rama mergeada: chore/readme-sync-license (README en español + licencia UNLICENSED) + refactor/dedupe-cleanup (factories, código muerto, magic numbers) + filtros server-side en listados admin
 - gh CLI autenticado en este equipo (cuenta htello)
 
-CAMBIO DE rama refactor/dedupe-cleanup (en curso, pendiente de merge a develop):
+CAMBIO DE rama refactor/dedupe-cleanup (mergeado a develop):
 - Nueva factory src/lib/crud-factory.js: createReorderHandler (5 reorder duplicados), createFindManyHandler (listPublished/listFeatured/exhibitions list), createGetByIdHandler (ficha pintura), createImageResourceHandlers (create/update/remove de pinturas/ilustraciones/diseño), resolveImagePublicId + imagePublicIdField (elimina doble evaluación publicId||extractPublicId).
 - Eliminados exports muertos en services/upload.js: uploadImageAsset, resolveImageUrl; fileFilter/ALLOWED_TYPES/MAX_SIZE/CLOUDINARY_FOLDERS pasan a uso interno (tests adaptados con captura de config de Multer vía vi.hoisted).
 - Nuevas constantes/mensajes en lib/constants.js: ERROR_CODES, ADMIN_ROLE, USER_ROLES, MS_PER_MINUTE, CLOUDINARY_BASE_FOLDER/URL_MARKER/UPLOAD_SEGMENT, RESEND_TIMEOUT_MS, PASSWORD_MIN_LENGTH, ISO_DATE_LENGTH, DEFAULT_PORT/DEFAULT_CORS_ORIGIN/JSON_BODY_LIMIT, IMAGE_REQUIRED/REORDER_SUCCESS/REORDER_INVALID_IDS/INVALID_CREDENTIALS_MESSAGE.
@@ -57,13 +57,13 @@ CAMBIOS DE chore/token-efficiency-docs (mergeado a develop):
 - AGENTS.md: nueva sección "Eficiencia de Tokens (OBLIGATORIO)"; escaneos excluyen node_modules/, .opencode/node_modules/, .git/ y lockfiles.
 - prisma/seed.js: contraseña admin → Admin123! (política fuerte); sincronizados colección Postman, docs/0001, docs/0002 y skills/endpoint-tester. Tests mantienen su fixture propio admin123 (autónomo, mockean Prisma).
 
-CAMBIOS DE fix/endpoints (rama en curso, pendiente de merge a develop):
+CAMBIOS DE fix/endpoints (mergeado a develop):
 - Fix validación: campos numéricos/booleanos/fecha opcionales aceptan string vacío ('' → se trata como no enviado con Joi .empty('')), corrigiendo los 400 en multipart/form-data con campos en blanco (year, position, collectionId, isPublished/isFeatured, date). Nuevos helpers positionField()/yearField() en src/middleware/validate.js.
 - Decisión Front↔Back (imágenes): el front usará SIEMPRE raw JSON; la subida de archivos se hace vía POST /api/v1/admin/upload (multipart) → obtener url → enviarla como imageUrl/coverImage en el JSON del POST/PUT. El soporte multipart (upload.single('image')) en paintings/design/illustrations/biography se MANTIENE como capacidad extra ya testada; el front no la usará.
 - Pendiente al iniciar el front: configurar CORS_ORIGIN en .env (src/app.js acepta un único origen; en producción, dominio del hosting). Solo añadir soporte multi-origen si se necesitan varios a la vez.
 - Riesgo aceptado: uploads huérfanos en Cloudinary si el admin abandona un formulario tras subir imagen (bajo volumen; limpieza futura opcional).
 
-CAMBIOS DE chore/docker-deploy (rama en curso):
+CAMBIOS DE chore/docker-deploy (mergeado a develop y desplegado en main):
 - Fix contacto: POST /contact devuelve 502 EMAIL_ERROR si el envío SMTP falla (antes daba 201 falso).
 - Nuevo GET /api/v1/health/db (SELECT 1; 200/503) para monitorización y ping anti-pausa.
 - Dockerización: Dockerfile (node:22-alpine + pnpm 9 + prisma generate, no-root), docker-entrypoint.sh (migrate deploy + start) y render.yaml (Blueprint Render, free, rama main). Imagen verificada en local contra la BD del compose (health, health/db y collections OK).
@@ -74,7 +74,7 @@ CAMBIOS DE chore/docker-deploy (rama en curso):
 - HECHOS manuales (2026-09-22): servicio viejo de Oregon borrado (404 verificado); cron-job.org activo con ping cada 10 min a /health/db.
 - PENDIENTES manuales: ROTAR ADMIN_PASS — SIGUE ACTIVA la expuesta en chat (verificado: login con la clave antigua aún devuelve token); vía PUT /admin/users/1/password o reejecutar bootstrap-admin. SMTP real (contacto da 502 hasta configurarlo); CORS_ORIGIN cuando exista el front; Postman baseUrl prod (aplazado); crear contenido real (colecciones/pinturas/biografía).
 
-CAMBIOS DE feat/password-reset (rama en curso):
+CAMBIOS DE feat/password-reset (mergeado a develop):
 - Recuperación de contraseña auto-servicio: POST /auth/forgot-password (200 genérico + email con token de 1 uso, hash SHA-256 en BD, expiración 1 h) y POST /auth/reset-password (valida token, bcrypt 12, consume token). Rate limit 5/15 min en ambos.
 - Prisma: passwordResetToken/passwordResetExpires en User (migración add_password_reset_fields, aplicada en local; pendiente en prod vía deploy).
 - Nueva env FRONTEND_URL (base del enlace de recuperación; fallback http://localhost:5173). Añadida a .env.example, render.yaml y DEPLOY.md — HAY QUE RELLENARLA en Render al desplegar.
@@ -157,7 +157,7 @@ CAMBIOS EN CLIENT fix/exhibition-upload-section (2026-09-26, repo ../client):
 - Fix: `UPLOAD_SECTIONS` += 'exposiciones', campo imágenes con `section: 'exposiciones'`, JSDoc y AGENTS.md del client actualizados. Las imágenes ya subidas siguen en general (moverlas rompería urls/publicIds de la DB).
 - Verificado en client: 458 tests, lint y build OK. Mergeado a develop del client (06e087e).
 
-CAMBIOS DE chore/readme-sync-license (2026-09-27, rama en curso):
+CAMBIOS DE chore/readme-sync-license (2026-09-27, mergeado a develop):
 - Backend dado por FINALIZADO: smoke test en local (health, health/db, públicos 200, design exige subcategory, admin 401 sin token) + 557 tests, lint OK, cobertura 100%.
 - `README.md` reescrito en español (solo código/términos técnicos en inglés) y sincronizado con la implementación: punto de entrada `src/app.js`, BD en puerto 5433, servicio compose `db`, envs completas, endpoints que faltaban (forgot/reset-password, CRUD users admin, listados admin con filtros `?collectionId`/`?subcategory`, `GET /paintings` público, featured de diseño/ilustraciones, reorders, health/db), eliminados toggles `/feature` y `/publish`; sección Licencia quitada (no hay archivo LICENSE).
 - `package.json`: `"license": "UNLICENSED"` + `"private": true`.
