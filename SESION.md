@@ -15,8 +15,14 @@ ESTADO DEL PROYECTO:
 - Rama actual: develop (limpia; sin ramas HU pendientes)
 - Cobertura de tests: 100% obligatorio (Vitest)
 - Última HU completada y mergeada: HU13/HU14/HU15 - Formulario de Contacto + Email + Rate Limiting
-- Última rama mergeada: chore/readme-sync-license (README en español + licencia UNLICENSED) + refactor/dedupe-cleanup (factories, código muerto, magic numbers) + filtros server-side en listados admin
+- Última rama mergeada: fix/stdout-eio (guard EIO stdout/stderr) + chore/readme-sync-license (README en español + licencia UNLICENSED) + refactor/dedupe-cleanup (factories, código muerto, magic numbers) + filtros server-side en listados admin
 - gh CLI autenticado en este equipo (cuenta htello)
+
+CAMBIO DE rama fix/stdout-eio (mergeado a develop):
+- Nuevo servicio src/services/fdGuard.js: listeners de error en process.stdout/process.stderr que ignoran EIO/EPIPE/EAGAIN/ERR_STREAM_DESTROYED y re-lanzan el resto (attachFdGuard idempotente). Cableado en src/app.js tras el init de Sentry.
+- Motivo: evento real en Sentry producción "uncaughtException: write EIO" (WriteWrap.onWriteComplete, sin frames de app) durante PUT /admin/paintings/:id de 51s; el pipe de logs de Render se cierra transitoriamente y Node mataba el proceso.
+- Tests: src/services/fdGuard.test.js (4 tests). Verificado: 561 tests, lint OK, cobertura 100%. Sin cambios de contrato; docs/openapi.yaml no requiere sync.
+- Sentry verificado operativo en producción: DSN válido en Render (eventos environment:production llegan al dashboard).
 
 CAMBIO DE rama refactor/dedupe-cleanup (mergeado a develop):
 - Nueva factory src/lib/crud-factory.js: createReorderHandler (5 reorder duplicados), createFindManyHandler (listPublished/listFeatured/exhibitions list), createGetByIdHandler (ficha pintura), createImageResourceHandlers (create/update/remove de pinturas/ilustraciones/diseño), resolveImagePublicId + imagePublicIdField (elimina doble evaluación publicId||extractPublicId).

@@ -7,6 +7,11 @@ y este proyecto adherido al [Versionado Semántico](https://semver.org/lang/es/)
 
 ## [Unreleased]
 
+### Fixed (guard de errores de I/O en stdout/stderr)
+- Nuevo servicio `src/services/fdGuard.js`: listeners de `error` en `process.stdout`/`process.stderr` que ignoran códigos de descriptor (`EIO`, `EPIPE`, `EAGAIN`, `ERR_STREAM_DESTROYED`) y re-lanzan el resto. Evita `uncaughtException: write EIO` detectado en producción (Render) cuando el pipe del colector de logs se cierra transitoriamente, que provocaba reinicios del proceso.
+- Wiring de `attachFdGuard()` en `src/app.js` (idempotente).
+- Tests unitarios `src/services/fdGuard.test.js` (4 tests). 561 tests, lint OK, cobertura 100%.
+
 ### Changed (documentación: README en español y licencia)
 - `README.md` reescrito íntegramente en español (se mantienen en inglés solo código, comandos y términos técnicos) y sincronizado con la implementación real: punto de entrada `src/app.js`, `DATABASE_URL` con puerto 5433, variables de entorno completas (`FRONTEND_URL`, `CORS_ORIGIN`, `RESEND_API_KEY`, `EMAIL_FROM`, `SENTRY_RELEASE`, `PORT`), endpoints que faltaban (auth forgot/reset-password, CRUD de usuarios admin, listados admin paginados con filtros `?collectionId`/`?subcategory`, `GET /paintings` público, `featured` de diseño/ilustraciones, reorders de diseño/ilustraciones, `health/db`) y eliminación de los toggles `/feature` y `/publish` (inexistentes desde refactor/magic-numbers).
 - Sección `## Licencia` eliminada del README (no existe archivo LICENSE; proyecto privado).
